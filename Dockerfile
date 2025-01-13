@@ -13,11 +13,7 @@ RUN npm install --legacy-peer-deps
 # Copy the entire NX workspace
 COPY . .
 
-# Build all applications
-# RUN npx nx run-many --target=build --all
-
-# Build Specific Application
-# Build only specific applications
+# Build applications
 RUN npx nx run-many --target=build --projects=shikshagraha-app
 
 # Install PM2 to manage multiple apps
