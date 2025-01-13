@@ -58,7 +58,7 @@ export default function Login() {
         localStorage.setItem('refToken', response?.refresh_token);
         const redirectUrl = process.env.NEXT_PUBLIC_PWA;
         if (redirectUrl) {
-          router.push(redirectUrl);
+          //router.push(redirectUrl);
         }
       } else {
         setShowError(true);
