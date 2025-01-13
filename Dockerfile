@@ -23,4 +23,4 @@ RUN npm install -g pm2
 EXPOSE 3000
 
 # Command to run all apps using PM2
-CMD ["pm2-runtime", "ecosystem.test.config.js"]
+CMD ["pm2-runtime", "ecosystem.config.js"]

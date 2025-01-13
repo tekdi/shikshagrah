@@ -3,12 +3,13 @@ interface LoginParams {
   username: string;
   password: string;
 }
-export const getToken = async ({ username }: LoginParams) => {
+export const getToken = async ({ username, password }: LoginParams) => {
   const data = new URLSearchParams({
     client_id: `${process.env.NEXT_PUBLIC_CLIENT_ID}`,
     client_secret: `${process.env.NEXT_PUBLIC_CLIENT_SECRET}`,
     grant_type: `${process.env.NEXT_PUBLIC_GRANT_TYPE}`,
     username: username,
+    password: password,
   });
 
   try {

@@ -8,8 +8,15 @@ To run the dev server for your app, use:
 nx dev shikshagraha-app --verbose
 ```
 
+Build using docker, use:
+
+```sh
+sudo docker build -f Dockerfile -t shikshagraha-app .
+```
+
 Deploy using docker, use:
 
 ```sh
-sudo docker-compose -f docker-compose.yml up -d
+sudo docker run -p 3000:3000 shikshagraha-app
 ```
+   
