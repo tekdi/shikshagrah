@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid2';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getToken } from '../services/LoginService';
+import { jwtDecode } from "jwt-decode";
 export default function Login() {
   const [formData, setFormData] = useState({
     userName: '',
@@ -54,15 +55,31 @@ export default function Login() {
       });
 
       if (response?.access_token) {
+        const decoded = jwtDecode(response?.access_token);
+        console.log(decoded);
+        const subValue = decoded?.sub?.split(":")[2];
+        localStorage.setItem('userId', subValue);
+        console.log("Stored userId in localStorage:", subValue);
         localStorage.setItem('accToken', response?.access_token);
         localStorage.setItem('refToken', response?.refresh_token);
-        const redirectUrl = process.env.NEXT_PUBLIC_PWA;
+        // const redirectUrl = process.env.NEXT_PUBLIC_PWA;
+        const redirectUrl = '/home';
+
         if (redirectUrl) {
-          //router.push(redirectUrl);
+          router.push(redirectUrl);
+      
+          // Wait for the navigation to complete and send the token
+          // window.addEventListener('load', () => {
+          //   window.opener?.postMessage(
+          //     { token: response.access_token },
+          //     new URL(redirectUrl).origin
+          //   );
+          // });
         }
-      } else {
+      }
+      else {
         setShowError(true);
-        setErrorMessage(response);
+        setErrorMessage(response)
       }
     } catch (error: any) {
       console.error('Login failed:', error);
