@@ -9,5 +9,14 @@ module.exports = {
         NODE_ENV: 'production',
       },
     },
+    {
+      name: 'content',
+      script: 'node_modules/.bin/next',
+      args: 'start -p 4301',
+      cwd: 'mfes/content',
+      env: {
+        NODE_ENV: 'production',
+      },
+    },
   ],
 };

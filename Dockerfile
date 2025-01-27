@@ -20,7 +20,7 @@ RUN npx nx run-many --target=build --projects=shikshagraha-app
 RUN npm install -g pm2
 
 # Expose the ports for all apps
-EXPOSE 3000
+EXPOSE 3000 4301
 
 # Command to run all apps using PM2
 CMD ["pm2-runtime", "ecosystem.config.js"]
