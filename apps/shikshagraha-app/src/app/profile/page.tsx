@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react';
 import {
   fetchProfileData,
   fetchLocationDetails,
-  sendOtp, // new function to send OTP
+  sendOtp,
   deleteAccount,
 } from '../../services/ProfileService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useRouter } from 'next/navigation';
 import EditIcon from '@mui/icons-material/Edit';
 import {
   Button,
@@ -18,70 +17,31 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  CircularProgress,
+  Box,
+  Typography,
+  Card,
+  CardContent,
 } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [locationDetails, setLocationDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showMoreRoles, setShowMoreRoles] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // For confirming account deletion
-  const [openEmailDialog, setOpenEmailDialog] = useState(false); // For email input
-  const [openOtpDialog, setOpenOtpDialog] = useState(false); // For OTP input
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openEmailDialog, setOpenEmailDialog] = useState(false);
+  const [openOtpDialog, setOpenOtpDialog] = useState(false);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const router = useRouter();
-
-  const handleAccountClick = () => {
-    router.push('http://localhost:3000');
-    localStorage.removeItem('accToken');
-  };
-
-  const handleEditClick = () => {
-    router.push('/profile-edit');
-  };
-
-  const handleDeleteAccountClick = () => {
-    setOpenDeleteDialog(true);
-  };
-
-  const handleDeleteConfirmation = () => {
-    // Show the email input dialog
-    setOpenDeleteDialog(false);
-    setOpenEmailDialog(true);
-  };
-
-  const handleSendOtp = async () => {
-    try {
-      // Send OTP to the provided email
-      await sendOtp(email);
-      setOpenEmailDialog(false);
-      setOpenOtpDialog(true); // Show OTP input after sending email
-    } catch (error) {
-      setError('Failed to send OTP');
-      console.error(error);
-    }
-  };
-
-  const handleOtpSubmit = async () => {
-    try {
-      // Submit OTP and delete the account if valid
-      await deleteAccount(otp, true); // Assuming deleteAccount accepts OTP for validation
-      setOpenOtpDialog(false);
-      router.push('/goodbye'); // Navigate to a goodbye page or log out
-    } catch (error) {
-      setError('Invalid OTP');
-      console.error(error);
-    }
-  };
 
   useEffect(() => {
     const getProfileData = async () => {
       try {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
-
         const data = await fetchProfileData(userId, token);
         setProfileData(data);
 
@@ -105,13 +65,41 @@ export default function Profile() {
     getProfileData();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const handleAccountClick = () => {
+    router.push('http://localhost:3000');
+    localStorage.removeItem('accToken');
+  };
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const handleDeleteAccountClick = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirmation = () => {
+    setOpenDeleteDialog(false);
+    setOpenEmailDialog(true);
+  };
+
+  const handleSendOtp = async () => {
+    try {
+      await sendOtp(email);
+      setOpenEmailDialog(false);
+      setOpenOtpDialog(true);
+    } catch (error) {
+      setError('Failed to send OTP');
+      console.error(error);
+    }
+  };
+
+  const handleOtpSubmit = async () => {
+    try {
+      await deleteAccount(otp, true);
+      setOpenOtpDialog(false);
+      router.push('/goodbye');
+    } catch (error) {
+      setError('Invalid OTP');
+      console.error(error);
+    }
+  };
 
   const roleTypes =
     [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
@@ -123,6 +111,7 @@ export default function Profile() {
           .map((role) => role.subType)
       ),
     ] || [];
+
   const organisationRoles =
     profileData?.organisations
       ?.flatMap((org) => org.roles)
@@ -136,10 +125,37 @@ export default function Profile() {
   const displayMedium = framework.medium?.join(', ') || 'N/A';
   const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
   const displaySubject = framework.subject?.join(', ') || 'N/A';
-
-  const handleShowMoreClick = () => {
-    setShowMoreRoles(!showMoreRoles);
+  localStorage.setItem('frameworkname', framework?.id);
+  const handleEditClick = () => {
+    router.push('/profile-edit');
+     localStorage.setItem('selectedBoard', displayBoard);
+     localStorage.setItem('selectedMedium', displayMedium);
+     localStorage.setItem('selectedGradeLevel', displayGradeLevel);
+     localStorage.setItem('selectedSubject', displaySubject);
+     
   };
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
+        {error}
+      </Typography>
+    );
+  }
 
   return (
     <Layout
@@ -158,138 +174,158 @@ export default function Profile() {
       showLogo={true}
       showBack={true}
     >
-      <div style={{ padding: '20px', overflowX: 'hidden' }}>
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          
-          <p>Shikshagraha ID: {profileData?.userName || 'N/A'}</p>
-        </div>
+      <Box
+        sx={{
+          paddingTop: '20px',
+          bgcolor: '#f5f5f5',
+          minHeight: '100vh',
+        }}
+      >
+        <Typography
+          variant="h5"
+          color="#582E92"
+          fontWeight="bold"
+          sx={{ textAlign: 'center', mb: 2 }}
+        >
+          Welcome, {profileData?.firstName || 'User'}
+        </Typography>
 
-        <div
-          style={{
-            backgroundColor: '#f9f9f9',
-            padding: '20px',
-            borderRadius: '10px',
-            marginBottom: '20px',
-            textAlign: 'center',
+        <Card
+          sx={{
+            mb: 3,
+            boxShadow: 3,
+            borderRadius: 3,
+            padding: 2,
+            mb: 3, // margin bottom
+            mt: 2, // margin top
+            ml: 2, // margin left
+            mr: 2,
           }}
         >
-          <h3>Content Preference</h3>
-          <p>
-            <strong>Role:</strong> {displayRole}
-          </p>
-          {roleTypes.includes('administrator') && (
-            <p>
-              <strong>Sub-role:</strong> {displaySubRole}
-            </p>
-          )}
-          {locationDetails.length > 0 ? (
-            locationDetails.map((loc, index) => (
-              <p key={index}>
+          <CardContent>
+            <Typography>
+              <strong>Role:</strong> {displayRole}
+            </Typography>
+            <Typography>
+              <strong>Sub-role:</strong> {displaySubRole || 'N/A'}
+            </Typography>
+            {locationDetails.map((loc, index) => (
+              <Typography key={index}>
                 <strong>
                   {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
                 </strong>{' '}
                 {loc.name || 'N/A'}
-              </p>
-            ))
-          ) : (
-            <p>No location details available.</p>
-          )}
-          <p>
-            <strong>School:</strong>{' '}
-            {profileData?.externalIds?.find(
-              (id) => id.idType === 'declared-school-name'
-            )?.id || 'N/A'}
-          </p>
-        </div>
+              </Typography>
+            ))}
+            <Typography>
+              <strong>School:</strong>{' '}
+              {profileData?.externalIds?.find(
+                (id) => id.idType === 'declared-school-name'
+              )?.id || 'N/A'}
+            </Typography>
+          </CardContent>
+        </Card>
 
-        <div
-          style={{
-            backgroundColor: '#f9f9f9',
-            padding: '20px',
-            borderRadius: '10px',
-            textAlign: 'center',
+        <Card
+          sx={{
+            boxShadow: 3,
+            borderRadius: 3,
+            padding: 2,
+            position: 'relative', // Add relative positioning to the card
+            mb: 3, // margin bottom
+            mt: 2, // margin top
+            ml: 2, // margin left
+            mr: 2, // Margin at the bottom of the card
           }}
         >
-          <p>
-            <strong>Board:</strong> {displayBoard}
-          </p>
-          <p>
-            <strong>Medium:</strong> {displayMedium}
-          </p>
-          <p>
-            <strong>Classes:</strong> {displayGradeLevel}
-          </p>
-          <p>
-            <strong>Subjects:</strong> {displaySubject}
-          </p>
-        </div>
-        <div>
+          {/* Pencil icon positioned at the top-right corner */}
+          <EditIcon
+            sx={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              cursor: 'pointer',
+              fontSize: '24px',
+              color: '#582E92',
+            }}
+            onClick={handleEditClick}
+          />
+
+          <CardContent>
+            <Typography>
+              <strong>Board:</strong> {displayBoard}
+            </Typography>
+            <Typography>
+              <strong>Medium:</strong> {displayMedium}
+            </Typography>
+            <Typography>
+              <strong>Classes:</strong> {displayGradeLevel}
+            </Typography>
+            <Typography>
+              <strong>Subjects:</strong> {displaySubject}
+            </Typography>
+          </CardContent>
+        </Card>
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Button
             onClick={handleDeleteAccountClick}
-            variant="outlined" // Use 'outlined' for no background
+            variant="outlined"
             style={{
-              marginTop: '15px',
-              padding: '10px 20px',
-              color: '#582E92', // Text color
-              borderColor: '#582E92', // Border color
-              borderRadius: '5px',
-              cursor: 'pointer',
+              backgroundColor: '#582E92',
+              color: 'white',
+              border: '1px solid #582E92',
             }}
           >
             Delete Account
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Delete Account Confirmation Dialog */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
       >
-        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
+        <DialogTitle>Confirm Account Deletion</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-            No
-          </Button>
-          <Button onClick={handleDeleteConfirmation} color="primary">
-            Yes
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDeleteConfirmation} color="error">
+            Proceed
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Email Input Dialog for OTP */}
+      {/* Email Input Dialog */}
       <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
-        <DialogTitle>Enter your Email to Receive OTP</DialogTitle>
+        <DialogTitle>Enter Your Email</DialogTitle>
         <DialogContent>
           <TextField
             label="Email"
             fullWidth
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ marginBottom: '15px' }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleSendOtp} color="primary">
-            Send OTP
-          </Button>
+          <Button onClick={() => setOpenEmailDialog(false)}>Cancel</Button>
+          <Button onClick={handleSendOtp}>Send OTP</Button>
         </DialogActions>
       </Dialog>
 
       {/* OTP Input Dialog */}
       <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
-        <DialogTitle>Enter OTP to Delete Account</DialogTitle>
+        <DialogTitle>Enter OTP</DialogTitle>
         <DialogContent>
           <TextField
-            label="Enter OTP"
+            label="OTP"
             fullWidth
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            style={{ marginBottom: '15px' }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleOtpSubmit} color="primary">
+          <Button onClick={() => setOpenOtpDialog(false)}>Cancel</Button>
+          <Button onClick={handleOtpSubmit} color="error">
             Delete Account
           </Button>
         </DialogActions>

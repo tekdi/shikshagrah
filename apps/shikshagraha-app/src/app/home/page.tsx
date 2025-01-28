@@ -2,17 +2,17 @@
 import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
-import {
-  fetchProfileData,
-  fetchLocationDetails,
-} from '../../services/ProfileService';
+import { fetchProfileData } from '../../services/ProfileService';
 import { useEffect, useState } from 'react';
 import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
+import { Button, CircularProgress, Box, Typography } from '@mui/material';
+
 export default function Home() {
   const cardData = [
     { title: 'Programs', icon: '📄' },
     { title: 'Projects', icon: '📐' },
-    { title: 'Courses', icon: '🎓' },
+    { title: 'Survey', icon: '📊' },
+
     { title: 'Reports', icon: '📊' },
   ];
 
@@ -46,10 +46,7 @@ export default function Home() {
     localStorage.removeItem('accToken');
   };
 
- 
-  console.log(profileData);
   return (
-
     <Layout
       showTopAppBar={{
         title: 'Home',
@@ -66,37 +63,76 @@ export default function Home() {
       showLogo={true}
       showBack={true}
     >
-      <div
-        style={{
+      <Box
+        sx={{
           padding: '20px',
+          bgcolor: '#f5f5f5',
+
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h2>Welcome, {profileData?.firstName}</h2>
-          <p style={{ fontSize: '14px', color: '#666' }}>
-            Browse Shikshagraha library to find relevant content based on your preferences (Board, Medium, Class,Subject)
-          </p>
-        </div>
+        {loading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '50vh',
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography variant="h6" color="error" textAlign="center">
+            {error}
+          </Typography>
+        ) : (
+          <>
+            <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
+              <Typography variant="h5" color="#582E92" fontWeight="bold" fontSize="20px">
+                Welcome, {profileData?.firstName}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ marginTop: 1 }}
+              >
+                Browse Shikshagraha library to find relevant content based on
+                your preferences (Board, Medium, Class, Subject)
+              </Typography>
+            </Box>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '20px',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-          }}
-        >
-          {cardData.map((card, index) => (
-            <DynamicCard
-              key={index}
-              title={card.title}
-              icon={card.icon} // Assuming DynamicCard supports icons
-            />
-          ))}
-        </div>
-
-
-      </div>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: '20px',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                marginBottom: 4,
+              }}
+            >
+              {cardData.map((card, index) => (
+                <DynamicCard
+                  key={index}
+                  title={card.title}
+                  icon={card.icon}
+                  sx={{
+                    borderRadius: 2,
+                    boxShadow: 3,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: 6,
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          </>
+        )}
+      </Box>
     </Layout>
   );
 }

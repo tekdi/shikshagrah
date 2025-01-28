@@ -96,3 +96,45 @@ export const deleteAccount = async (emailOrPhone, isOtp = false) => {
   //   throw new Error('Failed to delete account');
   // }
 };
+
+export const updateProfile = async (userId, selectedValues) => {
+  const { board, medium, gradeLevel, subject } = selectedValues;
+
+  const requestData = {
+    request: {
+      userId,
+      framework: {
+        board: board || [],
+        gradeLevel: gradeLevel || [],
+        id: localStorage.getItem('frameworkname'), // Update with actual ID if dynamic
+        medium: medium || [],
+        subject: subject || [],
+      },
+    },
+  };
+  console.log('requestData', requestData);
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_UPDATE_USER}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with actual token
+          'x-authenticated-user-token': localStorage.getItem('accToken'), // Replace with actual user token
+        },
+        body: JSON.stringify(requestData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
