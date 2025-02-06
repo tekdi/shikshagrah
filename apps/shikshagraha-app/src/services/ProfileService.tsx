@@ -1,4 +1,5 @@
 // src/services/profileService.ts
+import axios from 'axios';
 
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
@@ -63,38 +64,97 @@ export const fetchLocationDetails = async (locations) => {
   }
 };
 
-export const sendOtp = async (email) => {
-  // try {
-  //   const response = await axios.post(`${API_URL}/account/send-otp`, {
-  //     email,
-  //   });
-  //   return response.data;
-  // } catch (error) {
-  //   console.error('Error sending OTP:', error);
-  //   throw new Error('Failed to send OTP');
-  // }
+export const sendOtp = async (key: string, type: 'email' | 'phone') => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_SEND_OTP}`,
+      {
+        request: {
+          type: type,
+          key: key,
+          templateId: 'otpContactUpdateTemplate',
+        },
+      },
+      {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    throw new Error('Failed to send OTP');
+  }
 };
 
 // Delete Account
-export const deleteAccount = async (emailOrPhone, isOtp = false) => {
-  // try {
-  //   if (isOtp) {
-  //     // If OTP is being verified, we assume OTP is passed along with the request
-  //     const response = await axios.post(`${API_URL}/account/delete/verify`, {
-  //       otp: emailOrPhone,
-  //     });
-  //     return response.data;
-  //   } else {
-  //     // Initiating account deletion process, passing email or phone for verification
-  //     const response = await axios.post(`${API_URL}/account/delete`, {
-  //       emailOrPhone,
-  //     });
-  //     return response.data;
-  //   }
-  // } catch (error) {
-  //   console.error('Error deleting account:', error);
-  //   throw new Error('Failed to delete account');
-  // }
+export const deleteAccount = async (
+  key: string,
+  type: 'email' | 'phone',
+  otp?: string,
+  userId?: string,
+  authToken?: string
+) => {
+  try {
+    if (otp) {
+      // Step 1: Verify OTP
+      const verifyResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFY_OTP}`,
+       
+        {
+          request: {
+            key: key,
+            type: type,
+            otp: otp,
+            userId: userId,
+          },
+        },
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
+          },
+        }
+      );
+      console.log('verifyResponse', verifyResponse);
+      if (verifyResponse.data?.result !== 'SUCCESS') {
+        throw new Error('OTP verification failed');
+      }
+
+      console.log('OTP Verified Successfully');
+
+      // Step 2: Delete Account
+      const deleteResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_DELETE_USER}`,
+
+        {
+          request: {
+            userId: localStorage.getItem('userId'),
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
+            'x-authenticated-user-token': localStorage.getItem('accToken'),
+          },
+        }
+      );
+
+      return deleteResponse.data;
+    } else {
+      throw new Error('OTP is required to delete account');
+    }
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    return new Error(
+      error.response?.data?.message || 'Failed to delete account'
+    );
+  }
 };
 
 export const updateProfile = async (userId, selectedValues) => {

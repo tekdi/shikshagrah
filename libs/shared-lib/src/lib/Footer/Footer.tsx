@@ -21,19 +21,22 @@ export const Footer: React.FC = () => {
       setValue(2);
     }
   }, [pathname]);
-
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    if (value !== newValue) {
-      setValue(newValue);
-      if (newValue === 0) {
-        router.push('/home');
-      } else if (newValue === 1) {
-        router.push('/content');
-      } else {
-        router.push('/profile');
-      }
+const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+  if (value !== newValue) {
+    setValue(newValue);
+    if (newValue === 0) {
+      // router.replace('/home'); 
+      window.location.href = '/home';
+    } else if (newValue === 1) {
+      router.replace(`${process.env.NEXT_PUBLIC_CONTENT}/content`); 
+    } else {
+      // router.replace('http://localhost:3000/profile'); 
+       window.location.href = '/profile';
     }
-  };
+  }
+};
+
+
 
   return (
     <Box
@@ -42,6 +45,7 @@ export const Footer: React.FC = () => {
         position: 'fixed',
         bottom: 0,
         zIndex: 10,
+        marginLeft: '-8px',
         bgcolor: '#FF9911', // Match header background color
         borderTop: (theme) => `1px solid ${theme.palette.divider}`, // Optional border for separation
       }}

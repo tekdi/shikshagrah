@@ -7,11 +7,12 @@ interface PlayerPageProps {
 const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
   const router = useRouter();
   const { identifier } = router.query; // Access the identifier from the URL
-  if (!id) {
+  console.log('id', identifier);
+  if (!identifier) {
     return <div>Loading...</div>;
   }
 
-  return <SunbirdPlayer identifier={id as string} />;
+  return <SunbirdPlayer identifier={id ? id : (identifier as string)} />;
 };
 
 export default PlayerPage;

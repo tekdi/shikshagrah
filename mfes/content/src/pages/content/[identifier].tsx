@@ -28,6 +28,7 @@ export default function Content() {
     setIsLoading(true);
     try {
       const result = await hierarchyAPI(identifier as string);
+      //@ts-ignore
       if (result) setContentData([result]);
     } catch (error) {
       console.error('Failed to fetch content:', error);

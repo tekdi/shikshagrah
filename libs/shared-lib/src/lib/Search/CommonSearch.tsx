@@ -34,7 +34,7 @@ export const CommonSearch: React.FC<SearchBarProps> = ({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        border: '1px solid #ccc',
+        // border: '1px solid #ccc',
         borderRadius: '4px',
         padding: '2px 4px',
         ...sx,
@@ -43,7 +43,7 @@ export const CommonSearch: React.FC<SearchBarProps> = ({
       {leftIcon && (
         <IconButton
           onClick={onLeftIconClick}
-          sx={{ p: '10px' }}
+          // sx={{ p: '10px' }}
           aria-label={leftIconAriaLabel || 'search navigation button'}
         >
           {leftIcon}

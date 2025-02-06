@@ -3,15 +3,15 @@ import axios from 'axios';
 export const searchLocation = async (id, type = 'school') => {
   try {
     const headers = {
-      'Authorization': process.env.NEXT_PUBLIC_AUTH,
+      Authorization: process.env.NEXT_PUBLIC_AUTH,
       'Content-Type': 'application/json',
     };
-    
+
     // Set the filter based on type
     const filters = {
       type: type,
     };
-    
+
     // Use `code` for 'school' and `id` for other types (cluster, block, district, state)
     if (type === 'school') {
       filters.code = id; // For school, we use `code` as the identifier
@@ -30,7 +30,7 @@ export const searchLocation = async (id, type = 'school') => {
       payload,
       { headers }
     );
-    
+
     return response.data;
   } catch (error) {
     console.error('Error fetching location data:', error);
@@ -59,7 +59,9 @@ export const fetchLocationData = async (udisecode) => {
     const fetchParentData = async (parentId, type) => {
       const response = await searchLocation(parentId, type);
       if (response.result.count === 0) {
-        throw new Error(`${type.charAt(0).toUpperCase() + type.slice(1)} data not found`);
+        throw new Error(
+          `${type.charAt(0).toUpperCase() + type.slice(1)} data not found`
+        );
       }
       const data = response.result.response[0];
       return {
@@ -99,27 +101,41 @@ export const fetchLocationData = async (udisecode) => {
     }
 
     return locationData;
-
   } catch (error) {
     console.error('Error in location fetching process:', error);
     return error;
   }
 };
 
-export const generateOTP = async (email: string) => {
+export const generateOTP = async (key, type) => {
   const headers = {
-    'Authorization': process.env.NEXT_PUBLIC_AUTH,
+    Authorization: process.env.NEXT_PUBLIC_AUTH,
     'Content-Type': 'application/json',
   };
-  const req = {
-    request: {
-      key: email,
-      type: 'email',
-    },
-  };
+  let req = {};
+  console.log('type', type);
+  if (type === 'email') {
+    req = {
+      request: {
+        key,
+        type,
+      },
+    };
+  } else {
+    req = {
+      request: {
+        key,
+        type,
+        templateId: 'otpContactUpdateTemplate',
+      },
+    };
+  }
+
   try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_GENRATE_OTP}`, req
-      , { headers }
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_GENRATE_OTP}`,
+      req,
+      { headers }
     );
     return response.data;
   } catch (error) {
@@ -129,7 +145,7 @@ export const generateOTP = async (email: string) => {
 
 export const verifyOtpService = async (email, otp) => {
   const headers = {
-    'Authorization': process.env.NEXT_PUBLIC_AUTH,
+    Authorization: process.env.NEXT_PUBLIC_AUTH,
     'Content-Type': 'application/json',
   };
   const req = {
@@ -141,9 +157,12 @@ export const verifyOtpService = async (email, otp) => {
   };
 
   try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFT_OTP}`, req
-      , { headers }
-    );    return response.data; // Return response to be handled in the component
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFT_OTP}`,
+      req,
+      { headers }
+    );
+    return response.data; // Return response to be handled in the component
   } catch (error) {
     return error.response?.data?.error?.params?.errmsg || 'Error verifying OTP';
   }
@@ -151,10 +170,13 @@ export const verifyOtpService = async (email, otp) => {
 
 export const registerUserService = async (requestData) => {
   try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_NEW_REGISTRATION}`, requestData);
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_NEW_REGISTRATION}`,
+      requestData
+    );
     return response.data;
   } catch (error) {
-    console.error('Error submitting registration data:', error);
-    return error;
+    // console.error('Error submitting registration data:', error);
+    return error.response;
   }
 };

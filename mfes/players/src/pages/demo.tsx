@@ -9,7 +9,9 @@ import CustomRadioGroup from '../components/Radio/CustomRadioGroup';
 import CustomSelect from '../components/Select/CustomSelect';
 import CustomSwitch from '../components/Switches/CustomSwitch';
 import CustomTextField from '../components/Textfields/CustomTextField';
-import { SunbirdPlayer } from '@shared-lib';
+// import { SunbirdPlayer } from '@shared-lib';
+// import { Collection } from '@shared-lib';
+// import { QuestionSet } from '@shared-lib';
 
 const Demo: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -136,7 +138,7 @@ const Demo: React.FC = () => {
           do_21421049808039936017' 
           do_214210683521646592110' 
           do_21421049808039936017'  */}
-      <SunbirdPlayer identifier="do_1139655567547432961142" />
+      {/* <SunbirdPlayer identifier="do_214210683521646592110" /> */}
     </Box>
   );
 };

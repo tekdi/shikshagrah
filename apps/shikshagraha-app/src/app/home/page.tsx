@@ -10,7 +10,10 @@ import { Button, CircularProgress, Box, Typography } from '@mui/material';
 export default function Home() {
   const cardData = [
     { title: 'Programs', icon: '📄' },
-    { title: 'Projects', icon: '📐' },
+    {
+      title: 'Projects',
+      icon: '📐',
+    },
     { title: 'Survey', icon: '📊' },
 
     { title: 'Reports', icon: '📊' },
@@ -42,20 +45,29 @@ export default function Home() {
 
   const handleAccountClick = () => {
     console.log('Account clicked');
-    router.push('http://localhost:3000');
+    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
+    localStorage.clear();
   };
-
+  const handleCardClick = (data) => {
+    console.log('Card clicked:', data);
+    if (data) {
+      const targetUrl = `${process.env.NEXT_PUBLIC_PWA}/home`;
+      window.postMessage(data, targetUrl); // Pass data via postMessage
+      window.open(targetUrl, '_self'); // Open Angular home page
+    }
+  };
   return (
     <Layout
       showTopAppBar={{
         title: 'Home',
-        showMenuIcon: false,
-        actionIcons: [
+        showMenuIcon: true,
+
+        profileIcon: [
           {
             icon: <LogoutIcon />,
             ariaLabel: 'Account',
-            onClick: handleAccountClick,
+            onLogoutClick: handleAccountClick,
           },
         ],
       }}
@@ -63,14 +75,28 @@ export default function Home() {
       showLogo={true}
       showBack={true}
     >
+      {/* <div style={{ width: '100%', height: '100%' }}>
+      <iframe
+        src={`${process.env.NEXT_PUBLIC_PWA}`}
+        style={{
+          width: '100%',
+          height: '90vh',
+          border: 'none',
+        }}
+        title="Angular App"
+      ></iframe>
+      </div> */}
+
       <Box
         sx={{
-          padding: '20px',
           bgcolor: '#f5f5f5',
-
+          width: '100%',
           display: 'flex',
+          alignItems: 'center',
           flexDirection: 'column',
-          justifyContent: 'center',
+          marginTop: '20px',
+          paddingLeft: 0, // Ensure no padding on the left side
+          paddingRight: 0,
         }}
       >
         {loading ? (
@@ -91,7 +117,12 @@ export default function Home() {
         ) : (
           <>
             <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
-              <Typography variant="h5" color="#582E92" fontWeight="bold" fontSize="20px">
+              <Typography
+                variant="h5"
+                color="#582E92"
+                fontWeight="bold"
+                fontSize="20px"
+              >
                 Welcome, {profileData?.firstName}
               </Typography>
               <Typography
@@ -127,6 +158,7 @@ export default function Home() {
                       boxShadow: 6,
                     },
                   }}
+                  onClick={() => handleCardClick(card.data)}
                 />
               ))}
             </Box>

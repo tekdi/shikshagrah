@@ -108,11 +108,15 @@ interface ContentSearchResponse {
 // Define the payload
 
 export const ContentSearch = async (
-  identifier?: string
+  type: string,
+  searchText?: string,
+  filterValues?: object,
+  limit: number = 4,
+  offset: number = 0
 ): Promise<ContentSearchResponse[]> => {
   try {
     // Ensure the environment variable is defined
-    const searchApiUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const searchApiUrl = process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL;
     if (!searchApiUrl) {
       throw new Error('Search API URL environment variable is not configured');
     }
@@ -120,39 +124,32 @@ export const ContentSearch = async (
 
     const data = {
       request: {
-        filters: identifier
-          ? { identifier }
-          : {
-              // identifier: 'do_114228944942358528173',
-              // identifier: 'do_1141652605790289921389',
-              primaryCategory: [
-                'Collection',
-                'Resource',
-                'Content Playlist',
-                'Course',
-                'Course Assessment',
-                'Digital Textbook',
-                'eTextbook',
-                'Explanation Content',
-                'Learning Resource',
-                'Lesson Plan Unit',
-                'Practice Question Set',
-                'Teacher Resource',
-                'Textbook Unit',
-                'LessonPlan',
-                'FocusSpot',
-                'Learning Outcome Definition',
-                'Curiosity Questions',
-                'MarkingSchemeRubric',
-                'ExplanationResource',
-                'ExperientialResource',
-                'Practice Resource',
-                'TVLesson',
-                'Course Unit',
-                'Exam Question',
-                'Question paper',
-              ],
-            },
+        filters: {
+          // identifier: 'do_114228944942358528173',
+          // identifier: 'do_1141652605790289921389',
+          ...filterValues,
+          //need below after login user channel for dynamic load content
+          channel: '0135656861912678406',
+
+          primaryCategory: [type],
+        },
+        fields: [
+          'name',
+          'appIcon',
+          'description',
+          'posterImage',
+          'mimeType',
+          'identifier',
+          'resourceType',
+          'primaryCategory',
+          'contentType',
+          'trackable',
+          'children',
+          'leafNodes',
+        ],
+        query: searchText,
+        limit: limit,
+        offset: offset,
       },
     };
     const config: AxiosRequestConfig = {

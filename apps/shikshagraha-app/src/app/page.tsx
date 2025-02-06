@@ -84,6 +84,8 @@ export default function Login() {
         localStorage.setItem('accToken', response?.access_token);
         localStorage.setItem('refToken', response?.refresh_token);
 
+        // const redirectUrl = `${process.env.NEXT_PUBLIC_PWA}`;
+
         const redirectUrl = '/home';
         if (redirectUrl) {
           router.push(redirectUrl);
@@ -239,7 +241,7 @@ export default function Login() {
           <Button
             onClick={handleButtonClick}
             sx={{
-              bgcolor: '#6750A4',
+              bgcolor: '#582E92',
               color: '#FFFFFF',
               borderRadius: '30px',
               textTransform: 'none',

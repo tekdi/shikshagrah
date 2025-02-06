@@ -11,7 +11,9 @@ const SunbirdQuMLPlayer = ({ playerConfig }: PlayerConfigProps) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      //@ts-ignore
       window.$ = window.jQuery = $;
+      //@ts-ignore
       window.questionListUrl = '/api/question/v2/list';
     }
 
@@ -62,10 +64,13 @@ const SunbirdQuMLPlayer = ({ playerConfig }: PlayerConfigProps) => {
 
   return (
     <div className="player-grid" style={{ height: '100vh' }}>
+      {/* @ts-ignore */}
       <sunbird-quml-player
         player-config={JSON.stringify(playerConfig)}
         ref={SunbirdQuMLPlayerRef}
-      ></sunbird-quml-player>
+      >
+        {/* @ts-ignore */}
+      </sunbird-quml-player>
     </div>
   );
 };

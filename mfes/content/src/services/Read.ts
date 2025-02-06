@@ -111,7 +111,7 @@ interface ContentSearchResponse {
 export const contentReadAPI = async (doId: string) => {
   try {
     // Ensure the environment variable is defined
-    const searchApiUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const searchApiUrl = process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL;
     if (!searchApiUrl) {
       throw new Error('Search API URL environment variable is not configured');
     }
@@ -121,7 +121,7 @@ export const contentReadAPI = async (doId: string) => {
     const config: AxiosRequestConfig = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `https://sunbirdsaas.com/api/content/v1/read/` + doId,
+      url: `${searchApiUrl}/api/content/v1/read/` + doId,
       headers: {
         Authorization: `'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0WEZYTWFVOWFBanpUbk5aSXNySEpyV0hwVW94bzY3NyJ9.WSWVtVh5MCH_yymFEM_qpVzXGdDO5mukrqmIii1C5Ww'`,
       },

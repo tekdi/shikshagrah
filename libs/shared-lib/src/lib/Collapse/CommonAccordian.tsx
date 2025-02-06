@@ -39,7 +39,7 @@ const renderNestedData = (
   icon: React.ReactNode,
   status: string
 ) => {
-  return data?.map((val) => {
+  return data?.map((val: any) => {
     return (
       <Box
         key={val.identifier}
@@ -123,6 +123,7 @@ export const CommonAccordian: React.FC<CommonAccordionProps> = ({
               sx={{ fontWeight: 'bold' }}
               onClick={handleNavigate}
             >
+              {/* @ts-ignore */}
               {data?.leafNodesCount} Resources
             </Typography>
 

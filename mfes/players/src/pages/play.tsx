@@ -53,9 +53,11 @@ const Players: React.FC<SunbirdPlayerProps> = ({
           config.metadata = metadata;
         } else if (MIME_TYPE.INTERACTIVE_MIME_TYPE.includes(data?.mimeType)) {
           config = { ...V1PlayerConfig, metadata: data };
+          //@ts-ignore
           config.context['contentId'] = identifier;
         } else {
           config = { ...V2PlayerConfig, metadata: data };
+          //@ts-ignore
           config.context['contentId'] = identifier;
         }
 
@@ -96,12 +98,12 @@ const Players: React.FC<SunbirdPlayerProps> = ({
         </Box>
       ) : (
         <Box marginTop="1rem" px="14px">
-          <Typography
+          {/* <Typography
             color="#024f9d"
             sx={{ padding: '0 0 4px 4px', fontWeight: 'bold' }}
           >
             {playerConfig?.metadata?.name || 'Loading...'}
-          </Typography>
+          </Typography> */}
           <SunbirdPlayers player-config={playerConfig} />
         </Box>
       )}

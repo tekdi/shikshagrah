@@ -73,10 +73,13 @@ const SunbirdEpubPlayer = ({ playerConfig }: PlayerConfigProps) => {
 
   return (
     <div className="player-grid" style={{ height: '100vh' }}>
+      {/* @ts-ignore */}
       <sunbird-epub-player
         player-config={JSON.stringify(playerConfig)}
         ref={sunbirdEpubPlayerRef}
-      ></sunbird-epub-player>
+      >
+        {/* @ts-ignore */}
+      </sunbird-epub-player>
     </div>
   );
 };

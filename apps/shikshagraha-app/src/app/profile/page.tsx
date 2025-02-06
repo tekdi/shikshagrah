@@ -56,7 +56,7 @@ export default function Profile() {
         setLocationDetails(sortedLocations);
       } catch (err) {
         console.error('Error fetching profile data:', err);
-        setError('Failed to load profile data');
+        // setError('Failed to load profile data');
       } finally {
         setLoading(false);
       }
@@ -66,8 +66,10 @@ export default function Profile() {
   }, []);
 
   const handleAccountClick = () => {
-    router.push('http://localhost:3000');
-    localStorage.removeItem('accToken');
+  console.log('Account clicked');
+  router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+  localStorage.removeItem('accToken');
+  localStorage.clear();
   };
 
   const handleDeleteAccountClick = () => {
@@ -80,8 +82,23 @@ export default function Profile() {
   };
 
   const handleSendOtp = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^[0-9]{10}$/;
+
+    let type: 'email' | 'phone';
+
+    if (emailRegex.test(email)) {
+      type = 'email';
+    } else if (mobileRegex.test(email)) {
+      type = 'phone';
+    } else {
+      setError('Please enter a valid Email or Mobile Number');
+      return;
+    }
+
     try {
-      await sendOtp(email);
+      console.log(`Sending OTP to ${email} as ${type}`);
+      await sendOtp(email, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
     } catch (error) {
@@ -90,16 +107,35 @@ export default function Profile() {
     }
   };
 
-  const handleOtpSubmit = async () => {
-    try {
-      await deleteAccount(otp, true);
-      setOpenOtpDialog(false);
-      router.push('/goodbye');
-    } catch (error) {
-      setError('Invalid OTP');
-      console.error(error);
-    }
-  };
+ const handleOtpSubmit = async () => {
+   try {
+     if (!otp) {
+       setError('Please enter OTP');
+       return;
+     }
+
+     const storedUserId = localStorage.getItem('userId');
+     const authToken = localStorage.getItem('accToken');
+
+     if (!storedUserId || !authToken) {
+       setError('User authentication failed. Please log in again.');
+       return;
+     }
+
+     const emailOrPhone = email; // Use the entered email/phone
+     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+     const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
+
+     await deleteAccount(emailOrPhone, type, otp, storedUserId, authToken);
+
+     setOpenOtpDialog(false);
+     console.log('Account successfully deleted');
+     // router.push('http://localhost:3000'); // Redirect if needed
+   } catch (error) {
+     setError('Invalid OTP');
+     console.error(error);
+   }
+ };
 
   const roleTypes =
     [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
@@ -128,11 +164,10 @@ export default function Profile() {
   localStorage.setItem('frameworkname', framework?.id);
   const handleEditClick = () => {
     router.push('/profile-edit');
-     localStorage.setItem('selectedBoard', displayBoard);
-     localStorage.setItem('selectedMedium', displayMedium);
-     localStorage.setItem('selectedGradeLevel', displayGradeLevel);
-     localStorage.setItem('selectedSubject', displaySubject);
-     
+    localStorage.setItem('selectedBoard', displayBoard);
+    localStorage.setItem('selectedMedium', displayMedium);
+    localStorage.setItem('selectedGradeLevel', displayGradeLevel);
+    localStorage.setItem('selectedSubject', displaySubject);
   };
   if (loading) {
     return (
@@ -160,13 +195,14 @@ export default function Profile() {
   return (
     <Layout
       showTopAppBar={{
-        title: 'Profile Details',
-        showMenuIcon: false,
-        actionIcons: [
+        title: 'Profile',
+        showMenuIcon: true,
+
+        profileIcon: [
           {
             icon: <LogoutIcon />,
-            ariaLabel: 'Logout',
-            onClick: handleAccountClick,
+            ariaLabel: 'Account',
+            onLogoutClick: handleAccountClick,
           },
         ],
       }}
@@ -288,7 +324,14 @@ export default function Profile() {
       >
         <DialogTitle>Confirm Account Deletion</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button
+            style={{
+              color: '#582E92',
+            }}
+            onClick={() => setOpenDeleteDialog(false)}
+          >
+            Cancel
+          </Button>
           <Button onClick={handleDeleteConfirmation} color="error">
             Proceed
           </Button>
@@ -297,18 +340,32 @@ export default function Profile() {
 
       {/* Email Input Dialog */}
       <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
-        <DialogTitle>Enter Your Email</DialogTitle>
+        <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
         <DialogContent>
           <TextField
-            label="Email"
+            label="Email/Mobile Number"
             fullWidth
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEmailDialog(false)}>Cancel</Button>
-          <Button onClick={handleSendOtp}>Send OTP</Button>
+          <Button
+            style={{
+              color: '#582E92',
+            }}
+            onClick={() => setOpenEmailDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            style={{
+              color: '#582E92',
+            }}
+            onClick={handleSendOtp}
+          >
+            Send OTP
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -324,8 +381,21 @@ export default function Profile() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenOtpDialog(false)}>Cancel</Button>
-          <Button onClick={handleOtpSubmit} color="error">
+          <Button
+            style={{
+              color: '#582E92',
+            }}
+            onClick={() => setOpenOtpDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            style={{
+              color: 'red',
+            }}
+            onClick={handleOtpSubmit}
+            color="error"
+          >
             Delete Account
           </Button>
         </DialogActions>
