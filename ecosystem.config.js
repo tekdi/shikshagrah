@@ -10,6 +10,15 @@ module.exports = {
       },
     },
     {
+      name: 'registration',
+      script: 'node_modules/.bin/next',
+      args: 'start -p 4300',
+      cwd: 'mfes/registration',
+      env: {
+        NODE_ENV: 'production',
+      },
+    },
+    {
       name: 'content',
       script: 'node_modules/.bin/next',
       args: 'start -p 4301',

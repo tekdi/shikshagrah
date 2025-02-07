@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3000:3000'
+      - '4300:4300'
       - '4301:4301'
     environment:
       - NODE_ENV=production
