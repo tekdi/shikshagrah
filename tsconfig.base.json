@@ -14,7 +14,26 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@collection": ["mfes/editors/src/components/QuestionSetEditor.tsx"],
+      "@content/*": ["mfes/*"],
+      "@login": ["mfes/authentication/src/pages/login.tsx"],
+      "@mfe-next": ["mfes/mfe-next/src/app/page.tsx"],
+      "@mfe-next-2": ["mfes/mfe-next-2/src/app/page.tsx"],
+      "@mfe-next-page-1": ["mfes/mfe-next-page-1/src/pages/_app.tsx"],
+      "@mfe-next-page-2": ["mfes/mfe-next-page-2/src/pages/_app.tsx"],
+      "@players": ["mfes/players/src/pages/play.tsx"],
+      "@questionSet": ["mfes/editors/src/components/CollectionEditor.tsx"],
+      "@registration": ["mfes/registration/src/app/newUser/page.tsx"],
+      "@scp-teacher": ["mfes/scp-teacher/src/pages/index.tsx"],
+      "@shared-lib": ["libs/shared-lib/src/index.ts"],
+      "@shared-lib/*": ["libs/shared-lib/src/*"],
+      "@shikshagrah/ui-theme": ["shared/src/index.ts"],
+      "@shikshav2.0/shared": ["libs/shared/src/index.ts"],
+      "@test-next-route": ["mfes/test-next-route/src/pages/index.tsx"],
+      "@test-react-vite": ["mfes/mfes/test-react-vite"],
+      "@youthNet": ["mfes/youthNet/src/pages/index.tsx"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
