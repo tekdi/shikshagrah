@@ -57,12 +57,17 @@ export default function Home() {
       window.open(targetUrl, '_self'); // Open Angular home page
     }
   };
+  useEffect(() => {
+    if (typeof window !== 'undefined' && profileData?.framework?.id) {
+      localStorage.setItem('frameworkname', profileData.framework.id);
+    }
+  }, [profileData]);
+
   return (
     <Layout
       showTopAppBar={{
         title: 'Home',
         showMenuIcon: true,
-
         profileIcon: [
           {
             icon: <LogoutIcon />,
@@ -75,28 +80,12 @@ export default function Home() {
       showLogo={true}
       showBack={true}
     >
-      {/* <div style={{ width: '100%', height: '100%' }}>
-      <iframe
-        src={`${process.env.NEXT_PUBLIC_PWA}`}
-        style={{
-          width: '100%',
-          height: '90vh',
-          border: 'none',
-        }}
-        title="Angular App"
-      ></iframe>
-      </div> */}
-
       <Box
         sx={{
-          bgcolor: '#f5f5f5',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          flexDirection: 'column',
-          marginTop: '20px',
-          paddingLeft: 0, // Ensure no padding on the left side
-          paddingRight: 0,
+          bgcolor: '#f5f5f5', // Set gray background
+          minHeight: '100vh',
+          py: 5,
+          paddingTop: '20%',
         }}
       >
         {loading ? (
@@ -116,7 +105,7 @@ export default function Home() {
           </Typography>
         ) : (
           <>
-            <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography
                 variant="h5"
                 color="#582E92"
@@ -125,11 +114,7 @@ export default function Home() {
               >
                 Welcome, {profileData?.firstName}
               </Typography>
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                sx={{ marginTop: 1 }}
-              >
+              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                 Browse Shikshagraha library to find relevant content based on
                 your preferences (Board, Medium, Class, Subject)
               </Typography>
@@ -138,10 +123,9 @@ export default function Home() {
             <Box
               sx={{
                 display: 'flex',
-                gap: '20px',
+                gap: 3,
                 flexWrap: 'wrap',
                 justifyContent: 'center',
-                marginBottom: 4,
               }}
             >
               {cardData.map((card, index) => (
