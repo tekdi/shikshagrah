@@ -22,6 +22,8 @@ import {
   Typography,
   Card,
   CardContent,
+  Grid,
+  Avatar,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
@@ -66,10 +68,10 @@ export default function Profile() {
   }, []);
 
   const handleAccountClick = () => {
-  console.log('Account clicked');
-  router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-  localStorage.removeItem('accToken');
-  localStorage.clear();
+    console.log('Account clicked');
+    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    localStorage.removeItem('accToken');
+    localStorage.clear();
   };
 
   const handleDeleteAccountClick = () => {
@@ -107,35 +109,35 @@ export default function Profile() {
     }
   };
 
- const handleOtpSubmit = async () => {
-   try {
-     if (!otp) {
-       setError('Please enter OTP');
-       return;
-     }
+  const handleOtpSubmit = async () => {
+    try {
+      if (!otp) {
+        setError('Please enter OTP');
+        return;
+      }
 
-     const storedUserId = localStorage.getItem('userId');
-     const authToken = localStorage.getItem('accToken');
+      const storedUserId = localStorage.getItem('userId');
+      const authToken = localStorage.getItem('accToken');
 
-     if (!storedUserId || !authToken) {
-       setError('User authentication failed. Please log in again.');
-       return;
-     }
+      if (!storedUserId || !authToken) {
+        setError('User authentication failed. Please log in again.');
+        return;
+      }
 
-     const emailOrPhone = email; // Use the entered email/phone
-     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-     const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
+      const emailOrPhone = email; // Use the entered email/phone
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
 
-     await deleteAccount(emailOrPhone, type, otp, storedUserId, authToken);
+      await deleteAccount(emailOrPhone, type, otp, storedUserId, authToken);
 
-     setOpenOtpDialog(false);
-     console.log('Account successfully deleted');
-     // router.push('http://localhost:3000'); // Redirect if needed
-   } catch (error) {
-     setError('Invalid OTP');
-     console.error(error);
-   }
- };
+      setOpenOtpDialog(false);
+      console.log('Account successfully deleted');
+      // router.push('http://localhost:3000'); // Redirect if needed
+    } catch (error) {
+      setError('Invalid OTP');
+      console.error(error);
+    }
+  };
 
   const roleTypes =
     [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
@@ -161,7 +163,13 @@ export default function Profile() {
   const displayMedium = framework.medium?.join(', ') || 'N/A';
   const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
   const displaySubject = framework.subject?.join(', ') || 'N/A';
-  localStorage.setItem('frameworkname', framework?.id);
+  // localStorage.setItem('frameworkname', framework?.id);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && profileData?.framework?.id) {
+      localStorage.setItem('frameworkname', profileData.framework.id);
+    }
+  }, [profileData]);
+
   const handleEditClick = () => {
     router.push('/profile-edit');
     localStorage.setItem('selectedBoard', displayBoard);
@@ -197,7 +205,6 @@ export default function Profile() {
       showTopAppBar={{
         title: 'Profile',
         showMenuIcon: true,
-
         profileIcon: [
           {
             icon: <LogoutIcon />,
@@ -207,113 +214,186 @@ export default function Profile() {
         ],
       }}
       isFooter={true}
-      showLogo={true}
-      showBack={true}
     >
       <Box
         sx={{
-          paddingTop: '20px',
-          bgcolor: '#f5f5f5',
+          backgroundColor: '#f5f5f5',
           minHeight: '100vh',
+          overflowY: 'auto',
+          paddingTop: '10%',
+          paddingBottom: '56px',
         }}
       >
-        <Typography
-          variant="h5"
-          color="#582E92"
-          fontWeight="bold"
-          sx={{ textAlign: 'center', mb: 2 }}
-        >
-          Welcome, {profileData?.firstName || 'User'}
-        </Typography>
-
-        <Card
-          sx={{
-            mb: 3,
-            boxShadow: 3,
-            borderRadius: 3,
-            padding: 2,
-            mb: 3, // margin bottom
-            mt: 2, // margin top
-            ml: 2, // margin left
-            mr: 2,
-          }}
-        >
-          <CardContent>
-            <Typography>
-              <strong>Role:</strong> {displayRole}
-            </Typography>
-            <Typography>
-              <strong>Sub-role:</strong> {displaySubRole || 'N/A'}
-            </Typography>
-            {locationDetails.map((loc, index) => (
-              <Typography key={index}>
-                <strong>
-                  {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                </strong>{' '}
-                {loc.name || 'N/A'}
+        <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
+          <Grid
+            container
+            spacing={2}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Grid item>
+              <Avatar
+                sx={{ width: 80, height: 80 }}
+                src={profileData?.avatar || ''}
+              >
+                {profileData?.firstName?.charAt(0) || 'U'}
+              </Avatar>
+            </Grid>
+            <br></br>
+            <Grid item>
+              <Typography
+                variant="h5"
+                textAlign="center"
+                color="#582E92"
+                fontWeight="bold"
+              >
+                Welcome, {profileData?.firstName || 'User'}
               </Typography>
-            ))}
-            <Typography>
-              <strong>School:</strong>{' '}
-              {profileData?.externalIds?.find(
-                (id) => id.idType === 'declared-school-name'
-              )?.id || 'N/A'}
-            </Typography>
-          </CardContent>
-        </Card>
+            </Grid>
+          </Grid>
 
-        <Card
-          sx={{
-            boxShadow: 3,
-            borderRadius: 3,
-            padding: 2,
-            position: 'relative', // Add relative positioning to the card
-            mb: 3, // margin bottom
-            mt: 2, // margin top
-            ml: 2, // margin left
-            mr: 2, // Margin at the bottom of the card
-          }}
-        >
-          {/* Pencil icon positioned at the top-right corner */}
-          <EditIcon
+          <Box
             sx={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              cursor: 'pointer',
-              fontSize: '24px',
-              color: '#582E92',
-            }}
-            onClick={handleEditClick}
-          />
-
-          <CardContent>
-            <Typography>
-              <strong>Board:</strong> {displayBoard}
-            </Typography>
-            <Typography>
-              <strong>Medium:</strong> {displayMedium}
-            </Typography>
-            <Typography>
-              <strong>Classes:</strong> {displayGradeLevel}
-            </Typography>
-            <Typography>
-              <strong>Subjects:</strong> {displaySubject}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Button
-            onClick={handleDeleteAccountClick}
-            variant="outlined"
-            style={{
-              backgroundColor: '#582E92',
-              color: 'white',
-              border: '1px solid #582E92',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '8px',
+              boxShadow: 3,
+              p: 3,
+              mt: 3,
             }}
           >
-            Delete Account
-          </Button>
+            <Grid container spacing={1}>
+              {/* Role */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Role: </span>
+                  {displayRole}
+                </Typography>
+              </Grid>
+
+              {/* Sub-role */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Sub-role: </span>
+                  {displaySubRole || 'N/A'}
+                </Typography>
+              </Grid>
+
+              {/* Dynamic Location Details */}
+              {locationDetails.map((loc, index) => (
+                <Grid item xs={12} sm={6} key={index}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>
+                      {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
+                    </span>{' '}
+                    {loc.name || 'N/A'}
+                  </Typography>
+                </Grid>
+              ))}
+
+              {/* School */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>School: </span>
+                  {profileData?.externalIds?.find(
+                    (id) => id.idType === 'declared-school-name'
+                  )?.id || 'N/A'}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <Box
+            sx={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '8px',
+              boxShadow: 3,
+              p: 3,
+              mt: 3,
+              position: 'relative',
+            }}
+          >
+            <EditIcon
+              sx={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                cursor: 'pointer',
+                color: '#582E92',
+              }}
+              onClick={handleEditClick}
+            />
+            <Grid container spacing={1}>
+              {/* Board */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Board: </span>
+                  {displayBoard}
+                </Typography>
+              </Grid>
+
+              {/* Medium */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Medium: </span>
+                  {displayMedium}
+                </Typography>
+              </Grid>
+
+              {/* Classes */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Classes: </span>
+                  {displayGradeLevel}
+                </Typography>
+              </Grid>
+
+              {/* Subjects */}
+              <Grid item xs={12} sm={6}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 'bold', color: '#333' }}
+                >
+                  <span style={{ color: '#FF9911' }}>Subjects: </span>
+                  {displaySubject}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Button
+              onClick={handleDeleteAccountClick}
+              variant="contained"
+              sx={{
+                bgcolor: '#582E92',
+                color: 'white',
+                ':hover': { bgcolor: '#461B73' },
+              }}
+            >
+              Delete Account
+            </Button>
+          </Box>
         </Box>
       </Box>
 
@@ -325,10 +405,8 @@ export default function Profile() {
         <DialogTitle>Confirm Account Deletion</DialogTitle>
         <DialogActions>
           <Button
-            style={{
-              color: '#582E92',
-            }}
             onClick={() => setOpenDeleteDialog(false)}
+            sx={{ color: '#582E92' }}
           >
             Cancel
           </Button>
@@ -351,19 +429,12 @@ export default function Profile() {
         </DialogContent>
         <DialogActions>
           <Button
-            style={{
-              color: '#582E92',
-            }}
             onClick={() => setOpenEmailDialog(false)}
+            sx={{ color: '#582E92' }}
           >
             Cancel
           </Button>
-          <Button
-            style={{
-              color: '#582E92',
-            }}
-            onClick={handleSendOtp}
-          >
+          <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
             Send OTP
           </Button>
         </DialogActions>
@@ -382,20 +453,12 @@ export default function Profile() {
         </DialogContent>
         <DialogActions>
           <Button
-            style={{
-              color: '#582E92',
-            }}
             onClick={() => setOpenOtpDialog(false)}
+            sx={{ color: '#582E92' }}
           >
             Cancel
           </Button>
-          <Button
-            style={{
-              color: 'red',
-            }}
-            onClick={handleOtpSubmit}
-            color="error"
-          >
+          <Button onClick={handleOtpSubmit} color="error">
             Delete Account
           </Button>
         </DialogActions>
