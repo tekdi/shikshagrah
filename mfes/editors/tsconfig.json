@@ -3,6 +3,10 @@
   "compilerOptions": {
     "jsx": "preserve",
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "noEmitOnError": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

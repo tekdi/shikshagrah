@@ -14,13 +14,13 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Build applications
-RUN npx nx run-many --target=build --projects=shikshagraha-app
+RUN npx nx run-many --target=build --projects=shikshagraha-app,registration,content
 
 # Install PM2 to manage multiple apps
 RUN npm install -g pm2
 
 # Expose the ports for all apps
-EXPOSE 3000 4301
+EXPOSE 3000 4300 4301
 
 # Command to run all apps using PM2
 CMD ["pm2-runtime", "ecosystem.config.js"]

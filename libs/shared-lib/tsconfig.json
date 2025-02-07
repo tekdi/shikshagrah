@@ -5,6 +5,10 @@
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "noEmitOnError": false,
     "types": ["vite/client"]
   },
   "files": [],
