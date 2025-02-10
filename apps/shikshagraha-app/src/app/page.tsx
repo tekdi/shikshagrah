@@ -164,12 +164,9 @@ export default function Login() {
           />
         </Box>
         <TextField
-          fullWidth
           label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
-          type="text"
-          variant="outlined"
           error={error.userName}
           helperText={error.userName ? 'Username is required' : ''}
           sx={{
@@ -177,12 +174,10 @@ export default function Login() {
           }}
         />
         <TextField
-          fullWidth
           label="Password"
           value={formData.password}
           onChange={handleChange('password')}
           type={showPassword ? 'text' : 'password'}
-          variant="outlined"
           error={error.password}
           helperText={
             error.password
@@ -212,7 +207,7 @@ export default function Login() {
           sx={{ mb: 2 }}
           color="#6B6B6B"
         >
-          <Link href="/forgetpassword" passHref>
+          <Link href={`${process.env.NEXT_PUBLIC_FORGOT_PASSWORD}`}>
             <Typography
               component="span"
               sx={{
