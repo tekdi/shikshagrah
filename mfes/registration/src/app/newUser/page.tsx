@@ -14,6 +14,7 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  IconButton,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
@@ -23,7 +24,8 @@ import {
   registerUserService,
 } from '../service'; // Import OTP verify service
 import { useRouter } from 'next/navigation';
-
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 const NewUserWithStepper: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -39,6 +41,7 @@ const NewUserWithStepper: React.FC = () => {
     contact: false,
     password: false,
     otp: false,
+    confirmPassword: false,
   });
   const [birthYearOptions, setBirthYearOptions] = useState<number[]>([]);
   const [selectedRole, setSelectedRole] = useState('');
@@ -77,6 +80,8 @@ const NewUserWithStepper: React.FC = () => {
   const phoneRegex = /^[0-9]{10}$/;
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
+  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = React.useState('');
 
   // Generate Year Options
   useEffect(() => {
@@ -88,13 +93,25 @@ const NewUserWithStepper: React.FC = () => {
     setBirthYearOptions(years);
   }, []);
 
-  const handleChange =
-    (field: keyof typeof formData) =>
-    (event: React.ChangeEvent<{ value: unknown }>) => {
-      const value = String(event.target.value).trim();
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      setError((prev) => ({ ...prev, [field]: value === '' }));
-    };
+ const handleChange =
+   (field: keyof typeof formData) =>
+   (event: React.ChangeEvent<{ value: unknown }>) => {
+     const value = String(event.target.value);
+
+     // Handle validation for "username" field
+     if (field === 'username') {
+       setFormData((prev) => ({ ...prev, [field]: value }));
+       setError((prev) => ({
+         ...prev,
+         [field]: !/^[a-zA-Z ]*$/.test(value), // Allows only letters and spaces
+       }));
+     } else {
+       // Generic validation for other fields
+       setFormData((prev) => ({ ...prev, [field]: value.trim() }));
+       setError((prev) => ({ ...prev, [field]: value.trim() === '' }));
+     }
+   };
+
 
   const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedRole(event.target.value as string);
@@ -355,32 +372,43 @@ const NewUserWithStepper: React.FC = () => {
       setEnableResend(true);
     }
   }, [timer]);
-  const handleChangecontact = (field) => (event) => {
-    const value = event.target.value;
-    console.log('field', field);
-    console.log('value', value);
-    if (field === 'contact') {
-      setContact(value);
-      setError((prev) => ({
-        ...prev,
-        contact:
-          contactType === 'email'
-            ? !emailRegex.test(value) // Validate email format
-            : !phoneRegex.test(value), // Validate phone format
-      }));
-    }
+ const handleChangecontact = (field) => (event) => {
+   const value = event.target.value;
+   console.log('field', field);
+   console.log('value', value);
 
-    if (field === 'password') {
-      setPassword(value);
-      setError((prev) => ({
-        ...prev,
-        password: !passwordRegex.test(value), // Validate password format
-      }));
-    }
+   if (field === 'contact') {
+     setContact(value);
+     setError((prev) => ({
+       ...prev,
+       contact:
+         contactType === 'email'
+           ? !emailRegex.test(value) // Validate email format
+           : !phoneRegex.test(value), // Validate phone format
+     }));
+   }
 
-    setFormValid(null); // Reset form validation status
-    setShowError(false); // Clear error message display
-  };
+   if (field === 'password') {
+     setPassword(value);
+     setError((prev) => ({
+       ...prev,
+       password: !passwordRegex.test(value), // Validate password format
+       confirmPassword: confirmPassword && confirmPassword !== value, // Validate confirmPassword against the new password
+     }));
+   }
+
+   if (field === 'confirmPassword') {
+     setConfirmPassword(value);
+     setError((prev) => ({
+       ...prev,
+       confirmPassword: value !== password, // Validate confirmPassword matches password
+     }));
+   }
+
+   setFormValid(null); // Reset form validation status
+   setShowError(false); // Clear error message display
+ };
+
 
   return (
     <Box
@@ -395,21 +423,54 @@ const NewUserWithStepper: React.FC = () => {
     >
       <Box
         sx={{
-          backgroundColor: '#FF9911',
           p: 2,
-          borderBottom: '2px solid #FF9911',
+          borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
+          boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
+          backgroundColor: '#FFF7E6', // Light background derived from #FF9911
+          borderRadius: '0 0 25px 25px', // Rounded corners only on the bottom left and right
         }}
       >
         <Grid container alignItems="center">
-          <Grid item xs={2}>
-            <Button onClick={handleBack} sx={{ color: '#572E91' }}>
-              <ArrowBackIcon />
-            </Button>
-          </Grid>
-          <Grid item xs={8} textAlign="center">
+          {/* Conditionally render the back button */}
+          {activeStep > 0 && (
+            <Grid item xs={2}>
+              <Button
+                onClick={handleBack}
+                sx={{
+                  color: '#572E91',
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: '#F5F5F5',
+                  },
+                }}
+              >
+                <ArrowBackIcon sx={{ marginRight: '4px' }} />
+                Back
+              </Button>
+            </Grid>
+          )}
+
+          <Grid
+            item
+            xs={activeStep > 0 ? 8 : 12}
+            textAlign="center"
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
             <Typography
               variant="h6"
-              sx={{ color: '#572E91', fontWeight: 'bold' }}
+              sx={{
+                color: '#572E91',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                textTransform: 'uppercase',
+              }}
             >
               Step {activeStep + 1}/4
             </Typography>
@@ -433,7 +494,7 @@ const NewUserWithStepper: React.FC = () => {
             >
               <Box
                 component="img"
-                src="/assets/images/SG_Logo.jpg"
+                src="assets/images/SG_Logo.jpg"
                 alt="logo"
                 sx={{
                   width: '100px',
@@ -466,7 +527,14 @@ const NewUserWithStepper: React.FC = () => {
                 value={formData.username}
                 onChange={handleChange('username')}
                 error={error.username}
-                helperText={error.username ? 'Name is required' : ''}
+                helperText={
+                  error.username
+                    ? 'Name should contain only letters and spaces.'
+                    : ''
+                }
+                inputProps={{
+                  pattern: '[a-zA-Z ]*', // Allows only letters and spaces
+                }}
               />
             </FormControl>
             <FormControl fullWidth sx={{ mb: 2 }}>
@@ -526,7 +594,7 @@ const NewUserWithStepper: React.FC = () => {
               <Select value={selectedRole} onChange={handleRoleChange}>
                 <MenuItem value="">Select Role</MenuItem>
                 <MenuItem value="teacher">Teacher</MenuItem>
-                <MenuItem value="administrator">Administrator</MenuItem>
+                <MenuItem value="administrator">HT & Officials</MenuItem>
                 <MenuItem value="youth">Youth</MenuItem>
               </Select>
             </FormControl>
@@ -765,28 +833,58 @@ const NewUserWithStepper: React.FC = () => {
               inputProps={
                 contactType === 'phone'
                   ? {
-                      inputMode: 'numeric', // Allows only numeric keyboard on mobile devices
-                      pattern: '[0-9]*', // Restricts input to numbers
-                      maxLength: 10, // Restricts the maximum number length (for example, 10 digits)
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                      maxLength: 10,
                     }
                   : {}
               }
             />
 
             <TextField
-              label="Password"
-              type={passwordVisible ? 'text' : 'password'}
-              variant="outlined"
               fullWidth
+              label="Password"
               value={password}
               onChange={handleChangecontact('password')}
+              type={showPassword ? 'text' : 'password'}
+              error={error.password}
               helperText={
                 error.password
                   ? 'Password must be at least 8 characters long, include numerals, uppercase, lowercase, and special characters.'
                   : ''
               }
-              error={error.password}
-              sx={{ mb: 2 }}
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  </IconButton>
+                ),
+              }}
+              sx={{
+                mb: 3,
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Confirm Password"
+              value={confirmPassword}
+              onChange={handleChangecontact('confirmPassword')}
+              type={showPassword ? 'text' : 'password'}
+              error={error.confirmPassword}
+              helperText={
+                error.confirmPassword ? 'Passwords do not match.' : ''
+              }
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  </IconButton>
+                ),
+              }}
+              sx={{
+                mb: 2,
+              }}
             />
 
             <Box
@@ -810,10 +908,15 @@ const NewUserWithStepper: React.FC = () => {
                   '&:hover': {
                     bgcolor: '#543E98',
                   },
-                  width: '50%', // Ensures it spans the width of its container
+                  width: '50%',
                 }}
                 disabled={
-                  !contact || !password || error.contact || error.password
+                  !contact ||
+                  !password ||
+                  !confirmPassword ||
+                  error.contact ||
+                  error.password ||
+                  error.confirmPassword
                 }
               >
                 Submit
@@ -825,110 +928,146 @@ const NewUserWithStepper: React.FC = () => {
 
         {/* Step 4: OTP Verification */}
         {activeStep === 3 && (
-          <Box sx={{ height: '70vh', overflowY: 'scroll' }}>
+          <Box
+            sx={{
+              height: '70vh',
+              overflowY: 'scroll',
+              padding: '20px',
+              backgroundColor: '#f9f9f9',
+              borderRadius: '12px',
+              boxShadow: 3,
+            }}
+          >
             {/* User Details */}
-            <Box sx={{ marginTop: '10px' }}>
-              <Box
+            <Box
+              sx={{
+                margin: '20px 0',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                boxShadow: 3,
+                padding: '20px',
+              }}
+            >
+              <Typography
+                variant="h6"
+                align="center"
                 sx={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '8px',
-                  boxShadow: 3,
-                  p: 3,
+                  fontWeight: 'bold',
+                  color: '#572E91',
+                  marginBottom: '20px',
                 }}
               >
-                <Grid container spacing={2}>
-                  {/* Name */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>Name: </span>
-                      {userData?.username}
-                    </Typography>
-                  </Grid>
-
-                  {/* Year */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>Year of Birth: </span>
-                      {userData?.yearOfBirth}
-                    </Typography>
-                  </Grid>
-
-                  {/* State */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>State: </span>
-                      {userData?.locationData?.state?.name}
-                    </Typography>
-                  </Grid>
-
-                  {/* District */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>District: </span>
-                      {userData?.locationData?.district?.name}
-                    </Typography>
-                  </Grid>
-
-                  {/* Block */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>Block: </span>
-                      {userData?.locationData?.block?.name}
-                    </Typography>
-                  </Grid>
-
-                  {/* Cluster */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>Cluster: </span>
-                      {userData?.locationData?.cluster?.name}
-                    </Typography>
-                  </Grid>
-
-                  {/* School */}
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 'bold', color: '#333' }}
-                    >
-                      <span style={{ color: '#FF9911' }}>School: </span>
-                      {userData?.locationData?.school?.name}
-                    </Typography>
-                  </Grid>
+                User Details
+              </Typography>
+              <Grid container spacing={3}>
+                {/* Name */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Name: </span>
+                    {userData?.username || 'N/A'}
+                  </Typography>
                 </Grid>
-              </Box>
+
+                {/* Year */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Year of Birth: </span>
+                    {userData?.yearOfBirth || 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* State */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>State: </span>
+                    {userData?.locationData?.state?.name || 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* District */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>District: </span>
+                    {userData?.locationData?.district?.name || 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* Block */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Block: </span>
+                    {userData?.locationData?.block?.name || 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* Cluster */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Cluster: </span>
+                    {userData?.locationData?.cluster?.name || 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* School */}
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: 'bold', color: '#333' }}
+                  >
+                    <span style={{ color: '#FF9911' }}>School: </span>
+                    {userData?.locationData?.school?.name || 'N/A'}
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
 
-            <Typography
-              sx={{ color: 'black', marginBottom: '10px', fontSize: '15px' }}
-            >
-              OTP is send to : {userData?.contact}
-              <Typography>it is valid for 30 min</Typography>
-            </Typography>
             {/* OTP Section */}
+            <Typography
+              sx={{
+                color: 'black',
+                marginBottom: '15px',
+                fontSize: '15px',
+                textAlign: 'center',
+              }}
+            >
+              OTP has been sent to:{' '}
+              <strong>{userData?.contact || 'N/A'}</strong>
+              <Typography sx={{ fontSize: '13px', color: '#999' }}>
+                It is valid for 30 minutes.
+              </Typography>
+            </Typography>
+
             {invalidOtp && (
-              <Typography sx={{ color: 'red', marginBottom: '10px' }}>
+              <Typography
+                sx={{
+                  color: 'red',
+                  marginBottom: '10px',
+                  textAlign: 'center',
+                  fontSize: '14px',
+                }}
+              >
                 Invalid OTP. Remaining attempts: {remainingAttempts}
               </Typography>
             )}
+
             <TextField
               label="Enter OTP"
               variant="outlined"
@@ -940,11 +1079,11 @@ const NewUserWithStepper: React.FC = () => {
               }}
               type="number"
             />
+
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
+                justifyContent: 'center',
                 width: '100%',
               }}
             >
@@ -963,7 +1102,7 @@ const NewUserWithStepper: React.FC = () => {
                   '&:hover': {
                     bgcolor: '#543E98',
                   },
-                  width: '50%', // Ensures it spans the width of its container
+                  width: '50%',
                 }}
                 disabled={otp.length < 5 || remainingAttempts <= 0}
               >
@@ -971,26 +1110,37 @@ const NewUserWithStepper: React.FC = () => {
               </Button>
             </Box>
 
-            {showError && <Alert severity="error">{errorMessage}</Alert>}
-            <Box sx={{ marginTop: '20px' }}>
+            {showError && (
+              <Alert severity="error" sx={{ marginTop: '15px' }}>
+                {errorMessage}
+              </Alert>
+            )}
+
+            <Box sx={{ marginTop: '20px', textAlign: 'center' }}>
               <Typography>
                 Didn’t receive the OTP?{' '}
                 <Button
                   onClick={handleResendOtp}
-                  disabled={!enableResend || resendCount >= 2} // Disable if resend count exceeds 2
-                  sx={{ textTransform: 'none', color: '#572E91' }}
+                  disabled={!enableResend || resendCount >= 2}
+                  sx={{
+                    textTransform: 'none',
+                    color: '#572E91',
+                    fontWeight: 'bold',
+                  }}
                 >
                   Resend OTP
                 </Button>
               </Typography>
               {!enableResend && (
-                <Typography sx={{ color: '#999' }}>{timer} seconds.</Typography>
+                <Typography sx={{ color: '#999', marginTop: '5px' }}>
+                  {timer} seconds remaining.
+                </Typography>
               )}
             </Box>
           </Box>
         )}
       </Box>
-      <Box
+      {/* <Box
         component="footer"
         sx={{
           position: 'fixed',
@@ -1017,7 +1167,7 @@ const NewUserWithStepper: React.FC = () => {
             Sign In
           </Button>
         </Typography>
-      </Box>
+      </Box> */}
     </Box>
   );
 };

@@ -66,10 +66,12 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
     <Box sx={{ flexGrow: 1 }}>
       <AppBar
         component="nav"
-        color={color}
         sx={{
-          boxShadow: 'none',
-          bgcolor: '#FF9911',
+          borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
+          boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
+          backgroundColor: '#FFF7E6', // Light background derived from #FF9911
+          borderRadius: '0 0 25px 25px',
+          color: '#572E91', // Rounded corners only on the bottom left and right
         }}
       >
         <Toolbar>
@@ -90,7 +92,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
                   flexGrow: 1,
                   textAlign: 'center',
                   fontSize: '22px',
-                  fontWeight: 400,
+                  fontWeight: 700,
                 }}
               >
                 {title}
@@ -112,7 +114,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
                 variant="h6"
                 component="div"
                 sx={{ flexGrow: 1, textAlign: 'left' }}
-                color='black'
+                color="black"
               >
                 {title}
               </Typography>

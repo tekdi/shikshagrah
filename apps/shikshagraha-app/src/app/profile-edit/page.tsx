@@ -156,13 +156,17 @@ export default function ProfileEdit() {
   return (
     <Layout
       showTopAppBar={{
-        title: 'Edit Profile',
-        showMenuIcon: false,
-        actionIcons: [],
+        title: 'Framework Edit',
+        showMenuIcon: true,
+        // profileIcon: [
+        //   {
+        //     icon: <LogoutIcon />,
+        //     ariaLabel: 'Account',
+        //     onLogoutClick: handleAccountClick,
+        //   },
+        // ],
       }}
       isFooter={true}
-      showLogo={true}
-      showBack={true}
     >
       <Box sx={{ paddingTop: '20px', bgcolor: '#f5f5f5', minHeight: '100vh' }}>
         <Typography

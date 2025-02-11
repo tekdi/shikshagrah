@@ -233,13 +233,16 @@ export default function Profile() {
           >
             <Grid item>
               <Avatar
-                sx={{ width: 80, height: 80 }}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                }}
                 src={profileData?.avatar || ''}
               >
                 {profileData?.firstName?.charAt(0) || 'U'}
               </Avatar>
             </Grid>
-            <br></br>
             <Grid item>
               <Typography
                 variant="h5"
@@ -252,16 +255,22 @@ export default function Profile() {
             </Grid>
           </Grid>
 
+          {/* Profile Card */}
           <Box
             sx={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '8px',
-              boxShadow: 3,
+              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
+              borderRadius: '12px',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
               p: 3,
               mt: 3,
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              },
             }}
           >
-            <Grid container spacing={1}>
+            <Grid container spacing={2}>
               {/* Role */}
               <Grid item xs={12} sm={6}>
                 <Typography
@@ -269,7 +278,9 @@ export default function Profile() {
                   sx={{ fontWeight: 'bold', color: '#333' }}
                 >
                   <span style={{ color: '#FF9911' }}>Role: </span>
-                  {displayRole}
+                  {displayRole === 'administrator'
+                    ? 'HT & Officials'
+                    : displayRole}
                 </Typography>
               </Grid>
 
@@ -314,14 +325,20 @@ export default function Profile() {
             </Grid>
           </Box>
 
+          {/* Framework Card */}
           <Box
             sx={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '8px',
-              boxShadow: 3,
+              // background: 'linear-gradient(135deg, #e1bee7, #c5cae9)',
+              borderRadius: '12px',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
               p: 3,
               mt: 3,
               position: 'relative',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              },
             }}
           >
             <EditIcon
@@ -334,7 +351,7 @@ export default function Profile() {
               }}
               onClick={handleEditClick}
             />
-            <Grid container spacing={1}>
+            <Grid container spacing={2}>
               {/* Board */}
               <Grid item xs={12} sm={6}>
                 <Typography
