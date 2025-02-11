@@ -73,7 +73,7 @@ const NewUserWithStepper: React.FC = () => {
   const [formValid, setFormValid] = useState(null);
 
   // Email/Password regex
-  const emailRegex = /^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
+  const emailRegex = /^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
   const phoneRegex = /^[0-9]{10}$/;
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
@@ -158,32 +158,6 @@ const NewUserWithStepper: React.FC = () => {
     }
   };
 
-  // Step 3 Validation
-  const handleEmailPasswordChange =
-    (field: keyof typeof formData) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value.trim();
-      setFormData((prev) => ({ ...prev, [field]: value }));
-
-      handleValidation();
-
-      if (field === 'contact') {
-        setError((prev) => ({
-          ...prev,
-          contact:
-            formData.contactType === 'email'
-              ? !emailRegex.test(value)
-              : !phoneRegex.test(value),
-        }));
-      }
-
-      if (field === 'password') {
-        setError((prev) => ({
-          ...prev,
-          password: !passwordRegex.test(value),
-        }));
-      }
-    };
 
   const handleValidation = () => {
     const contactValid =
@@ -201,12 +175,10 @@ const NewUserWithStepper: React.FC = () => {
     console.log('contact', contact);
     if (contact && !error.contact) {
       try {
-        console.log('formData', formData);
         formData.contact = contact;
-        const response = await generateOTP(
-          formData.contact,
-          formData.contactType
-        );
+        formData.password = password;
+        console.log('formData', contactType);
+        const response = await generateOTP(formData.contact, contactType);
         console.log('OTP generated successfully:', response);
         if (response.success == false) {
           setError(response.message);
@@ -260,23 +232,44 @@ const NewUserWithStepper: React.FC = () => {
             });
           }
           console.log('userTypes', userTypes);
-          setRequestData({
-            usercreate: {
-              request: {
-                firstName,
-                lastName,
-                organisationId: process.env.REACT_APP_ORG_ID, // Update to match your env variable
-                email: contact,
-                emailVerified: true,
-                userName,
-                password: formData.password,
-                dob,
-                roles: ['PUBLIC'],
+          console.log('contenttype', contactType);
+          if (contactType === 'email') {
+            setRequestData({
+              usercreate: {
+                request: {
+                  firstName,
+                  lastName,
+                  organisationId: process.env.REACT_APP_ORG_ID, // Update to match your env variable
+                  email: contact,
+                  emailVerified: true,
+                  userName,
+                  password: formData.password,
+                  dob,
+                  roles: ['PUBLIC'],
+                },
               },
-            },
-            profileLocation,
-            profileUserTypes: userTypes,
-          });
+              profileLocation,
+              profileUserTypes: userTypes,
+            });
+          } else {
+            setRequestData({
+              usercreate: {
+                request: {
+                  firstName,
+                  lastName,
+                  organisationId: process.env.REACT_APP_ORG_ID, // Update to match your env variable
+                  phone: contact,
+                  phoneVerified: true,
+                  userName,
+                  password: formData.password,
+                  dob,
+                  roles: ['PUBLIC'],
+                },
+              },
+              profileLocation,
+              profileUserTypes: userTypes,
+            });
+          }
 
           setUserData({
             ...formData,
@@ -364,6 +357,7 @@ const NewUserWithStepper: React.FC = () => {
   }, [timer]);
   const handleChangecontact = (field) => (event) => {
     const value = event.target.value;
+    console.log('field', field);
     console.log('value', value);
     if (field === 'contact') {
       setContact(value);
@@ -371,8 +365,8 @@ const NewUserWithStepper: React.FC = () => {
         ...prev,
         contact:
           contactType === 'email'
-            ? !emailRegex.test(value)
-            : !phoneRegex.test(value),
+            ? !emailRegex.test(value) // Validate email format
+            : !phoneRegex.test(value), // Validate phone format
       }));
     }
 
@@ -380,12 +374,12 @@ const NewUserWithStepper: React.FC = () => {
       setPassword(value);
       setError((prev) => ({
         ...prev,
-        password: !passwordRegex.test(value),
+        password: !passwordRegex.test(value), // Validate password format
       }));
     }
 
-    setFormValid(null);
-    setShowError(false);
+    setFormValid(null); // Reset form validation status
+    setShowError(false); // Clear error message display
   };
 
   return (
@@ -738,7 +732,11 @@ const NewUserWithStepper: React.FC = () => {
               sx={{ color: 'black', fontWeight: 'bold', fontSize: '10px' }}
               row
               value={contactType}
-              onChange={(e) => setContactType(e.target.value)}
+              onChange={(e) => {
+                setContactType(e.target.value);
+                setContact(''); // Clear contact input when switching between email and phone
+                setError((prev) => ({ ...prev, contact: false })); // Reset validation error
+              }}
             >
               <FormControlLabel
                 value="email"
@@ -764,6 +762,15 @@ const NewUserWithStepper: React.FC = () => {
               }
               error={error.contact}
               sx={{ mb: 3 }}
+              inputProps={
+                contactType === 'phone'
+                  ? {
+                      inputMode: 'numeric', // Allows only numeric keyboard on mobile devices
+                      pattern: '[0-9]*', // Restricts input to numbers
+                      maxLength: 10, // Restricts the maximum number length (for example, 10 digits)
+                    }
+                  : {}
+              }
             />
 
             <TextField
@@ -931,6 +938,7 @@ const NewUserWithStepper: React.FC = () => {
               sx={{
                 marginBottom: '20px',
               }}
+              type="number"
             />
             <Box
               sx={{

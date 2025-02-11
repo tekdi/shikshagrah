@@ -164,6 +164,7 @@ export default function Login() {
           />
         </Box>
         <TextField
+          fullWidth
           label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
