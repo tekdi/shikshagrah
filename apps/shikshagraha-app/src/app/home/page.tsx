@@ -9,14 +9,14 @@ import { Button, CircularProgress, Box, Typography } from '@mui/material';
 
 export default function Home() {
   const cardData = [
-    { title: 'Programs', icon: '📄' },
+    { title: 'Programs', icon: '/assets/images/ic_program.png' },
     {
       title: 'Projects',
-      icon: '📐',
+      icon: '/assets/images/ic_project.png',
     },
-    { title: 'Survey', icon: '📊' },
+    { title: 'Survey', icon: '/assets/images/ic_survey.png' },
 
-    { title: 'Reports', icon: '📊' },
+    { title: 'Reports', icon: '/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
@@ -58,6 +58,7 @@ export default function Home() {
     }
   };
   useEffect(() => {
+    console.log(profileData);
     if (typeof window !== 'undefined' && profileData?.framework?.id) {
       localStorage.setItem('frameworkname', profileData.framework.id);
     }
@@ -128,23 +129,30 @@ export default function Home() {
                 justifyContent: 'center',
               }}
             >
-              {cardData.map((card, index) => (
-                <DynamicCard
-                  key={index}
-                  title={card.title}
-                  icon={card.icon}
-                  sx={{
-                    borderRadius: 2,
-                    boxShadow: 3,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                      boxShadow: 6,
-                    },
-                  }}
-                  onClick={() => handleCardClick(card.data)}
-                />
-              ))}
+              {cardData
+                .filter((card) => {
+                  if (profileData?.userType === 'administrator') {
+                    return true; // Show all cards for administrators
+                  }
+                  return card.title === 'Projects'; // Show only "Projects" for teacher and youth
+                })
+                .map((card, index) => (
+                  <DynamicCard
+                    key={index}
+                    title={card.title}
+                    icon={card.icon}
+                    sx={{
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: 6,
+                      },
+                    }}
+                    onClick={() => handleCardClick(card.data)}
+                  />
+                ))}
             </Box>
           </>
         )}

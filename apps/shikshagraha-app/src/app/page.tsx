@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getToken } from '../services/LoginService';
 import { jwtDecode } from 'jwt-decode';
+import { fetchProfileData } from '../services/ProfileService';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [profileData, setProfileData] = useState(null);
 
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
@@ -84,25 +86,48 @@ export default function Login() {
         localStorage.setItem('accToken', response?.access_token);
         localStorage.setItem('refToken', response?.refresh_token);
 
-        // const redirectUrl = `${process.env.NEXT_PUBLIC_PWA}`;
+        // Fetch profile data
+        await getProfileData();
 
-        const redirectUrl = '/home';
-        if (redirectUrl) {
-          router.push(redirectUrl);
-        }
+        // Check rootOrgId and route or show error
       } else {
         setShowError(true);
         setErrorMessage(response);
       }
-    } catch (error: any) {
-      console.error('Login failed:', error);
+    } catch (error) {
       setShowError(true);
-      setErrorMessage(error);
+      setErrorMessage('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const getProfileData = async () => {
+    try {
+      const token = localStorage.getItem('accToken') || '';
+      const userId = localStorage.getItem('userId') || '';
+
+      const data = await fetchProfileData(userId, token);
+      setProfileData(data);
+      if (data?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
+        const redirectUrl = '/home';
+        router.push(redirectUrl);
+      } else {
+        setShowError(true);
+        setErrorMessage('The user does not belong to the same organization.');
+      }
+    } catch (err) {
+      setError('Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (profileData) {
+      console.log('Updated Profile Data:', profileData);
+    }
+  }, [profileData]);
   return (
     <Box
       sx={{
@@ -110,7 +135,9 @@ export default function Login() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #6750A4, #9C27B0)',
+        background: 'linear-gradient(135deg, #f5f5f5, #f5f5f5)',
+        // boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
+        // backgroundColor: '#FFF7E6',
         overflow: 'hidden',
       }}
     >
@@ -165,7 +192,7 @@ export default function Login() {
         </Box>
         <TextField
           fullWidth
-          label="Username"
+          label="Username/Email"
           value={formData.userName}
           onChange={handleChange('userName')}
           error={error.userName}
