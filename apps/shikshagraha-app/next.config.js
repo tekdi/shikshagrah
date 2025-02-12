@@ -16,6 +16,8 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
+  basePath: '/shikshagraha',
+  assetPrefix: '/shikshagraha',
 };
 
 const plugins = [

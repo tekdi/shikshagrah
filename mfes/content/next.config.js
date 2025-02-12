@@ -28,7 +28,7 @@ const nextConfig = {
     svgr: false,
   },
 
-  basePath: '/mfe_content', // This should match the path set in Nginx
+  basePath: '/shikshagraha/content', // This should match the path set in Nginx
 
   async rewrites() {
     return [
