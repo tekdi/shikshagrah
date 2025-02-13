@@ -45,9 +45,9 @@ export default function Profile() {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
-        setProfileData(data);
+        setProfileData(data?.content[0]);
 
-        const locations = data.profileLocation || [];
+        const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
 
         const order = ['state', 'district', 'block', 'cluster'];
@@ -168,7 +168,6 @@ export default function Profile() {
       localStorage.setItem('frameworkname', profileData.framework.id);
     }
   }, [profileData]);
-
   const handleEditClick = () => {
     router.push('/profile-edit');
     localStorage.setItem('selectedBoard', displayBoard);
@@ -224,35 +223,64 @@ export default function Profile() {
         }}
       >
         <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
-          <Grid
-            container
-            spacing={2}
-            alignItems="center"
-            justifyContent="center"
+          <Box
+            sx={{
+              position: 'relative',
+              borderRadius: '12px',
+              p: 3,
+              mt: 3,
+              transform: 'translateY(-5px)',
+              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 'inherit',
+                padding: '1px',
+                background:
+                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                WebkitMask:
+                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+              },
+            }}
           >
-            <Grid item>
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-                }}
-                src={profileData?.avatar || ''}
-              >
-                {profileData?.firstName?.charAt(0) || 'U'}
-              </Avatar>
+            <Grid
+              container
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
+              direction="column"
+            >
+              <Grid item>
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                  }}
+                  src={profileData?.avatar || ''}
+                >
+                  {profileData?.firstName?.charAt(0) || 'U'}
+                </Avatar>
+              </Grid>
+
+              <Grid item>
+                <Typography
+                  variant="h5"
+                  textAlign="center"
+                  color="#582E92"
+                  fontWeight="bold"
+                >
+                  Welcome, {profileData?.firstName || 'User'}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Typography
-                variant="h5"
-                textAlign="center"
-                color="#582E92"
-                fontWeight="bold"
-              >
-                Welcome, {profileData?.firstName || 'User'}
-              </Typography>
-            </Grid>
-          </Grid>
+          </Box>
 
           {/* Profile Card */}
           <Box
@@ -329,9 +357,7 @@ export default function Profile() {
                   sx={{ fontWeight: 'bold', color: '#333' }}
                 >
                   <span style={{ color: '#FF9911' }}>School: </span>
-                  {profileData?.externalIds?.find(
-                    (id) => id.idType === 'declared-school-name'
-                  )?.id || 'N/A'}
+                  {profileData?.organisations[0]?.orgName || 'N/A'}
                 </Typography>
               </Grid>
             </Grid>

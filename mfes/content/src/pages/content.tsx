@@ -1,29 +1,21 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
-
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Fab,
   Typography,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Button
 } from '@mui/material';
 import {
   ContentCard,
   CommonTabs,
   Layout,
   Circular,
-  CommonDialog,
-  CommonTextField,
 } from '@shared-lib';
 import { ContentSearch } from '../services/Search';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import BorderColorIcon from '@mui/icons-material/BorderColor';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
 import Grid from '@mui/material/Grid2';
@@ -34,8 +26,6 @@ import { contentReadAPI } from '../services/Read';
 import { useTheme } from '@mui/material/styles';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import HelpIcon from '@mui/icons-material/Help';
-
 import { trackingData } from '../services/TrackingService';
 interface ContentItem {
   name: string;
@@ -178,21 +168,15 @@ export default function Content() {
   };
 
   const handleAccountClick = (event: React.MouseEvent<HTMLElement>) => {
-    console.log('Account clicked');
-    setAnchorEl(event.currentTarget);
-  };
-  const handleLogout = () => {
-    setAnchorEl(null);
+    // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+     const LOGIN = process.env.NEXT_PUBLIC_LOGINPAGE;
+     //@ts-ignore
+     window.location.href = LOGIN;
     localStorage.removeItem('accToken');
-    localStorage.removeItem('refToken');
-    let LOGIN = process.env.NEXT_PUBLIC_LOGIN;
-    //@ts-ignore
-    window.location.href = LOGIN;
+    localStorage.clear();
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+
   const handleSearchClick = async () => {
     if (searchValue.trim()) {
       const type = tabValue === 0 ? 'Course' : 'Learning Resource';
@@ -279,7 +263,7 @@ export default function Content() {
     <Box
       sx={{
         flexGrow: 1,
-       
+
         // height: { xs: '300px', sm: '400px', md: 'auto' }, // Adjust height for different breakpoints
         // overflowY: 'auto', // Ensures scrolling only when content overflows
         // padding: { xs: 2, sm: 3, md: 4 }, // Responsive padding
