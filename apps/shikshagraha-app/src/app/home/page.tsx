@@ -1,22 +1,32 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
 import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
 import { useEffect, useState } from 'react';
-import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
-import { Button, CircularProgress, Box, Typography } from '@mui/material';
-
+import { CircularProgress, Box, Typography } from '@mui/material';
+import AppConst from '../../utils/AppConst/AppConst';
 export default function Home() {
+  const basePath = AppConst?.BASEPATH;
   const cardData = [
-    { title: 'Programs', icon: '/assets/images/ic_program.png' },
+    {
+      title: 'Programs',
+      icon: '/shikshagraha/assets/images/ic_program.png',
+    },
     {
       title: 'Projects',
-      icon: '/assets/images/ic_project.png',
+      icon: '/shikshagraha/assets/images/ic_project.png',
     },
-    { title: 'Survey', icon: '/assets/images/ic_survey.png' },
-
-    { title: 'Reports', icon: '/assets/images/ic_report.png' },
+    {
+      title: 'Survey',
+      icon: '/shikshagraha/assets/images/ic_survey.png',
+    },
+    {
+      title: 'Reports',
+      icon: '/shikshagraha/assets/images/ic_report.png',
+    },
   ];
 
   const router = useRouter();
@@ -33,7 +43,6 @@ export default function Home() {
         const data = await fetchProfileData(userId, token);
         setProfileData(data);
       } catch (err) {
-        console.error('Error fetching profile data:', err);
         setError('Failed to load profile data');
       } finally {
         setLoading(false);
@@ -44,13 +53,11 @@ export default function Home() {
   }, []);
 
   const handleAccountClick = () => {
-    console.log('Account clicked');
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
   const handleCardClick = (data) => {
-    console.log('Card clicked:', data);
     if (data) {
       const targetUrl = `${process.env.NEXT_PUBLIC_PWA}/home`;
       window.postMessage(data, targetUrl); // Pass data via postMessage
@@ -58,7 +65,6 @@ export default function Home() {
     }
   };
   useEffect(() => {
-    console.log(profileData);
     if (typeof window !== 'undefined' && profileData?.framework?.id) {
       localStorage.setItem('frameworkname', profileData.framework.id);
     }

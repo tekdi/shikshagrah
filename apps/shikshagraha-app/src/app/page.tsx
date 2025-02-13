@@ -1,3 +1,6 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
 import React, { useEffect, useState } from 'react';
 import {
@@ -16,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import { getToken } from '../services/LoginService';
 import { jwtDecode } from 'jwt-decode';
 import { fetchProfileData } from '../services/ProfileService';
+import { ButtonBase } from '@mui/material';
+import AppConst from '../utils/AppConst/AppConst';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -32,7 +37,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
-
+  const basePath = AppConst?.BASEPATH;
+  console.log('basepath', basePath);
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
 
@@ -128,10 +134,26 @@ export default function Login() {
       console.log('Updated Profile Data:', profileData);
     }
   }, [profileData]);
+  const handleRegisterClick = () => {
+    console.log('Registration clicked');
+    console.log(process.env.NEXT_PUBLIC_REGISTRATION);
+
+    const registrationUrl = process.env.NEXT_PUBLIC_REGISTRATION ?? '/';
+    router.push(registrationUrl);
+  };
+
+  const handlePasswordClick = () => {
+    console.log('Password clicked');
+    console.log(process.env.NEXT_PUBLIC_FORGOT_PASSWORD);
+
+    const registrationUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
+    router.push(registrationUrl);
+  };
+
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        // minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -139,6 +161,7 @@ export default function Login() {
         // boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
         // backgroundColor: '#FFF7E6',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       {loading && (
@@ -161,12 +184,31 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
         sx={{
+          marginTop: '30%',
+          position: 'relative',
           maxWidth: '320px',
           bgcolor: '#FFFFFF',
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          borderRadius: '16px',
+          borderRadius: '16px', // Ensures rounded corners for the box
           padding: 3,
           textAlign: 'center',
+          zIndex: 1,
+          overflow: 'hidden', // Keeps the pseudo-element within the border radius
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+            padding: '4px', // Thickness of the border line
+            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+            WebkitMask:
+              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude', // Ensures only the border is visible
+          },
         }}
       >
         <Box
@@ -180,7 +222,7 @@ export default function Login() {
         >
           <Box
             component="img"
-            src="/assets/images/SG_Logo.jpg"
+            src={`${basePath}/assets/images/SG_Logo.jpg`}
             alt="logo"
             sx={{
               width: '100px',
@@ -229,27 +271,21 @@ export default function Login() {
             mb: 1,
           }}
         />
-        <Typography
-          variant="body2"
-          textAlign="right"
-          sx={{ mb: 2 }}
-          color="#6B6B6B"
-        >
-          <Link href={`${process.env.NEXT_PUBLIC_FORGOT_PASSWORD}`}>
-            <Typography
-              component="span"
-              sx={{
-                color: '#6750A4',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              }}
-            >
-              Forgot Password?
-            </Typography>
-          </Link>
+        <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+          <ButtonBase
+            onClick={handlePasswordClick}
+            sx={{
+              color: '#6750A4',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '15px',
+              marginTop: '-10px',
+
+              textDecoration: 'underline',
+            }}
+          >
+            Forgot Password?
+          </ButtonBase>
         </Typography>
 
         {/* Add a new Box to ensure the button moves to the next line */}
@@ -283,22 +319,21 @@ export default function Login() {
 
         <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
           Don’t have an account?{' '}
-          <Link href={process.env.NEXT_PUBLIC_REGISTRATION ?? '/'} passHref>
-            <Typography
-              component="span"
-              sx={{
-                color: '#6750A4',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              }}
-            >
-              Register
-            </Typography>
-          </Link>
+          <ButtonBase
+            onClick={handleRegisterClick}
+            sx={{
+              color: '#6750A4',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+
+              textDecoration: 'underline',
+              fontSize: '15px',
+            }}
+          >
+            Register
+          </ButtonBase>
         </Typography>
+
         {showError && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {errorMessage}

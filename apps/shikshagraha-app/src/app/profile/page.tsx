@@ -1,5 +1,7 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
-
 import { useEffect, useState } from 'react';
 import {
   fetchProfileData,
@@ -20,8 +22,6 @@ import {
   CircularProgress,
   Box,
   Typography,
-  Card,
-  CardContent,
   Grid,
   Avatar,
 } from '@mui/material';
@@ -68,7 +68,6 @@ export default function Profile() {
   }, []);
 
   const handleAccountClick = () => {
-    console.log('Account clicked');
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
     localStorage.clear();
@@ -99,13 +98,11 @@ export default function Profile() {
     }
 
     try {
-      console.log(`Sending OTP to ${email} as ${type}`);
       await sendOtp(email, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
     } catch (error) {
       setError('Failed to send OTP');
-      console.error(error);
     }
   };
 
@@ -132,7 +129,9 @@ export default function Profile() {
 
       setOpenOtpDialog(false);
       console.log('Account successfully deleted');
-      // router.push('http://localhost:3000'); // Redirect if needed
+      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+      localStorage.removeItem('accToken');
+      localStorage.clear();
     } catch (error) {
       setError('Invalid OTP');
       console.error(error);
@@ -260,13 +259,26 @@ export default function Profile() {
             sx={{
               // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
               borderRadius: '12px',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
               p: 3,
               mt: 3,
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              transform: 'translateY(-5px)',
+              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                padding: '1px', // Thickness of the border line
+                background:
+                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                WebkitMask:
+                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude', // Ensures only the border is visible
               },
             }}
           >
@@ -328,16 +340,28 @@ export default function Profile() {
           {/* Framework Card */}
           <Box
             sx={{
-              // background: 'linear-gradient(135deg, #e1bee7, #c5cae9)',
+              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
               borderRadius: '12px',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
               p: 3,
               mt: 3,
-              position: 'relative',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              transform: 'translateY(-5px)',
+              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                padding: '1px', // Thickness of the border line
+                background:
+                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                WebkitMask:
+                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude', // Ensures only the border is visible
               },
             }}
           >
