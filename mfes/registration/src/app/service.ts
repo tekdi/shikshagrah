@@ -169,14 +169,16 @@ export const verifyOtpService = async (email, otp) => {
 };
 
 export const registerUserService = async (requestData) => {
+  const modifiedRequestData = requestData?.requestData || requestData;
+
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_NEW_REGISTRATION}`,
-      requestData
+      modifiedRequestData
     );
     return response.data;
   } catch (error) {
-    // console.error('Error submitting registration data:', error);
+    console.error('Error submitting registration data:', error);
     return error.response;
   }
 };

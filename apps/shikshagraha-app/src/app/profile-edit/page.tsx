@@ -1,3 +1,6 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
 import { useEffect, useState } from 'react';
 import { Layout } from '@shared-lib';
