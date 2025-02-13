@@ -18,7 +18,6 @@ const nextConfig = {
     svgr: false,
   },
   basePath: BASE_PATH,
-  assetPrefix: '/shikshagraha',
 };
 
 const plugins = [
