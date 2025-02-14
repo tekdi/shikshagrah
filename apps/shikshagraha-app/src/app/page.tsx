@@ -153,15 +153,12 @@ export default function Login() {
   return (
     <Box
       sx={{
-        // minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         background: 'linear-gradient(135deg, #f5f5f5, #f5f5f5)',
-        // boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-        // backgroundColor: '#FFF7E6',
-        overflow: 'hidden',
-        position: 'relative',
+        minHeight: '100vh',
+        padding: 2,
       }}
     >
       {loading && (
@@ -184,16 +181,13 @@ export default function Login() {
         justifyContent="center"
         alignItems="center"
         sx={{
-          marginTop: '30%',
-          position: 'relative',
-          maxWidth: '320px',
+          maxWidth: { xs: '90%', sm: '400px', md: '500px' },
           bgcolor: '#FFFFFF',
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          borderRadius: '16px', // Ensures rounded corners for the box
-          padding: 3,
+          borderRadius: '16px',
+          padding: { xs: 2, sm: 3 },
           textAlign: 'center',
-          zIndex: 1,
-          overflow: 'hidden', // Keeps the pseudo-element within the border radius
+          position: 'relative',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -201,13 +195,13 @@ export default function Login() {
             left: 0,
             right: 0,
             bottom: 0,
-            borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-            padding: '4px', // Thickness of the border line
-            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+            borderRadius: 'inherit',
+            padding: '4px',
+            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
             WebkitMask:
-              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
-            maskComposite: 'exclude', // Ensures only the border is visible
+            maskComposite: 'exclude',
           },
         }}
       >
@@ -225,8 +219,8 @@ export default function Login() {
             src={`${basePath}/assets/images/SG_Logo.jpg`}
             alt="logo"
             sx={{
-              width: '100px',
-              height: '100px',
+              width: { xs: '80px', sm: '100px' },
+              height: { xs: '80px', sm: '100px' },
               borderRadius: '50%',
               objectFit: 'cover',
             }}
@@ -244,6 +238,7 @@ export default function Login() {
           }}
         />
         <TextField
+          fullWidth
           label="Password"
           value={formData.password}
           onChange={handleChange('password')}
@@ -280,7 +275,6 @@ export default function Login() {
               cursor: 'pointer',
               fontSize: '15px',
               marginTop: '-10px',
-
               textDecoration: 'underline',
             }}
           >
@@ -288,7 +282,6 @@ export default function Login() {
           </ButtonBase>
         </Typography>
 
-        {/* Add a new Box to ensure the button moves to the next line */}
         <Box
           sx={{
             display: 'flex',
@@ -310,7 +303,7 @@ export default function Login() {
               '&:hover': {
                 bgcolor: '#543E98',
               },
-              width: '50%', // Ensures it spans the width of its container
+              width: { xs: '100%', sm: '50%' },
             }}
           >
             Login
@@ -325,7 +318,6 @@ export default function Login() {
               color: '#6750A4',
               fontWeight: 'bold',
               cursor: 'pointer',
-
               textDecoration: 'underline',
               fontSize: '15px',
             }}
