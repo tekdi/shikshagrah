@@ -41,7 +41,7 @@ export default function Home() {
         const userId = localStorage.getItem('userId') || '';
 
         const data = await fetchProfileData(userId, token);
-        setProfileData(data);
+        setProfileData(data?.content[0]);
       } catch (err) {
         setError('Failed to load profile data');
       } finally {

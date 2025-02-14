@@ -4,13 +4,22 @@ import axios from 'axios';
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_READ_USER}/${userId}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_READ_USER}`,
       {
-        method: 'GET',
+        method: 'POST',
         headers: {
-          Authorization: process.env.NEXT_PUBLIC_AUTH,
+          'Content-Type': 'application/json',
+          Authorization: `${process.env.NEXT_PUBLIC_AUTH}`,
           'x-authenticated-user-token': token,
         },
+        body: JSON.stringify({
+          request: {
+            filters: {
+              userId,
+            },
+            limit: 5000,
+          },
+        }),
       }
     );
 
@@ -22,9 +31,10 @@ export const fetchProfileData = async (userId: string, token: string) => {
     return data.result.response;
   } catch (error) {
     console.error('Error fetching profile data:', error);
-    throw error;
+    return error;
   }
 };
+
 export const fetchLocationDetails = async (locations) => {
   try {
     const responses = await Promise.all(
@@ -103,7 +113,7 @@ export const deleteAccount = async (
       // Step 1: Verify OTP
       const verifyResponse = await axios.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFY_OTP}`,
-       
+
         {
           request: {
             key: key,

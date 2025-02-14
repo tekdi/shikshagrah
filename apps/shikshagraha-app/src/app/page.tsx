@@ -38,7 +38,6 @@ export default function Login() {
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const basePath = AppConst?.BASEPATH;
-  console.log('basepath', basePath);
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
 
@@ -114,8 +113,9 @@ export default function Login() {
       const userId = localStorage.getItem('userId') || '';
 
       const data = await fetchProfileData(userId, token);
-      setProfileData(data);
-      if (data?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
+
+      setProfileData(data?.content[0]);
+      if (data?.content[0]?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
         const redirectUrl = '/home';
         router.push(redirectUrl);
       } else {
