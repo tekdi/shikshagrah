@@ -143,7 +143,8 @@ export const generateOTP = async (key, type) => {
   }
 };
 
-export const verifyOtpService = async (email, otp) => {
+export const verifyOtpService = async (email, otp, contactType) => {
+  console.log('contactType', contactType);
   const headers = {
     Authorization: process.env.NEXT_PUBLIC_AUTH,
     'Content-Type': 'application/json',
@@ -151,7 +152,7 @@ export const verifyOtpService = async (email, otp) => {
   const req = {
     request: {
       key: email,
-      type: 'email',
+      type: contactType,
       otp: String(otp),
     },
   };
@@ -164,7 +165,7 @@ export const verifyOtpService = async (email, otp) => {
     );
     return response.data; // Return response to be handled in the component
   } catch (error) {
-    return error.response?.data?.error?.params?.errmsg || 'Error verifying OTP';
+    return error || 'Error verifying OTP';
   }
 };
 

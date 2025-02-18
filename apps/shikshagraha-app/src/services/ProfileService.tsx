@@ -101,69 +101,29 @@ export const sendOtp = async (key: string, type: 'email' | 'phone') => {
 };
 
 // Delete Account
-export const deleteAccount = async (
-  key: string,
-  type: 'email' | 'phone',
-  otp?: string,
-  userId?: string,
-  authToken?: string
-) => {
+export const verifyOtp = async (email, otp, contactType) => {
+  console.log('contactType', contactType);
+  const headers = {
+    Authorization: process.env.NEXT_PUBLIC_AUTH,
+    'Content-Type': 'application/json',
+  };
+  const req = {
+    request: {
+      key: email,
+      type: contactType,
+      otp: String(otp),
+    },
+  };
+
   try {
-    if (otp) {
-      // Step 1: Verify OTP
-      const verifyResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFY_OTP}`,
-
-        {
-          request: {
-            key: key,
-            type: type,
-            otp: otp,
-            userId: userId,
-          },
-        },
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
-          },
-        }
-      );
-      console.log('verifyResponse', verifyResponse);
-      if (verifyResponse.data?.result !== 'SUCCESS') {
-        throw new Error('OTP verification failed');
-      }
-
-      console.log('OTP Verified Successfully');
-
-      // Step 2: Delete Account
-      const deleteResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_DELETE_USER}`,
-
-        {
-          request: {
-            userId: localStorage.getItem('userId'),
-          },
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
-            'x-authenticated-user-token': localStorage.getItem('accToken'),
-          },
-        }
-      );
-
-      return deleteResponse.data;
-    } else {
-      throw new Error('OTP is required to delete account');
-    }
-  } catch (error) {
-    console.error('Error deleting account:', error);
-    return new Error(
-      error.response?.data?.message || 'Failed to delete account'
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFT_OTP}`,
+      req,
+      { headers }
     );
+    return response.data; // Return response to be handled in the component
+  } catch (error) {
+    return error || 'Error verifying OTP';
   }
 };
 
@@ -208,3 +168,32 @@ export const updateProfile = async (userId, selectedValues) => {
     throw error;
   }
 };
+
+
+export const deleteUser = async () => {
+  const headers = {
+    Authorization: process.env.NEXT_PUBLIC_AUTH,
+    'Content-Type': 'application/json',
+    'x-authenticated-user-token': localStorage.getItem('accToken'),
+  };
+  const req = {
+    request: {
+    "userId":localStorage.getItem("userId")
+    },
+  };
+
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_DELETE_USER}`,
+      req,
+      { headers }
+    );
+    return response.data; // Return response to be handled in the component
+  } catch (error) {
+    return error || 'Error verifying OTP';
+  }
+};
+
+function async() {
+  throw new Error('Function not implemented.');
+}

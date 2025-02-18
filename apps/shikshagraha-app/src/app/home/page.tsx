@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
 'use client';
 import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -8,25 +6,14 @@ import { fetchProfileData } from '../../services/ProfileService';
 import { useEffect, useState } from 'react';
 import { CircularProgress, Box, Typography } from '@mui/material';
 import AppConst from '../../utils/AppConst/AppConst';
+
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
   const cardData = [
-    {
-      title: 'Programs',
-      icon: '/shikshagraha/assets/images/ic_program.png',
-    },
-    {
-      title: 'Projects',
-      icon: '/shikshagraha/assets/images/ic_project.png',
-    },
-    {
-      title: 'Survey',
-      icon: '/shikshagraha/assets/images/ic_survey.png',
-    },
-    {
-      title: 'Reports',
-      icon: '/shikshagraha/assets/images/ic_report.png',
-    },
+    { title: 'Programs', icon: '/shikshagraha/assets/images/ic_program.png' },
+    { title: 'Projects', icon: '/shikshagraha/assets/images/ic_project.png' },
+    { title: 'Survey', icon: '/shikshagraha/assets/images/ic_survey.png' },
+    { title: 'Reports', icon: '/shikshagraha/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
@@ -39,16 +26,14 @@ export default function Home() {
       try {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
-
         const data = await fetchProfileData(userId, token);
-        setProfileData(data?.content[0]);
+         setProfileData(data?.content[0]);
       } catch (err) {
         setError('Failed to load profile data');
       } finally {
         setLoading(false);
       }
     };
-
     getProfileData();
   }, []);
 
@@ -57,18 +42,14 @@ export default function Home() {
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
+
   const handleCardClick = (data) => {
     if (data) {
       const targetUrl = `${process.env.NEXT_PUBLIC_PWA}/home`;
-      window.postMessage(data, targetUrl); // Pass data via postMessage
-      window.open(targetUrl, '_self'); // Open Angular home page
+      window.postMessage(data, targetUrl);
+      window.open(targetUrl, '_self');
     }
   };
-  useEffect(() => {
-    if (typeof window !== 'undefined' && profileData?.framework?.id) {
-      localStorage.setItem('frameworkname', profileData.framework.id);
-    }
-  }, [profileData]);
 
   return (
     <Layout
@@ -89,10 +70,10 @@ export default function Home() {
     >
       <Box
         sx={{
-          bgcolor: '#f5f5f5', // Set gray background
+          backgroundColor: '#f5f5f5',
           minHeight: '100vh',
-          py: 5,
-          paddingTop: '20%',
+          marginTop: { xs: '60px', sm: '90px' }, // Adjust top margin for mobile and desktop
+          paddingX: { xs: 2, sm: 3 }, // Add responsive padding
         }}
       >
         {loading ? (
@@ -117,11 +98,15 @@ export default function Home() {
                 variant="h5"
                 color="#582E92"
                 fontWeight="bold"
-                fontSize="20px"
+                fontSize={{ xs: '22px', sm: '24px', md: '26px' }} // Responsive font size
               >
-                Welcome, {profileData?.firstName}
+                {profileData?.firstName}
               </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mt: 1, fontSize: { xs: '16px', sm: '20px' } }} // Adjust font size for mobile
+              >
                 Browse Shikshagraha library to find relevant content based on
                 your preferences (Board, Medium, Class, Subject)
               </Typography>
@@ -138,9 +123,9 @@ export default function Home() {
               {cardData
                 .filter((card) => {
                   if (profileData?.userType === 'administrator') {
-                    return true; // Show all cards for administrators
+                    return true;
                   }
-                  return card.title === 'Projects'; // Show only "Projects" for teacher and youth
+                  return card.title === 'Projects' || card.title === 'Reports';
                 })
                 .map((card, index) => (
                   <DynamicCard
@@ -155,6 +140,7 @@ export default function Home() {
                         transform: 'scale(1.05)',
                         boxShadow: 6,
                       },
+                      maxWidth: { xs: 280, sm: 350 }, // Make cards smaller on mobile
                     }}
                     onClick={() => handleCardClick(card.data)}
                   />

@@ -7,7 +7,7 @@ export const DynamicCard = ({ title, icon, onClick }) => {
   return (
     <Card
       sx={{
-        maxWidth: 280, // Reduced card width
+        maxWidth: { xs: 280, sm: 350 }, // Reduced card width
         textAlign: 'center',
         padding: 1.5, // Reduced padding
         cursor: 'pointer',

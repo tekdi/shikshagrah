@@ -7,7 +7,8 @@ import {
   fetchProfileData,
   fetchLocationDetails,
   sendOtp,
-  deleteAccount,
+  verifyOtp,
+  deleteUser,
 } from '../../services/ProfileService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -24,6 +25,7 @@ import {
   Typography,
   Grid,
   Avatar,
+  Alert,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
@@ -38,7 +40,8 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const router = useRouter();
-
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   useEffect(() => {
     const getProfileData = async () => {
       try {
@@ -57,7 +60,9 @@ export default function Profile() {
 
         setLocationDetails(sortedLocations);
       } catch (err) {
-        console.error('Error fetching profile data:', err);
+        setShowError(true);
+        // setErrorMessage(err);
+        // console.error('Error fetching profile data:', err);
         // setError('Failed to load profile data');
       } finally {
         setLoading(false);
@@ -125,13 +130,39 @@ export default function Profile() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
 
-      await deleteAccount(emailOrPhone, type, otp, storedUserId, authToken);
+      const otpResponse = await verifyOtp(emailOrPhone, otp, type);
+      console.log('otpResponse', otpResponse);
+      const err = otpResponse?.response;
+      if (
+        otpResponse ==
+          'OTP verification failed. Remaining attempt count is 0.' ||
+        otpResponse ==
+          'OTP verification failed. Remaining attempt count is 1.' ||
+        err?.data?.params?.status === 'FAILED'
+      ) {
+        // setShowError(true);
+        setShowError(true);
+        setErrorMessage(err.data.params.errmsg);
+        setInvalidOtp(true);
+        setRemainingAttempts((prev) => prev - 1);
+        return;
+      } else if (otpResponse.params.status == 'SUCCESS') {
+        const registrationResponse = await deleteUser({});
+        console.log(registrationResponse);
 
-      setOpenOtpDialog(false);
-      console.log('Account successfully deleted');
-      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-      localStorage.removeItem('accToken');
-      localStorage.clear();
+        if (registrationResponse.result.response == 'SUCCESS') {
+          setOpenOtpDialog(false);
+          console.log('Account successfully deleted');
+          setShowError(true);
+          setErrorMessage('Account successfully deleted');
+          router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+          localStorage.removeItem('accToken');
+          localStorage.clear();
+        } else {
+          setShowError(true);
+          setErrorMessage(err.data.params.errmsg);
+        }
+      }
     } catch (error) {
       setError('Invalid OTP');
       console.error(error);
@@ -190,13 +221,13 @@ export default function Profile() {
     );
   }
 
-  if (error) {
-    return (
-      <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
-        {error}
-      </Typography>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
+  //       {error}
+  //     </Typography>
+  //   );
+  // }
 
   return (
     <Layout
@@ -276,7 +307,7 @@ export default function Profile() {
                   color="#582E92"
                   fontWeight="bold"
                 >
-                  Welcome, {profileData?.firstName || 'User'}
+                  {profileData?.firstName || 'User'}
                 </Typography>
               </Grid>
             </Grid>
@@ -312,49 +343,55 @@ export default function Profile() {
           >
             <Grid container spacing={2}>
               {/* Role */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Role: </span>
                   {displayRole === 'administrator'
                     ? 'HT & Officials'
                     : displayRole}
                 </Typography>
-              </Grid>
-
-              {/* Sub-role */}
-              <Grid item xs={12} sm={6}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Sub-role: </span>
                   {displaySubRole || 'N/A'}
                 </Typography>
-              </Grid>
-
-              {/* Dynamic Location Details */}
-              {locationDetails.map((loc, index) => (
-                <Grid item xs={12} sm={6} key={index}>
-                  <Typography
-                    variant="body1"
-                    sx={{ fontWeight: 'bold', color: '#333' }}
-                  >
-                    <span style={{ color: '#FF9911' }}>
-                      {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                    </span>{' '}
-                    {loc.name || 'N/A'}
-                  </Typography>
-                </Grid>
-              ))}
-
-              {/* School */}
-              <Grid item xs={12} sm={6}>
+                {locationDetails.map((loc, index) => (
+                  <>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#333',
+                        paddingBottom: '10px',
+                      }}
+                    >
+                      <span style={{ color: '#FF9911' }}>
+                        {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
+                      </span>{' '}
+                      {loc.name || 'N/A'}
+                    </Typography>
+                  </>
+                ))}
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>School: </span>
                   {profileData?.organisations[0]?.orgName || 'N/A'}
@@ -403,43 +440,47 @@ export default function Profile() {
             />
             <Grid container spacing={2}>
               {/* Board */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Board: </span>
                   {displayBoard}
                 </Typography>
-              </Grid>
-
-              {/* Medium */}
-              <Grid item xs={12} sm={6}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Medium: </span>
                   {displayMedium}
                 </Typography>
-              </Grid>
-
-              {/* Classes */}
-              <Grid item xs={12} sm={6}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Classes: </span>
                   {displayGradeLevel}
                 </Typography>
-              </Grid>
-
-              {/* Subjects */}
-              <Grid item xs={12} sm={6}>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 'bold', color: '#333' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    paddingBottom: '10px',
+                  }}
                 >
                   <span style={{ color: '#FF9911' }}>Subjects: </span>
                   {displaySubject}
@@ -463,7 +504,11 @@ export default function Profile() {
           </Box>
         </Box>
       </Box>
-
+      {showError && (
+        <Alert severity="error" sx={{ marginTop: '15px' }}>
+          {errorMessage}
+        </Alert>
+      )}
       {/* Delete Account Confirmation Dialog */}
       <Dialog
         open={openDeleteDialog}

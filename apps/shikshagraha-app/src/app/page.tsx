@@ -109,12 +109,14 @@ export default function Login() {
 
   const getProfileData = async () => {
     try {
+
       const token = localStorage.getItem('accToken') || '';
       const userId = localStorage.getItem('userId') || '';
 
       const data = await fetchProfileData(userId, token);
 
       setProfileData(data?.content[0]);
+      localStorage.setItem('name', data?.content[0]?.userName);
       if (data?.content[0]?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
         const redirectUrl = '/home';
         router.push(redirectUrl);
@@ -211,7 +213,6 @@ export default function Login() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 1,
-            mb: 3,
           }}
         >
           <Box
@@ -219,8 +220,8 @@ export default function Login() {
             src={`${basePath}/assets/images/SG_Logo.jpg`}
             alt="logo"
             sx={{
-              width: { xs: '80px', sm: '100px' },
-              height: { xs: '80px', sm: '100px' },
+              width: { xs: '100%', sm: '100%' },
+              height: { xs: '100%', sm: '100%' },
               borderRadius: '50%',
               objectFit: 'cover',
             }}
@@ -266,7 +267,7 @@ export default function Login() {
             mb: 1,
           }}
         />
-        <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+        {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
           <ButtonBase
             onClick={handlePasswordClick}
             sx={{
@@ -280,7 +281,7 @@ export default function Login() {
           >
             Forgot Password?
           </ButtonBase>
-        </Typography>
+        </Typography> */}
 
         <Box
           sx={{
@@ -303,7 +304,7 @@ export default function Login() {
               '&:hover': {
                 bgcolor: '#543E98',
               },
-              width: { xs: '100%', sm: '50%' },
+              width: { xs: '50%', sm: '50%' },
             }}
           >
             Login
@@ -325,12 +326,13 @@ export default function Login() {
             Register
           </ButtonBase>
         </Typography>
-
-        {showError && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {errorMessage}
-          </Alert>
-        )}
+        <Grid container justifyContent="center" alignItems="center">
+          {showError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {errorMessage}
+            </Alert>
+          )}
+        </Grid>
       </Grid>
     </Box>
   );
