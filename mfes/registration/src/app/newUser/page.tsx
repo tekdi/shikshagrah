@@ -91,6 +91,8 @@ const NewUserWithStepper: React.FC = () => {
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [confirmPassword, setConfirmPassword] = React.useState('');
 
   // Generate Year Options
@@ -906,15 +908,19 @@ const NewUserWithStepper: React.FC = () => {
                 }
                 value={confirmPassword}
                 onChange={handleChangecontact('confirmPassword')}
-                type={showPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? 'text' : 'password'}
                 error={error.confirmPassword}
                 helperText={
                   error.confirmPassword ? 'Passwords do not match.' : ''
                 }
                 InputProps={{
                   endAdornment: (
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? (
+                    <IconButton
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
                         <VisibilityIcon />
                       ) : (
                         <VisibilityOffIcon />

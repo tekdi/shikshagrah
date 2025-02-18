@@ -26,9 +26,11 @@ import {
   Grid,
   Avatar,
   Alert,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [locationDetails, setLocationDetails] = useState([]);
@@ -37,11 +39,14 @@ export default function Profile() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEmailDialog, setOpenEmailDialog] = useState(false);
   const [openOtpDialog, setOpenOtpDialog] = useState(false);
+  const [openConfirmDeleteDialog, setOpenConfirmDeleteDialog] = useState(false);
+
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const router = useRouter();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedOption, setSelectedOption] = useState('');
   useEffect(() => {
     const getProfileData = async () => {
       try {
@@ -49,15 +54,13 @@ export default function Profile() {
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
         setProfileData(data?.content[0]);
-       
+        
         const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
-
         const order = ['state', 'district', 'block', 'cluster'];
         const sortedLocations = flattenedLocationData.sort(
           (a, b) => order.indexOf(a.type) - order.indexOf(b.type)
         );
-
         setLocationDetails(sortedLocations);
       } catch (err) {
         setShowError(true);
@@ -68,7 +71,6 @@ export default function Profile() {
         setLoading(false);
       }
     };
-
     getProfileData();
   }, []);
 
@@ -77,33 +79,34 @@ export default function Profile() {
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
-
   const handleDeleteAccountClick = () => {
     setOpenDeleteDialog(true);
   };
-
   const handleDeleteConfirmation = () => {
     setOpenDeleteDialog(false);
     setOpenEmailDialog(true);
   };
+  const handleOptionChange = (event) => {
+    const selectedValue = event.target.value;
+    console.log('Selected option:', selectedValue);
+    setSelectedOption(selectedValue);
+    setValue(selectedValue === 'email' ? profileData.email : profileData.phone);
+  };
 
   const handleSendOtp = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const mobileRegex = /^[0-9]{10}$/;
+    console.log('selectedOption', selectedOption);
+    let contactValue =
+      selectedOption === 'email' ? profileData.email : profileData.phone;
+    let type = selectedOption; // 'email' or 'phone'
 
-    let type: 'email' | 'phone';
-
-    if (emailRegex.test(email)) {
-      type = 'email';
-    } else if (mobileRegex.test(email)) {
-      type = 'phone';
-    } else {
-      setError('Please enter a valid Email or Mobile Number');
+    if (!contactValue) {
+      setError(`Please enter a valid ${type}`);
       return;
     }
 
     try {
-      await sendOtp(email, type);
+      setEmail(contactValue);
+      await sendOtp(contactValue, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
     } catch (error) {
@@ -117,19 +120,15 @@ export default function Profile() {
         setError('Please enter OTP');
         return;
       }
-
       const storedUserId = localStorage.getItem('userId');
       const authToken = localStorage.getItem('accToken');
-
       if (!storedUserId || !authToken) {
         setError('User authentication failed. Please log in again.');
         return;
       }
-
       const emailOrPhone = email; // Use the entered email/phone
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
-
       const otpResponse = await verifyOtp(emailOrPhone, otp, type);
       console.log('otpResponse', otpResponse);
       const err = otpResponse?.response;
@@ -149,15 +148,12 @@ export default function Profile() {
       } else if (otpResponse.params.status == 'SUCCESS') {
         const registrationResponse = await deleteUser({});
         console.log(registrationResponse);
-
         if (registrationResponse.result.response == 'SUCCESS') {
           setOpenOtpDialog(false);
+          setOpenConfirmDeleteDialog(true);
           console.log('Account successfully deleted');
-          setShowError(true);
-          setErrorMessage('Account successfully deleted');
-          router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-          localStorage.removeItem('accToken');
-          localStorage.clear();
+          // setShowError(true);
+          // setErrorMessage('Account successfully deleted');
         } else {
           setShowError(true);
           setErrorMessage(err.data.params.errmsg);
@@ -169,6 +165,11 @@ export default function Profile() {
     }
   };
 
+  const confirm = () => {
+    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    localStorage.removeItem('accToken');
+    localStorage.clear();
+  };
   const roleTypes =
     [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
   const subRoles =
@@ -179,15 +180,12 @@ export default function Profile() {
           .map((role) => role.subType)
       ),
     ] || [];
-
   const organisationRoles =
     profileData?.organisations
       ?.flatMap((org) => org.roles)
       ?.filter((role) => role !== null) || [];
-
   const displayRole = roleTypes.length ? roleTypes.join(', ') : 'N/A';
   const displaySubRole = subRoles.length ? subRoles.join(', ') : 'N/A';
-
   const framework = profileData?.framework || {};
   const displayBoard = framework.board?.join(', ') || 'N/A';
   const displayMedium = framework.medium?.join(', ') || 'N/A';
@@ -199,6 +197,7 @@ export default function Profile() {
       localStorage.setItem('frameworkname', profileData.framework.id);
     }
   }, [profileData]);
+  const [value, setValue] = useState(profileData?.email || '');
   const handleEditClick = () => {
     router.push('/profile-edit');
     localStorage.setItem('selectedBoard', displayBoard);
@@ -220,7 +219,6 @@ export default function Profile() {
       </Box>
     );
   }
-
   // if (error) {
   //   return (
   //     <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
@@ -228,7 +226,6 @@ export default function Profile() {
   //     </Typography>
   //   );
   // }
-
   return (
     <Layout
       showTopAppBar={{
@@ -299,7 +296,6 @@ export default function Profile() {
                   {profileData?.firstName?.charAt(0) || 'U'}
                 </Avatar>
               </Grid>
-
               <Grid item>
                 <Typography
                   variant="h5"
@@ -312,7 +308,6 @@ export default function Profile() {
               </Grid>
             </Grid>
           </Box>
-
           {/* Profile Card */}
           <Box
             sx={{
@@ -322,7 +317,6 @@ export default function Profile() {
               mt: 3,
               transform: 'translateY(-5px)',
               boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-
               '&::before': {
                 content: '""',
                 position: 'absolute',
@@ -357,17 +351,19 @@ export default function Profile() {
                     ? 'HT & Officials'
                     : displayRole}
                 </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Sub-role: </span>
-                  {displaySubRole || 'N/A'}
-                </Typography>
+                {displayRole === 'administrator' && (
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: '#333',
+                      paddingBottom: '10px',
+                    }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Sub-role: </span>
+                    {displaySubRole || 'N/A'}
+                  </Typography>
+                )}
                 {locationDetails.map((loc, index) => (
                   <>
                     <Typography
@@ -399,7 +395,6 @@ export default function Profile() {
               </Grid>
             </Grid>
           </Box>
-
           {/* Framework Card */}
           <Box
             sx={{
@@ -409,7 +404,6 @@ export default function Profile() {
               mt: 3,
               transform: 'translateY(-5px)',
               boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-
               '&::before': {
                 content: '""',
                 position: 'absolute',
@@ -488,7 +482,6 @@ export default function Profile() {
               </Grid>
             </Grid>
           </Box>
-
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Button
               onClick={handleDeleteAccountClick}
@@ -527,17 +520,26 @@ export default function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Email Input Dialog */}
       <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
         <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
         <DialogContent>
-          <TextField
-            label="Email/Mobile Number"
-            fullWidth
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <RadioGroup value={selectedOption} onChange={handleOptionChange}>
+            {profileData?.email && (
+              <FormControlLabel
+                value="email"
+                control={<Radio />}
+                label={`Email: ${profileData.email}`}
+              />
+            )}
+            {profileData?.phone && (
+              <FormControlLabel
+                value="phone"
+                control={<Radio />}
+                label={`Mobile: ${profileData.phone}`}
+              />
+            )}
+          </RadioGroup>
         </DialogContent>
         <DialogActions>
           <Button
@@ -551,13 +553,12 @@ export default function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* OTP Input Dialog */}
       <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
         <DialogTitle>Enter OTP</DialogTitle>
         <DialogContent>
           <TextField
-            label="OTP"
+            placeholder="Enter Otp"
             fullWidth
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
@@ -572,6 +573,19 @@ export default function Profile() {
           </Button>
           <Button onClick={handleOtpSubmit} color="error">
             Delete Account
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openConfirmDeleteDialog}
+        onClose={() => setOpenConfirmDeleteDialog(false)}
+      >
+        <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
+        <DialogContent></DialogContent>
+        <DialogActions>
+          <Button onClick={confirm} sx={{ color: '#582E92' }}>
+            OK
           </Button>
         </DialogActions>
       </Dialog>
