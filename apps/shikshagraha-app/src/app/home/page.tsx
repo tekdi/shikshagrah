@@ -70,7 +70,7 @@ export default function Home() {
     >
       <Box
         sx={{
-          backgroundColor: '#f5f5f5',
+          // backgroundColor: '#f5f5f5',
           minHeight: '100vh',
           marginTop: { xs: '60px', sm: '90px' }, // Adjust top margin for mobile and desktop
           paddingX: { xs: 2, sm: 3 }, // Add responsive padding

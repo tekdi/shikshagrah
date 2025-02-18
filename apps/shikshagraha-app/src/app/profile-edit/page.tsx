@@ -79,17 +79,16 @@ export default function ProfileEdit() {
       const newValues = checked
         ? [...currentValues, value]
         : currentValues.filter((v) => v !== value);
+      // Validate after deselecting
+      setValidationErrors((prevErrors) => ({
+        ...prevErrors,
+        [filterCode]: newValues.length === 0,
+      }));
       return {
         ...prev,
         [filterCode]: newValues,
       };
     });
-
-    // Clear validation error on change
-    setValidationErrors((prev) => ({
-      ...prev,
-      [filterCode]: false,
-    }));
   };
 
   const handleSave = async () => {
@@ -117,54 +116,56 @@ export default function ProfileEdit() {
       console.error('Error saving profile:', error);
     }
   };
+  const handleBack = () => {
+    window.history.back();
+  };
+  const renderCategorySelect = (category) => {
+    const filterCode = category.code;
+    const options = category.terms.map((term) => ({
+      label: term.name,
+      value: String(term.code),
+    }));
+    const currentSelectedValues = selectedValues[filterCode] || [];
 
- const renderCategorySelect = (category) => {
-   const filterCode = category.code;
-   const options = category.terms.map((term) => ({
-     label: term.name,
-     value: String(term.code),
-   }));
-   const currentSelectedValues = selectedValues[filterCode] || [];
-
-   return (
-     <FormControl
-       fullWidth
-       key={`${category.code}-${category.name}`}
-       sx={{ mb: 2 }}
-       error={validationErrors[filterCode]}
-     >
-       <InputLabel>{category.name}</InputLabel>
-       <Select
-         multiple
-         value={currentSelectedValues}
-         onChange={(e) => handleChange(e, filterCode)}
-         input={<OutlinedInput label={category.name} />}
-         renderValue={(selected) =>
-           selected
-             .map((value) => {
-               const option = options.find((option) => option.label === value);
-               return option ? option.label : value;
-             })
-             .join(', ')
-         }
-       >
-         {options.map((option) => (
-           <MenuItem key={option.label} value={option.label}>
-             <Checkbox
-               checked={currentSelectedValues.includes(option.label)}
-               onChange={(e) => handleChange(e, filterCode)}
-               value={option.label}
-             />
-             <ListItemText primary={option.label} />
-           </MenuItem>
-         ))}
-       </Select>
-       {validationErrors[filterCode] && (
-         <FormHelperText>{`${category.name} is required`}</FormHelperText>
-       )}
-     </FormControl>
-   );
- };
+    return (
+      <FormControl
+        fullWidth
+        key={`${category.code}-${category.name}`}
+        sx={{ mb: 2 }}
+        error={validationErrors[filterCode]}
+      >
+        <InputLabel>{category.name}</InputLabel>
+        <Select
+          multiple
+          value={currentSelectedValues}
+          onChange={(e) => handleChange(e, filterCode)}
+          input={<OutlinedInput label={category.name} />}
+          renderValue={(selected) =>
+            selected
+              .map((value) => {
+                const option = options.find((option) => option.label === value);
+                return option ? option.label : value;
+              })
+              .join(', ')
+          }
+        >
+          {options.map((option) => (
+            <MenuItem key={option.label} value={option.label}>
+              <Checkbox
+                checked={currentSelectedValues.includes(option.label)}
+                onChange={(e) => handleChange(e, filterCode)}
+                value={option.label}
+              />
+              <ListItemText primary={option.label} />
+            </MenuItem>
+          ))}
+        </Select>
+        {validationErrors[filterCode] && (
+          <FormHelperText>{`${category.name} is required`}</FormHelperText>
+        )}
+      </FormControl>
+    );
+  };
   const isFormValid = () => {
     return (
       selectedValues.board.length > 0 &&
@@ -174,55 +175,71 @@ export default function ProfileEdit() {
     );
   };
 
-return (
-  <Layout
-    showTopAppBar={{
-      title: 'Framework Edit',
-      showMenuIcon: true,
-    }}
-    isFooter={true}
-  >
-    <Box sx={{ paddingTop: '20px', bgcolor: '#f5f5f5', minHeight: '100vh' }}>
-      <Typography
-        variant="h5"
-        color="#582E92"
-        fontWeight="bold"
-        sx={{ textAlign: 'center', mb: 2 }}
+  return (
+    <Layout
+      showTopAppBar={{
+        title: 'Framework Edit',
+        showMenuIcon: true,
+      }}
+      isFooter={true}
+    >
+      <Box
+        sx={{
+          paddingTop: '20px',
+          // bgcolor: '#f5f5f5',
+          minHeight: '100vh',
+        }}
       >
-        Edit Profile
-      </Typography>
-
-      {frameworkFilter?.categories ? (
-        <Box sx={{ mx: 3, mt: 2 }}>
-          {/* Render categories in the correct sequence */}
-          {['board', 'medium', 'gradeLevel', 'subject'].map((key) =>
-            frameworkFilter.categories
-              .filter((category) => category.code === key)
-              .map((category) => renderCategorySelect(category))
-          )}
-
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSave}
-              disabled={!isFormValid()} // Disable button if form is invalid
-              sx={{
-                bgcolor: isFormValid() ? '#582E92' : '#ccc',
-                '&:hover': { bgcolor: isFormValid() ? '#472273' : '#ccc' },
-              }}
-            >
-              Save
-            </Button>
-          </Box>
-        </Box>
-      ) : (
-        <Typography variant="body1" sx={{ textAlign: 'center', mt: 3 }}>
-          Loading...
+        <Typography
+          variant="h5"
+          color="#582E92"
+          fontWeight="bold"
+          sx={{ textAlign: 'center', mb: 2 }}
+        >
+          Edit Profile
         </Typography>
-      )}
-    </Box>
-  </Layout>
-);
 
+        {frameworkFilter?.categories ? (
+          <Box sx={{ mx: 3, mt: 2 }}>
+            {/* Render categories in the correct sequence */}
+            {['board', 'medium', 'gradeLevel', 'subject'].map((key) =>
+              frameworkFilter.categories
+                .filter((category) => category.code === key)
+                .map((category) => renderCategorySelect(category))
+            )}
+
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSave}
+                disabled={!isFormValid()} // Disable button if form is invalid
+                sx={{
+                  bgcolor: isFormValid() ? '#582E92' : '#ccc',
+                  '&:hover': { bgcolor: isFormValid() ? '#472273' : '#ccc' },
+                }}
+              >
+                Save
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleBack} // Disable button if form is invalid
+                sx={{
+                  marginLeft: '20px',
+                  bgcolor:  '#582E92',
+                }}
+              >
+                Back
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Typography variant="body1" sx={{ textAlign: 'center', mt: 3 }}>
+            Loading...
+          </Typography>
+        )}
+      </Box>
+    </Layout>
+  );
 }

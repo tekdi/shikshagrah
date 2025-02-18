@@ -49,7 +49,7 @@ export default function Profile() {
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
         setProfileData(data?.content[0]);
-
+       
         const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
 
@@ -246,7 +246,7 @@ export default function Profile() {
     >
       <Box
         sx={{
-          backgroundColor: '#f5f5f5',
+          // backgroundColor: '#f5f5f5',
           minHeight: '100vh',
           overflowY: 'auto',
           paddingTop: '10%',

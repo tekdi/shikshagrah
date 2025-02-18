@@ -21,6 +21,7 @@ import { jwtDecode } from 'jwt-decode';
 import { fetchProfileData } from '../services/ProfileService';
 import { ButtonBase } from '@mui/material';
 import AppConst from '../utils/AppConst/AppConst';
+import InputAdornment from '@mui/material/InputAdornment';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -251,22 +252,33 @@ export default function Login() {
               : ''
           }
           InputProps={{
-            endAdornment: !showPassword ? (
-              <VisibilityOffIcon
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ cursor: 'pointer' }}
-              />
-            ) : (
-              <VisibilityIcon
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ cursor: 'pointer' }}
-              />
+            endAdornment: (
+              <InputAdornment position="end">
+                {!showPassword ? (
+                  <VisibilityOffIcon
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                ) : (
+                  <VisibilityIcon
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                )}
+              </InputAdornment>
             ),
           }}
           sx={{
             mb: 1,
+            '& .MuiInputBase-root': {
+              backgroundColor: 'inherit', 
+            },
+            '& .MuiInputAdornment-root': {
+              backgroundColor: 'inherit', 
+            },
           }}
         />
+
         {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
           <ButtonBase
             onClick={handlePasswordClick}
