@@ -15,6 +15,7 @@ import {
   MenuItem,
   Checkbox,
   ListItemText,
+  FormHelperText,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { updateProfile } from '../../services/ProfileService'; // Import the service
@@ -28,6 +29,12 @@ export default function ProfileEdit() {
     medium: [],
     gradeLevel: [],
     subject: [],
+  });
+  const [validationErrors, setValidationErrors] = useState({
+    board: false,
+    medium: false,
+    gradeLevel: false,
+    subject: false,
   });
 
   useEffect(() => {
@@ -45,7 +52,6 @@ export default function ProfileEdit() {
         (val) => val.trim()
       ),
     };
-    console.log('Pre-filled Data:', prefillData);
     setSelectedValues(prefillData);
     fetchFramework();
   }, []);
@@ -60,7 +66,6 @@ export default function ProfileEdit() {
       const url = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/api/framework/v1/read/${frameworkId}`;
       const response = await fetch(url);
       const frameworkData = await response.json();
-      console.log('Framework Data:', frameworkData);
       setFrameworkFilter(frameworkData?.result?.framework || {});
     } catch (error) {
       console.error('Error fetching framework data:', error);
@@ -74,6 +79,11 @@ export default function ProfileEdit() {
       const newValues = checked
         ? [...currentValues, value]
         : currentValues.filter((v) => v !== value);
+      // Validate after deselecting
+      setValidationErrors((prevErrors) => ({
+        ...prevErrors,
+        [filterCode]: newValues.length === 0,
+      }));
       return {
         ...prev,
         [filterCode]: newValues,
@@ -82,34 +92,33 @@ export default function ProfileEdit() {
   };
 
   const handleSave = async () => {
-    console.log('Saved Values:', selectedValues);
-    localStorage.setItem(
-      'selectedBoard',
-      selectedValues.board?.join(',') || ''
-    );
-    localStorage.setItem(
-      'selectedMedium',
-      selectedValues.medium?.join(',') || ''
-    );
-    localStorage.setItem(
-      'selectedGradeLevel',
-      selectedValues.gradeLevel?.join(',') || ''
-    );
-    localStorage.setItem(
-      'selectedSubject',
-      selectedValues.subject?.join(',') || ''
-    );
+    const newValidationErrors = {
+      board: selectedValues.board.length === 0,
+      medium: selectedValues.medium.length === 0,
+      gradeLevel: selectedValues.gradeLevel.length === 0,
+      subject: selectedValues.subject.length === 0,
+    };
+
+    setValidationErrors(newValidationErrors);
+
+    const hasErrors = Object.values(newValidationErrors).some((error) => error);
+
+    if (hasErrors) {
+      console.error('Validation failed:', newValidationErrors);
+      return;
+    }
 
     try {
       const userId = localStorage.getItem('userId'); // Replace with actual user ID
       const response = await updateProfile(userId, selectedValues);
-      console.log('Profile updated:', response);
       router.push('/profile');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
   };
-
+  const handleBack = () => {
+    window.history.back();
+  };
   const renderCategorySelect = (category) => {
     const filterCode = category.code;
     const options = category.terms.map((term) => ({
@@ -118,13 +127,12 @@ export default function ProfileEdit() {
     }));
     const currentSelectedValues = selectedValues[filterCode] || [];
 
-    console.log(`Filter Code: ${filterCode}`, currentSelectedValues);
-
     return (
       <FormControl
         fullWidth
         key={`${category.code}-${category.name}`}
         sx={{ mb: 2 }}
+        error={validationErrors[filterCode]}
       >
         <InputLabel>{category.name}</InputLabel>
         <Select
@@ -152,7 +160,18 @@ export default function ProfileEdit() {
             </MenuItem>
           ))}
         </Select>
+        {validationErrors[filterCode] && (
+          <FormHelperText>{`${category.name} is required`}</FormHelperText>
+        )}
       </FormControl>
+    );
+  };
+  const isFormValid = () => {
+    return (
+      selectedValues.board.length > 0 &&
+      selectedValues.medium.length > 0 &&
+      selectedValues.gradeLevel.length > 0 &&
+      selectedValues.subject.length > 0
     );
   };
 
@@ -161,17 +180,16 @@ export default function ProfileEdit() {
       showTopAppBar={{
         title: 'Framework Edit',
         showMenuIcon: true,
-        // profileIcon: [
-        //   {
-        //     icon: <LogoutIcon />,
-        //     ariaLabel: 'Account',
-        //     onLogoutClick: handleAccountClick,
-        //   },
-        // ],
       }}
       isFooter={true}
     >
-      <Box sx={{ paddingTop: '20px', bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+      <Box
+        sx={{
+          paddingTop: '20px',
+          // bgcolor: '#f5f5f5',
+          minHeight: '100vh',
+        }}
+      >
         <Typography
           variant="h5"
           color="#582E92"
@@ -183,8 +201,11 @@ export default function ProfileEdit() {
 
         {frameworkFilter?.categories ? (
           <Box sx={{ mx: 3, mt: 2 }}>
-            {frameworkFilter.categories.map((category) =>
-              renderCategorySelect(category)
+            {/* Render categories in the correct sequence */}
+            {['board', 'medium', 'gradeLevel', 'subject'].map((key) =>
+              frameworkFilter.categories
+                .filter((category) => category.code === key)
+                .map((category) => renderCategorySelect(category))
             )}
 
             <Box sx={{ textAlign: 'center', mt: 3 }}>
@@ -192,9 +213,24 @@ export default function ProfileEdit() {
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
-                sx={{ bgcolor: '#582E92', '&:hover': { bgcolor: '#472273' } }}
+                disabled={!isFormValid()} // Disable button if form is invalid
+                sx={{
+                  bgcolor: isFormValid() ? '#582E92' : '#ccc',
+                  '&:hover': { bgcolor: isFormValid() ? '#472273' : '#ccc' },
+                }}
               >
                 Save
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleBack} // Disable button if form is invalid
+                sx={{
+                  marginLeft: '20px',
+                  bgcolor:  '#582E92',
+                }}
+              >
+                Back
               </Button>
             </Box>
           </Box>
