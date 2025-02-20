@@ -47,6 +47,8 @@ export default function Profile() {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+
   useEffect(() => {
     const getProfileData = async () => {
       try {
@@ -54,7 +56,7 @@ export default function Profile() {
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
         setProfileData(data?.content[0]);
-        
+
         const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
         const order = ['state', 'district', 'block', 'cluster'];
@@ -96,17 +98,18 @@ export default function Profile() {
   const handleSendOtp = async () => {
     console.log('selectedOption', selectedOption);
     let contactValue =
-      selectedOption === 'email' ? profileData.email : profileData.phone;
+      selectedOption === 'email' ? newEmail : profileData.phone;
     let type = selectedOption; // 'email' or 'phone'
-
+    console.log('contactValue', contactValue);
     if (!contactValue) {
       setError(`Please enter a valid ${type}`);
       return;
     }
 
     try {
-      setEmail(contactValue);
-      await sendOtp(contactValue, type);
+      console.log('', contactValue);
+      setEmail(newEmail);
+      sendOtp(contactValue, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
     } catch (error) {
@@ -205,6 +208,14 @@ export default function Profile() {
     localStorage.setItem('selectedGradeLevel', displayGradeLevel);
     localStorage.setItem('selectedSubject', displaySubject);
   };
+  const toCamelCase = (str) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   if (loading) {
     return (
       <Box
@@ -349,7 +360,7 @@ export default function Profile() {
                   <span style={{ color: '#FF9911' }}>Role: </span>
                   {displayRole === 'administrator'
                     ? 'HT & Officials'
-                    : displayRole}
+                    : toCamelCase(displayRole)}
                 </Typography>
                 {displayRole === 'administrator' && (
                   <Typography
@@ -526,12 +537,25 @@ export default function Profile() {
         <DialogContent>
           <RadioGroup value={selectedOption} onChange={handleOptionChange}>
             {profileData?.email && (
-              <FormControlLabel
-                value="email"
-                control={<Radio />}
-                label={`Email: ${profileData.email}`}
-              />
+              <>
+                <FormControlLabel
+                  value="email"
+                  control={<Radio />}
+                  label={`Email: ${profileData.email}`}
+                />
+                {selectedOption === 'email' && (
+                  <TextField
+                    label="Update Email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  />
+                )}
+              </>
             )}
+
             {profileData?.phone && (
               <FormControlLabel
                 value="phone"
@@ -553,6 +577,7 @@ export default function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* OTP Input Dialog */}
       <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
         <DialogTitle>Enter OTP</DialogTitle>

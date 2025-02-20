@@ -27,7 +27,8 @@ export default function Home() {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
-         setProfileData(data?.content[0]);
+        setProfileData(data?.content[0]);
+        localStorage.setItem('frameworkname', 'NCF');
       } catch (err) {
         setError('Failed to load profile data');
       } finally {
@@ -36,7 +37,11 @@ export default function Home() {
     };
     getProfileData();
   }, []);
-
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && profileData?.framework?.id) {
+  //     localStorage.setItem('frameworkname', profileData.framework.id || 'NCF');
+  //   }
+  // }, [profileData]);
   const handleAccountClick = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
@@ -100,7 +105,7 @@ export default function Home() {
                 fontWeight="bold"
                 fontSize={{ xs: '22px', sm: '24px', md: '26px' }} // Responsive font size
               >
-                {profileData?.firstName}
+               Welcome, {profileData?.firstName}
               </Typography>
               <Typography
                 variant="body2"

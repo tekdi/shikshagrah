@@ -111,7 +111,8 @@ export default function ProfileEdit() {
     try {
       const userId = localStorage.getItem('userId'); // Replace with actual user ID
       const response = await updateProfile(userId, selectedValues);
-      router.push('/profile');
+      window.location.href('/profile')
+    //  router.push('/profile');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
@@ -119,53 +120,59 @@ export default function ProfileEdit() {
   const handleBack = () => {
     window.history.back();
   };
-  const renderCategorySelect = (category) => {
-    const filterCode = category.code;
-    const options = category.terms.map((term) => ({
-      label: term.name,
-      value: String(term.code),
-    }));
-    const currentSelectedValues = selectedValues[filterCode] || [];
+ const renderCategorySelect = (category) => {
+   const filterCode = category.code;
+   const options = category.terms.map((term) => ({
+     label: term.name,
+     value: String(term.code),
+   }));
+   const currentSelectedValues = selectedValues[filterCode] || [];
 
-    return (
-      <FormControl
-        fullWidth
-        key={`${category.code}-${category.name}`}
-        sx={{ mb: 2 }}
-        error={validationErrors[filterCode]}
-      >
-        <InputLabel>{category.name}</InputLabel>
-        <Select
-          multiple
-          value={currentSelectedValues}
-          onChange={(e) => handleChange(e, filterCode)}
-          input={<OutlinedInput label={category.name} />}
-          renderValue={(selected) =>
-            selected
-              .map((value) => {
-                const option = options.find((option) => option.label === value);
-                return option ? option.label : value;
-              })
-              .join(', ')
-          }
-        >
-          {options.map((option) => (
-            <MenuItem key={option.label} value={option.label}>
-              <Checkbox
-                checked={currentSelectedValues.includes(option.label)}
-                onChange={(e) => handleChange(e, filterCode)}
-                value={option.label}
-              />
-              <ListItemText primary={option.label} />
-            </MenuItem>
-          ))}
-        </Select>
-        {validationErrors[filterCode] && (
-          <FormHelperText>{`${category.name} is required`}</FormHelperText>
-        )}
-      </FormControl>
-    );
-  };
+   return (
+     <FormControl
+       fullWidth
+       key={`${category.code}-${category.name}`}
+       sx={{ mb: 2 }}
+       error={validationErrors[filterCode]}
+     >
+       <InputLabel>{category.name}</InputLabel>
+       <Select
+         multiple
+         value={currentSelectedValues}
+         onChange={(e) => handleChange(e, filterCode)}
+         input={<OutlinedInput label={category.name} />}
+         renderValue={(selected) => {
+           // Filter out 'NA' before displaying the selected values
+           const filteredSelected = selected.filter((value) => value !== 'N/A');
+           if (filteredSelected.length === 0) {
+             return 'Select...';
+           }
+           return filteredSelected
+             .map((value) => {
+               const option = options.find((option) => option.label === value);
+               return option ? option.label : value;
+             })
+             .join(', ');
+         }}
+       >
+         {options.map((option) => (
+           <MenuItem key={option.label} value={option.label}>
+             <Checkbox
+               checked={currentSelectedValues.includes(option.label)}
+               onChange={(e) => handleChange(e, filterCode)}
+               value={option.label}
+             />
+             <ListItemText primary={option.label} />
+           </MenuItem>
+         ))}
+       </Select>
+       {validationErrors[filterCode] && (
+         <FormHelperText>{`${category.name} is required`}</FormHelperText>
+       )}
+     </FormControl>
+   );
+ };
+
   const isFormValid = () => {
     return (
       selectedValues.board.length > 0 &&
@@ -227,7 +234,7 @@ export default function ProfileEdit() {
                 onClick={handleBack} // Disable button if form is invalid
                 sx={{
                   marginLeft: '20px',
-                  bgcolor:  '#582E92',
+                  bgcolor: '#582E92',
                 }}
               >
                 Back

@@ -18,6 +18,7 @@ import {
   RadioGroup,
   FormControlLabel,
   IconButton,
+  Checkbox,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
@@ -94,7 +95,49 @@ const NewUserWithStepper: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [confirmPassword, setConfirmPassword] = React.useState('');
-
+  const subRoles = [
+    { label: 'HM', value: 'hm' },
+    { label: 'CRP', value: 'crp' },
+    { label: 'Complex HM', value: 'chm' },
+    { label: 'MEO', value: 'meo' },
+    { label: 'DyEO', value: 'dyeo' },
+    { label: 'ATWO', value: 'atwo' },
+    { label: 'DTWO', value: 'dtwo' },
+    { label: 'GCDO PMRC', value: 'gcdo_pmrc' },
+    { label: 'CMO PMRC', value: 'cmo_pmrc' },
+    { label: 'AMO PMRC', value: 'amo_pmrc' },
+    { label: 'DDTW', value: 'ddtw' },
+    { label: 'ASO DPO', value: 'aso_dpo' },
+    { label: 'Asst ALS Coordinator', value: 'asst_als_coordinator' },
+    { label: 'Asst IE Coordinator', value: 'asst_ie_coordinator' },
+    { label: 'ALS Coordinator', value: 'als_coordinator' },
+    { label: 'IE Coordinator', value: 'ie_coordinator' },
+    { label: 'CMO', value: 'cmo' },
+    { label: 'AAMO', value: 'aamo' },
+    { label: 'AMO', value: 'amo' },
+    { label: 'APC', value: 'apc' },
+    { label: 'DIET Lecturer', value: 'diet_lecturer' },
+    { label: 'DIET Principal', value: 'diet_principal' },
+    { label: 'DEO', value: 'deo' },
+    { label: 'RJD', value: 'rjd' },
+    { label: 'SLCC', value: 'slcc' },
+    { label: 'SLMO', value: 'slmo' },
+    { label: 'Director Adult Education', value: 'dir_ad_ed' },
+    { label: 'Director Public Libraries', value: 'dir_pub_lib' },
+    { label: 'Director SCERT', value: 'dir_scert' },
+    { label: 'Secretary KGBV', value: 'sec_kgbv' },
+    { label: 'Secretary Public Libraries', value: 'sec_pub_lib' },
+    { label: 'Deputy Director Adult Education', value: 'dep_dir_ad_ed' },
+    {
+      label: 'Librarian Public Libraries/ Book Deposit Center',
+      value: 'lib_bdc',
+    },
+    { label: 'Instructor/ Volunteer Adult Education', value: 'ins_ad_ed' },
+    { label: 'BDC Incharge', value: 'bdc_inch' },
+    { label: 'SPD', value: 'spd' },
+    { label: 'Librarian Public Libraries', value: 'lib_pub_lib' },
+    { label: 'Supervisor Adult Education', value: 'sup_ad_ed' },
+  ];
   // Generate Year Options
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -642,48 +685,23 @@ const NewUserWithStepper: React.FC = () => {
                     multiple
                     value={selectedSubRole}
                     onChange={handleSubRoleChange}
-                    renderValue={(selected) => selected.join(', ')}
+                    renderValue={(selected) =>
+                      selected
+                        .map((value) => {
+                          const selectedRole = subRoles.find(
+                            (role) => role.value === value
+                          );
+                          return selectedRole ? selectedRole.label : value;
+                        })
+                        .join(', ')
+                    }
                   >
-                    {[
-                      'HM',
-                      'CRP',
-                      'Complex HM',
-                      'MEO',
-                      'DyEO',
-                      'ATWO',
-                      'DTWO',
-                      'GCDO PMRC',
-                      'CMO PMRC',
-                      'AMO PMRC',
-                      'DDTW',
-                      'ASO DPO',
-                      'Asst ALS Coordinator',
-                      'Asst IE Coordinator',
-                      'ALS Coordinator',
-                      'IE Coordinator',
-                      'CMO',
-                      'AAMO',
-                      'AMO',
-                      'APC',
-                      'DIET Lecturer',
-                      'DIET Principal',
-                      'DEO',
-                      'RJD',
-                      'SLCC',
-                      'SLMO',
-                      'SPPD',
-                      'Director Adult Education',
-                      'Director Public Libraries',
-                      'Director SCERT',
-                      'Secretary KGBV',
-                      'Secretary Public Libraries',
-                      'Deputy Director Adult Education',
-                      'Librarian Public Libraries/ Book Deposit Center',
-                      'Instructor/ Volunteer Adult Education',
-                      'BDC Incharge',
-                    ].map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {role}
+                    {subRoles.map((role) => (
+                      <MenuItem key={role.value} value={role.value}>
+                        <Checkbox
+                          checked={selectedSubRole.includes(role.value)}
+                        />
+                        {role.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -1241,7 +1259,7 @@ const NewUserWithStepper: React.FC = () => {
         <DialogTitle>Registration Successful</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Welcome, {requestData?.usercreate?.request?.userName}! Your account
+            Welcome, {requestData?.usercreate?.request?.userName} Your account
             has been successfully registered. Please use your username to login.
           </DialogContentText>
         </DialogContent>
