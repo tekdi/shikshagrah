@@ -85,6 +85,7 @@ const NewUserWithStepper: React.FC = () => {
   const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
   const [formValid, setFormValid] = useState(null);
+  const [resendClick, setResendClick] = useState(false);
 
   // Email/Password regex
   const emailRegex = /^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
@@ -408,18 +409,23 @@ const NewUserWithStepper: React.FC = () => {
       setErrorMessage(error.message || 'An error occurred');
     }
   };
-  const handleResendOtp = () => {
-    if (resendCount < 2) {
-      setResendCount(resendCount + 1); // Increment resend attempts
-      setEnableResend(false);
-      setTimer(60);
-      // Logic to resend OTP
-      console.log('OTP resent');
-      handleStep3Continue();
-    } else {
-      alert('You can only resend OTP twice.');
-    }
-  };
+ const handleResendOtp = () => {
+   if (resendCount < 2) {
+     setResendCount((prev) => prev + 1);
+     setEnableResend(false);
+     setTimer(60);
+
+     setResendClick(true); // Mark that resend was clicked
+     setRemainingAttempts(3); // Reset attempts
+
+     console.log('OTP resent');
+     handleStep3Continue();
+   } else {
+     alert('You can only resend OTP twice.');
+   }
+ };
+
+
   const handleBack = () => {
     setShowError(false);
     setErrorMessage('');
@@ -714,6 +720,7 @@ const NewUserWithStepper: React.FC = () => {
                 onChange={handleUdiseChange}
                 fullWidth
                 sx={{ mb: 2 }}
+                disabled={!selectedRole}
               />
 
               {/* Fetch Location Button */}
@@ -1177,20 +1184,24 @@ const NewUserWithStepper: React.FC = () => {
                   onClick={handleSubmit}
                   sx={{
                     bgcolor:
-                      otp.length >= 5 && otp.length <= 6 ? '#572e91' : '#ddd',
+                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                        ? '#572e91'
+                        : '#ddd',
                     color:
-                      otp.length >= 5 && otp.length <= 6 ? '#FFFFFF' : '#999',
+                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                        ? '#FFFFFF'
+                        : '#999',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': {
-                      bgcolor: '#543E98',
-                    },
+                    '&:hover': { bgcolor: '#543E98' },
                     width: '50%',
                   }}
-                  disabled={otp.length < 5 || remainingAttempts <= 0}
+                  disabled={
+                    otp.length < 5 || (remainingAttempts <= 0 && !resendClick) // Disable when no attempts and no resend
+                  }
                 >
                   Verify OTP
                 </Button>

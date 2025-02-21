@@ -56,7 +56,6 @@ export default function Profile() {
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
         setProfileData(data?.content[0]);
-
         const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
         const order = ['state', 'district', 'block', 'cluster'];
@@ -75,7 +74,7 @@ export default function Profile() {
     };
     getProfileData();
   }, []);
-
+  console.log('profileData', profileData);
   const handleAccountClick = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
