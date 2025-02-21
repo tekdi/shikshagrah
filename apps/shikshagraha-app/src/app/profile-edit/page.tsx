@@ -18,7 +18,7 @@ import {
   FormHelperText,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { updateProfile } from '../../services/ProfileService'; // Import the service
+import { updateProfile, fetchProfileData } from '../../services/ProfileService'; // Import the service
 
 export default function ProfileEdit() {
   const router = useRouter();
@@ -36,6 +36,7 @@ export default function ProfileEdit() {
     gradeLevel: false,
     subject: false,
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const prefillData = {
@@ -100,7 +101,6 @@ export default function ProfileEdit() {
     };
 
     setValidationErrors(newValidationErrors);
-
     const hasErrors = Object.values(newValidationErrors).some((error) => error);
 
     if (hasErrors) {
@@ -109,13 +109,25 @@ export default function ProfileEdit() {
     }
 
     try {
-      const userId = localStorage.getItem('userId'); // Replace with actual user ID
-      const response = await updateProfile(userId, selectedValues);
-      router.push('/profile');
+      setLoading(true); // Move loader activation to the start
+
+      const userId = localStorage.getItem('userId');
+      await updateProfile(userId, selectedValues);
+      const token = localStorage.getItem('accToken') || '';
+      await fetchProfileData(userId, token);
+
+      setTimeout(() => {
+        router.push('/profile');
+        setTimeout(() => {
+          window.location.reload();
+        }, 500); // Small delay to ensure navigation happens first
+      }, 2000);
     } catch (error) {
       console.error('Error saving profile:', error);
+      setLoading(false); // Hide loader if there's an error
     }
   };
+
   const handleBack = () => {
     window.history.back();
   };
@@ -140,14 +152,21 @@ export default function ProfileEdit() {
           value={currentSelectedValues}
           onChange={(e) => handleChange(e, filterCode)}
           input={<OutlinedInput label={category.name} />}
-          renderValue={(selected) =>
-            selected
+          renderValue={(selected) => {
+            // Filter out 'NA' before displaying the selected values
+            const filteredSelected = selected.filter(
+              (value) => value !== 'N/A'
+            );
+            if (filteredSelected.length === 0) {
+              return 'Select...';
+            }
+            return filteredSelected
               .map((value) => {
                 const option = options.find((option) => option.label === value);
                 return option ? option.label : value;
               })
-              .join(', ')
-          }
+              .join(', ');
+          }}
         >
           {options.map((option) => (
             <MenuItem key={option.label} value={option.label}>
@@ -166,6 +185,7 @@ export default function ProfileEdit() {
       </FormControl>
     );
   };
+
   const isFormValid = () => {
     return (
       selectedValues.board.length > 0 &&
@@ -227,7 +247,7 @@ export default function ProfileEdit() {
                 onClick={handleBack} // Disable button if form is invalid
                 sx={{
                   marginLeft: '20px',
-                  bgcolor:  '#582E92',
+                  bgcolor: '#582E92',
                 }}
               >
                 Back
@@ -240,6 +260,13 @@ export default function ProfileEdit() {
           </Typography>
         )}
       </Box>
+      <div>
+        <button disabled={loading}>
+          {loading ? 'Redirecting...' : 'Go to Profile'}
+        </button>
+
+        {loading && <p>Loading...</p>}
+      </div>
     </Layout>
   );
 }

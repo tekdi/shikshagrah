@@ -75,28 +75,31 @@ export const fetchLocationDetails = async (locations) => {
 };
 
 export const sendOtp = async (key: string, type: 'email' | 'phone') => {
+  const headers = {
+    Authorization: `${process.env.NEXT_PUBLIC_AUTH}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+
+  // Construct request object conditionally
+  const req = {
+    request: {
+      key,
+      type,
+      ...(type === 'phone' && { templateId: 'otpContactUpdateTemplate' }),
+    },
+  };
+
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_SEND_OTP}`,
-      {
-        request: {
-          type: type,
-          key: key,
-          templateId: 'otpContactUpdateTemplate',
-        },
-      },
-      {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with a valid token
-        },
-      }
+      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_GENRATE_OTP}`,
+      req,
+      { headers }
     );
     return response.data;
   } catch (error) {
     console.error('Error sending OTP:', error);
-    throw new Error('Failed to send OTP');
+    return error;
   }
 };
 
@@ -130,19 +133,24 @@ export const verifyOtp = async (email, otp, contactType) => {
 export const updateProfile = async (userId, selectedValues) => {
   const { board, medium, gradeLevel, subject } = selectedValues;
 
+  // Filter out 'N/A' from each field
+  const filterNA = (arr) => (arr || []).filter((item) => item !== 'N/A');
+
   const requestData = {
     request: {
       userId,
       framework: {
-        board: board || [],
-        gradeLevel: gradeLevel || [],
+        board: filterNA(board),
+        gradeLevel: filterNA(gradeLevel),
         id: localStorage.getItem('frameworkname'), // Update with actual ID if dynamic
-        medium: medium || [],
-        subject: subject || [],
+        medium: filterNA(medium),
+        subject: filterNA(subject),
       },
     },
   };
-  console.log('requestData', requestData);
+
+  console.log('requestData', requestData); // Confirm N/A values are removed
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_UPDATE_USER}`,
@@ -168,6 +176,7 @@ export const updateProfile = async (userId, selectedValues) => {
     throw error;
   }
 };
+
 
 
 export const deleteUser = async () => {

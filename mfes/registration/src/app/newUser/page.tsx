@@ -18,6 +18,7 @@ import {
   RadioGroup,
   FormControlLabel,
   IconButton,
+  Checkbox,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
@@ -84,6 +85,7 @@ const NewUserWithStepper: React.FC = () => {
   const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
   const [formValid, setFormValid] = useState(null);
+  const [resendClick, setResendClick] = useState(false);
 
   // Email/Password regex
   const emailRegex = /^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
@@ -94,7 +96,49 @@ const NewUserWithStepper: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [confirmPassword, setConfirmPassword] = React.useState('');
-
+  const subRoles = [
+    { label: 'HM', value: 'hm' },
+    { label: 'CRP', value: 'crp' },
+    { label: 'Complex HM', value: 'chm' },
+    { label: 'MEO', value: 'meo' },
+    { label: 'DyEO', value: 'dyeo' },
+    { label: 'ATWO', value: 'atwo' },
+    { label: 'DTWO', value: 'dtwo' },
+    { label: 'GCDO PMRC', value: 'gcdo_pmrc' },
+    { label: 'CMO PMRC', value: 'cmo_pmrc' },
+    { label: 'AMO PMRC', value: 'amo_pmrc' },
+    { label: 'DDTW', value: 'ddtw' },
+    { label: 'ASO DPO', value: 'aso_dpo' },
+    { label: 'Asst ALS Coordinator', value: 'asst_als_coordinator' },
+    { label: 'Asst IE Coordinator', value: 'asst_ie_coordinator' },
+    { label: 'ALS Coordinator', value: 'als_coordinator' },
+    { label: 'IE Coordinator', value: 'ie_coordinator' },
+    { label: 'CMO', value: 'cmo' },
+    { label: 'AAMO', value: 'aamo' },
+    { label: 'AMO', value: 'amo' },
+    { label: 'APC', value: 'apc' },
+    { label: 'DIET Lecturer', value: 'diet_lecturer' },
+    { label: 'DIET Principal', value: 'diet_principal' },
+    { label: 'DEO', value: 'deo' },
+    { label: 'RJD', value: 'rjd' },
+    { label: 'SLCC', value: 'slcc' },
+    { label: 'SLMO', value: 'slmo' },
+    { label: 'Director Adult Education', value: 'dir_ad_ed' },
+    { label: 'Director Public Libraries', value: 'dir_pub_lib' },
+    { label: 'Director SCERT', value: 'dir_scert' },
+    { label: 'Secretary KGBV', value: 'sec_kgbv' },
+    { label: 'Secretary Public Libraries', value: 'sec_pub_lib' },
+    { label: 'Deputy Director Adult Education', value: 'dep_dir_ad_ed' },
+    {
+      label: 'Librarian Public Libraries/ Book Deposit Center',
+      value: 'lib_bdc',
+    },
+    { label: 'Instructor/ Volunteer Adult Education', value: 'ins_ad_ed' },
+    { label: 'BDC Incharge', value: 'bdc_inch' },
+    { label: 'SPD', value: 'spd' },
+    { label: 'Librarian Public Libraries', value: 'lib_pub_lib' },
+    { label: 'Supervisor Adult Education', value: 'sup_ad_ed' },
+  ];
   // Generate Year Options
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -365,18 +409,23 @@ const NewUserWithStepper: React.FC = () => {
       setErrorMessage(error.message || 'An error occurred');
     }
   };
-  const handleResendOtp = () => {
-    if (resendCount < 2) {
-      setResendCount(resendCount + 1); // Increment resend attempts
-      setEnableResend(false);
-      setTimer(60);
-      // Logic to resend OTP
-      console.log('OTP resent');
-      handleStep3Continue();
-    } else {
-      alert('You can only resend OTP twice.');
-    }
-  };
+ const handleResendOtp = () => {
+   if (resendCount < 2) {
+     setResendCount((prev) => prev + 1);
+     setEnableResend(false);
+     setTimer(60);
+
+     setResendClick(true); // Mark that resend was clicked
+     setRemainingAttempts(3); // Reset attempts
+
+     console.log('OTP resent');
+     handleStep3Continue();
+   } else {
+     alert('You can only resend OTP twice.');
+   }
+ };
+
+
   const handleBack = () => {
     setShowError(false);
     setErrorMessage('');
@@ -642,48 +691,23 @@ const NewUserWithStepper: React.FC = () => {
                     multiple
                     value={selectedSubRole}
                     onChange={handleSubRoleChange}
-                    renderValue={(selected) => selected.join(', ')}
+                    renderValue={(selected) =>
+                      selected
+                        .map((value) => {
+                          const selectedRole = subRoles.find(
+                            (role) => role.value === value
+                          );
+                          return selectedRole ? selectedRole.label : value;
+                        })
+                        .join(', ')
+                    }
                   >
-                    {[
-                      'HM',
-                      'CRP',
-                      'Complex HM',
-                      'MEO',
-                      'DyEO',
-                      'ATWO',
-                      'DTWO',
-                      'GCDO PMRC',
-                      'CMO PMRC',
-                      'AMO PMRC',
-                      'DDTW',
-                      'ASO DPO',
-                      'Asst ALS Coordinator',
-                      'Asst IE Coordinator',
-                      'ALS Coordinator',
-                      'IE Coordinator',
-                      'CMO',
-                      'AAMO',
-                      'AMO',
-                      'APC',
-                      'DIET Lecturer',
-                      'DIET Principal',
-                      'DEO',
-                      'RJD',
-                      'SLCC',
-                      'SLMO',
-                      'SPPD',
-                      'Director Adult Education',
-                      'Director Public Libraries',
-                      'Director SCERT',
-                      'Secretary KGBV',
-                      'Secretary Public Libraries',
-                      'Deputy Director Adult Education',
-                      'Librarian Public Libraries/ Book Deposit Center',
-                      'Instructor/ Volunteer Adult Education',
-                      'BDC Incharge',
-                    ].map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {role}
+                    {subRoles.map((role) => (
+                      <MenuItem key={role.value} value={role.value}>
+                        <Checkbox
+                          checked={selectedSubRole.includes(role.value)}
+                        />
+                        {role.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -696,6 +720,7 @@ const NewUserWithStepper: React.FC = () => {
                 onChange={handleUdiseChange}
                 fullWidth
                 sx={{ mb: 2 }}
+                disabled={!selectedRole}
               />
 
               {/* Fetch Location Button */}
@@ -1159,20 +1184,24 @@ const NewUserWithStepper: React.FC = () => {
                   onClick={handleSubmit}
                   sx={{
                     bgcolor:
-                      otp.length >= 5 && otp.length <= 6 ? '#572e91' : '#ddd',
+                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                        ? '#572e91'
+                        : '#ddd',
                     color:
-                      otp.length >= 5 && otp.length <= 6 ? '#FFFFFF' : '#999',
+                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                        ? '#FFFFFF'
+                        : '#999',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': {
-                      bgcolor: '#543E98',
-                    },
+                    '&:hover': { bgcolor: '#543E98' },
                     width: '50%',
                   }}
-                  disabled={otp.length < 5 || remainingAttempts <= 0}
+                  disabled={
+                    otp.length < 5 || (remainingAttempts <= 0 && !resendClick) // Disable when no attempts and no resend
+                  }
                 >
                   Verify OTP
                 </Button>
@@ -1241,7 +1270,7 @@ const NewUserWithStepper: React.FC = () => {
         <DialogTitle>Registration Successful</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Welcome, {requestData?.usercreate?.request?.userName}! Your account
+            Welcome, {requestData?.usercreate?.request?.userName} Your account
             has been successfully registered. Please use your username to login.
           </DialogContentText>
         </DialogContent>
