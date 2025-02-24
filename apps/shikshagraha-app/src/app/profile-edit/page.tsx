@@ -115,11 +115,10 @@ export default function ProfileEdit() {
       await updateProfile(userId, selectedValues);
       const token = localStorage.getItem('accToken') || '';
       await fetchProfileData(userId, token);
-
       setTimeout(() => {
         router.push('/profile');
         setTimeout(() => {
-          window.location.reload();
+          router.refresh();
         }, 500); // Small delay to ensure navigation happens first
       }, 2000);
     } catch (error) {

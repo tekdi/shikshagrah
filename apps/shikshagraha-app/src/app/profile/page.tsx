@@ -48,14 +48,17 @@ export default function Profile() {
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newPhone,setNewPhone] = useState('');
 
   useEffect(() => {
     const getProfileData = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
         const data = await fetchProfileData(userId, token);
         setProfileData(data?.content[0]);
+
         const locations = data?.content[0]?.profileLocation || [];
         const flattenedLocationData = await fetchLocationDetails(locations);
         const order = ['state', 'district', 'block', 'cluster'];
@@ -65,15 +68,14 @@ export default function Profile() {
         setLocationDetails(sortedLocations);
       } catch (err) {
         setShowError(true);
-        // setErrorMessage(err);
-        // console.error('Error fetching profile data:', err);
-        // setError('Failed to load profile data');
       } finally {
         setLoading(false);
       }
     };
+
     getProfileData();
-  }, []);
+  }, [router]); 
+
   console.log('profileData', profileData);
   const handleAccountClick = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
@@ -96,8 +98,7 @@ export default function Profile() {
 
   const handleSendOtp = async () => {
     console.log('selectedOption', selectedOption);
-    let contactValue =
-      selectedOption === 'email' ? newEmail : profileData.phone;
+    const contactValue = selectedOption === 'email' ? newEmail : newPhone;
     let type = selectedOption; // 'email' or 'phone'
     console.log('contactValue', contactValue);
     if (!contactValue) {
@@ -108,6 +109,7 @@ export default function Profile() {
     try {
       console.log('', contactValue);
       setEmail(newEmail);
+      setNewPhone (newPhone);
       sendOtp(contactValue, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
@@ -128,8 +130,9 @@ export default function Profile() {
         setError('User authentication failed. Please log in again.');
         return;
       }
-      const emailOrPhone = email; // Use the entered email/phone
+      const emailOrPhone = newEmail || newPhone; // Use the entered email/phone
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      console.log('emailOrPhone', emailOrPhone);
       const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
       const otpResponse = await verifyOtp(emailOrPhone, otp, type);
       console.log('otpResponse', otpResponse);
@@ -556,11 +559,22 @@ export default function Profile() {
             )}
 
             {profileData?.phone && (
-              <FormControlLabel
-                value="phone"
-                control={<Radio />}
-                label={`Mobile: ${profileData.phone}`}
-              />
+              <>
+                <FormControlLabel
+                  value="phone"
+                  control={<Radio />}
+                  label={`Mobile: ${profileData.phone}`}
+                />
+                {selectedOption === 'phone' && (
+                  <TextField
+                    label="Update Phone"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  />
+                )}
+              </>
             )}
           </RadioGroup>
         </DialogContent>
