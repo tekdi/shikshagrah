@@ -29,6 +29,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  DialogContentText,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 export default function Profile() {
@@ -48,7 +49,8 @@ export default function Profile() {
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [newPhone,setNewPhone] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -74,13 +76,21 @@ export default function Profile() {
     };
 
     getProfileData();
-  }, [router]); 
+  }, [router]);
 
   console.log('profileData', profileData);
   const handleAccountClick = () => {
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
+    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
   const handleDeleteAccountClick = () => {
     setOpenDeleteDialog(true);
@@ -99,7 +109,7 @@ export default function Profile() {
   const handleSendOtp = async () => {
     console.log('selectedOption', selectedOption);
     const contactValue = selectedOption === 'email' ? newEmail : newPhone;
-    let type = selectedOption; // 'email' or 'phone'
+    const type = selectedOption; // 'email' or 'phone'
     console.log('contactValue', contactValue);
     if (!contactValue) {
       setError(`Please enter a valid ${type}`);
@@ -109,7 +119,7 @@ export default function Profile() {
     try {
       console.log('', contactValue);
       setEmail(newEmail);
-      setNewPhone (newPhone);
+      setNewPhone(newPhone);
       sendOtp(contactValue, type);
       setOpenEmailDialog(false);
       setOpenOtpDialog(true);
@@ -624,6 +634,22 @@ export default function Profile() {
         <DialogActions>
           <Button onClick={confirm} sx={{ color: '#582E92' }}>
             OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to log out?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleLogoutCancel} color="primary">
+            No
+          </Button>
+          <Button onClick={handleLogoutConfirm} color="secondary">
+            Yes, Logout
           </Button>
         </DialogActions>
       </Dialog>

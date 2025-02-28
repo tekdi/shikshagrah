@@ -1,3 +1,6 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 'use client';
 import { Card, CardContent, Box, Typography } from '@mui/material';
 
@@ -33,7 +36,7 @@ export const DynamicCard = ({ title, icon, onClick }) => {
           <img
             src={icon}
             alt={title}
-            style={{ height: '40px', width: '40px' }}
+            style={{ height: '75px', width: '75px' }}
           />
         ) : (
           icon

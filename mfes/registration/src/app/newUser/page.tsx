@@ -183,7 +183,8 @@ const NewUserWithStepper: React.FC = () => {
   };
 
   const handleUdiseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUdisecode(event.target.value);
+    const newValue = event.target.value.replace(/\s/g, ''); // Remove spaces
+    setUdisecode(newValue);
     setButtonDisabled(false);
     setShowError(false);
   };
@@ -282,7 +283,7 @@ const NewUserWithStepper: React.FC = () => {
             locationData.school,
           ].filter(Boolean);
 
-          let userTypes = [];
+          const userTypes = [];
           const userRole = selectedRole || '';
 
           if (userRole === 'administrator') {
@@ -356,52 +357,52 @@ const NewUserWithStepper: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (remainingAttempts <= 0) {
+      setShowError(true);
+      setErrorMessage(
+        'You have exceeded the maximum OTP attempts. Please request a new OTP.'
+      );
+      return;
+    }
+
     setShowError(false);
     if (otp.length < 5 || otp.length > 6) {
       setInvalidOtp(true);
-      setRemainingAttempts((prev) => prev - 1);
+      setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
       return;
     }
 
     try {
       const email = contact;
-
       const otpResponse = await verifyOtpService(email, otp, contactType);
-      console.log('otpResponse', otpResponse.response);
       const err = otpResponse?.response;
+
       if (
-        otpResponse ==
+        otpResponse ===
           'OTP verification failed. Remaining attempt count is 0.' ||
-        otpResponse ==
+        otpResponse ===
           'OTP verification failed. Remaining attempt count is 1.' ||
         err?.data?.params?.status === 'FAILED'
       ) {
-        // setShowError(true);
         setShowError(true);
         setErrorMessage(err.data.params.errmsg);
         setInvalidOtp(true);
-        setRemainingAttempts((prev) => prev - 1);
+        setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
         return;
-      } else if (otpResponse.params.status == 'SUCCESS') {
+      } else if (otpResponse.params.status === 'SUCCESS') {
         console.log('OTP verified successfully', requestData);
-
         const registrationResponse = await registerUserService({ requestData });
 
-        if (registrationResponse.success == true) {
+        if (registrationResponse.success === true) {
           setErrorMessage(registrationResponse.message);
           setDialogOpen(true);
-          // setDialogOpen(true);
         } else {
-          console.log('registrationResponse', registrationResponse);
           setShowError(true);
           setErrorMessage(
             registrationResponse.data
               ? registrationResponse.data.error.params.errmsg
               : registrationResponse.error.params.errmsg
           );
-          // setDialogOpen(true);
-          // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-          // localStorage.clear();
         }
       }
     } catch (error) {
@@ -409,22 +410,32 @@ const NewUserWithStepper: React.FC = () => {
       setErrorMessage(error.message || 'An error occurred');
     }
   };
- const handleResendOtp = () => {
-   if (resendCount < 2) {
-     setResendCount((prev) => prev + 1);
-     setEnableResend(false);
-     setTimer(60);
 
-     setResendClick(true); // Mark that resend was clicked
-     setRemainingAttempts(3); // Reset attempts
+  const handleResendOtp = () => {
+    if (resendCount >= 4) {
+      setShowError(true);
+      setErrorMessage(
+        'You have reached the maximum OTP resends. Please try again after 1 hour.'
+      );
+      return;
+    }
 
-     console.log('OTP resent');
-     handleStep3Continue();
-   } else {
-     alert('You can only resend OTP twice.');
-   }
- };
+    setResendCount((prev) => prev + 1); // Increment instead of decrement
+    setEnableResend(false);
+    setTimer(60);
+    setResendClick(true);
+    setRemainingAttempts(3); // Reset attempts after resending OTP
 
+    console.log('OTP resent');
+    handleStep3Continue();
+
+    if (resendCount + 1 >= 4) {
+      setTimeout(() => {
+        setResendCount(0);
+        setEnableResend(true);
+      }, 3600000); // 1 hour timeout
+    }
+  };
 
   const handleBack = () => {
     setShowError(false);
@@ -720,7 +731,11 @@ const NewUserWithStepper: React.FC = () => {
                 onChange={handleUdiseChange}
                 fullWidth
                 sx={{ mb: 2 }}
-                disabled={!selectedRole}
+                disabled={
+                  !selectedRole ||
+                  (selectedRole === 'administrator' &&
+                    selectedSubRole.length === 0) // Disable for admin until sub-role is selected
+                }
               />
 
               {/* Fetch Location Button */}
@@ -1184,11 +1199,11 @@ const NewUserWithStepper: React.FC = () => {
                   onClick={handleSubmit}
                   sx={{
                     bgcolor:
-                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                      otp.length >= 5 && remainingAttempts > 0
                         ? '#572e91'
                         : '#ddd',
                     color:
-                      otp.length >= 5 && (remainingAttempts > 0 || resendClick)
+                      otp.length >= 5 && remainingAttempts > 0
                         ? '#FFFFFF'
                         : '#999',
                     borderRadius: '30px',
@@ -1199,9 +1214,7 @@ const NewUserWithStepper: React.FC = () => {
                     '&:hover': { bgcolor: '#543E98' },
                     width: '50%',
                   }}
-                  disabled={
-                    otp.length < 5 || (remainingAttempts <= 0 && !resendClick) // Disable when no attempts and no resend
-                  }
+                  disabled={otp.length < 5 || remainingAttempts <= 0}
                 >
                   Verify OTP
                 </Button>
