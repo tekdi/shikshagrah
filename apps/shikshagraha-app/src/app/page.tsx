@@ -135,6 +135,11 @@ export default function Login() {
   useEffect(() => {
     if (profileData) {
       console.log('Updated Profile Data:', profileData);
+      localStorage.setItem(
+        'headers',
+        JSON.stringify({ 'org-id': profileData?.rootOrgId })
+      );
+
     }
   }, [profileData]);
   const handleRegisterClick = () => {
