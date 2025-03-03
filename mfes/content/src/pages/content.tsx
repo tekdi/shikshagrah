@@ -321,10 +321,10 @@ export default function Content() {
   );
 
   const tabs = [
-    {
-      label: 'Courses',
-      content: renderTabContent(),
-    },
+    // {
+    //   label: 'Courses',
+    //   content: renderTabContent(),
+    // },
     {
       label: 'Resource  ',
       content: renderTabContent(),

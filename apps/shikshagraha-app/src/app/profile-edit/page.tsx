@@ -199,6 +199,7 @@ export default function ProfileEdit() {
       showTopAppBar={{
         title: 'Framework Edit',
         showMenuIcon: true,
+        showBackIcon: true,
       }}
       isFooter={true}
     >

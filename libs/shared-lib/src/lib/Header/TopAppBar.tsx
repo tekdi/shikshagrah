@@ -1,3 +1,6 @@
+/* eslint-disable no-constant-binary-expression */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 import React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -62,6 +65,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
   bgcolor = '#FF9911',
 }) => {
   const accountIcon = actionIcons.find((icon) => icon.ariaLabel === 'Account');
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar
@@ -86,6 +90,17 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
               >
                 <MenuIcon />
               </IconButton> */}
+              {showBackIcon && (
+                <IconButton
+                  size="large"
+                  edge="start"
+                  color="inherit"
+                  aria-label="back"
+                  onClick={backIconClick}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+              )}
               <Typography
                 component="div"
                 sx={{
@@ -99,27 +114,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
               </Typography>
             </>
           )}
-          {showBackIcon && (
-            <>
-              <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="back"
-                onClick={backIconClick}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{ flexGrow: 1, textAlign: 'left' }}
-                color="black"
-              >
-                {title}
-              </Typography>
-            </>
-          )}
+
           {profileIcon && profileIcon.length > 0 && (
             <IconButton
               color={actionButtonColor}
