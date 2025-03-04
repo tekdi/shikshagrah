@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
 'use client';
-import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -16,7 +16,7 @@ import {
   Button,
 } from '@mui/material';
 
-export default function Content() {
+function SearchParamsHandler() {
   const searchParams = useSearchParams();
   const title = searchParams.get('title'); // Get card title from query
 
@@ -27,11 +27,15 @@ export default function Content() {
     Reports: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/report/list?type=report`,
   };
 
-  const iframeSrc = iframeSources[title];
+  const iframeSrc = iframeSources[title] || '';
 
+  return { iframeSrc, title };
+}
+
+export default function Content() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
-  console.log('iframeSrc', iframeSrc);
+
   const handleAccountClick = () => setShowLogoutModal(true);
 
   const handleLogoutConfirm = () => {
@@ -44,6 +48,29 @@ export default function Content() {
   const backIconClick = () => {
     router.back();
   };
+
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchParamsWrapper
+        handleAccountClick={handleAccountClick}
+        showLogoutModal={showLogoutModal}
+        handleLogoutCancel={handleLogoutCancel}
+        handleLogoutConfirm={handleLogoutConfirm}
+        backIconClick={backIconClick}
+      />
+    </Suspense>
+  );
+}
+
+function SearchParamsWrapper({
+  handleAccountClick,
+  showLogoutModal,
+  handleLogoutCancel,
+  handleLogoutConfirm,
+  backIconClick,
+}) {
+  const { iframeSrc, title } = SearchParamsHandler();
+
   return (
     <>
       <Layout
