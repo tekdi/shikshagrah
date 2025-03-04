@@ -35,18 +35,18 @@ export const fetchProfileData = async (userId: string, token: string) => {
   }
 };
 
-export const fetchLocationDetails = async (locations) => {
+export const fetchLocationDetails = async (locations: any[]) => {
   try {
     const responses = await Promise.all(
-      locations.map(async (location) => {
+      locations.map(async (location: { id: any }) => {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_LOCATION_SEARCH}`,
           {
             method: 'POST',
             headers: {
-              Authorization: process.env.NEXT_PUBLIC_AUTH,
+              Authorization: process.env.NEXT_PUBLIC_AUTH || '', // Ensure it's always a string
               'Content-Type': 'application/json',
-            },
+            } as HeadersInit, // Explicitly cast as HeadersInit
             body: JSON.stringify({
               request: {
                 filters: {
@@ -59,14 +59,12 @@ export const fetchLocationDetails = async (locations) => {
 
         const result = await response.json();
 
-        // Extract the first item from the response array
         return result.result.response && result.result.response.length > 0
           ? result.result.response[0]
           : null;
       })
     );
 
-    // Filter out any null responses
     return responses.filter((item) => item !== null);
   } catch (error) {
     console.error('Error fetching location details:', error);
@@ -104,7 +102,7 @@ export const sendOtp = async (key: string, type: 'email' | 'phone') => {
 };
 
 // Delete Account
-export const verifyOtp = async (email, otp, contactType) => {
+export const verifyOtp = async (email: string, otp: string, contactType: string) => {
   console.log('contactType', contactType);
   const headers = {
     Authorization: process.env.NEXT_PUBLIC_AUTH,
@@ -130,11 +128,11 @@ export const verifyOtp = async (email, otp, contactType) => {
   }
 };
 
-export const updateProfile = async (userId, selectedValues) => {
+export const updateProfile = async (userId: string | null, selectedValues: { board: any; medium: any; gradeLevel: any; subject: any; }) => {
   const { board, medium, gradeLevel, subject } = selectedValues;
 
   // Filter out 'N/A' from each field
-  const filterNA = (arr) => (arr || []).filter((item) => item !== 'N/A');
+  const filterNA = (arr: any) => (arr || []).filter((item: string) => item !== 'N/A');
 
   const requestData = {
     request: {
@@ -159,7 +157,7 @@ export const updateProfile = async (userId, selectedValues) => {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `${process.env.NEXT_PUBLIC_AUTH}`, // Replace with actual token
-          'x-authenticated-user-token': localStorage.getItem('accToken'), // Replace with actual user token
+          'x-authenticated-user-token': localStorage.getItem('accToken') ?? '', // Add null check
         },
         body: JSON.stringify(requestData),
       }
