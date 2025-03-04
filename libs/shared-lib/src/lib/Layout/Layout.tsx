@@ -452,7 +452,6 @@ export const Layout: React.FC<LayoutProps> = ({
   const handleButtonClick = () => {
     console.log('Footer button clicked!');
   };
-  console.log('showTopAppBar', showTopAppBar?.showBackIcon);
   return (
     <Box
       sx={{
