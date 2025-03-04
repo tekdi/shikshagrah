@@ -66,12 +66,8 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-  const handleCardClick = (data) => {
-    if (data) {
-      const targetUrl = `${process.env.NEXT_PUBLIC_PWA}/home`;
-      window.postMessage(data, targetUrl);
-      window.open(targetUrl, '_self');
-    }
+  const handleCardClick = (title) => {
+    router.push(`/program?title=${encodeURIComponent(title)}`);
   };
 
   return (
@@ -80,6 +76,7 @@ export default function Home() {
         showTopAppBar={{
           title: 'Home',
           showMenuIcon: true,
+          showBackIcon: false,
           profileIcon: [
             {
               icon: <LogoutIcon />,
@@ -149,8 +146,8 @@ export default function Home() {
                       profileData?.rootOrgId === process.env.NEXT_PUBLIC_ORGID;
 
                     return isSameOrg
-                      ? card.title === 'Projects' || card.title === 'Reports' // Show only these if org ID matches
-                      : true; // Show all cards if org ID is different
+                      ? true // Show only these if org ID matches
+                      : card.title === 'Projects' || card.title === 'Reports'; // Show all cards if org ID is different
                   })
                   .map((card, index) => (
                     <DynamicCard
@@ -167,7 +164,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.data)}
+                      onClick={() => handleCardClick(card.title)}
                     />
                   ))}
               </Box>

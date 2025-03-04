@@ -65,6 +65,7 @@ interface LayoutProps {
     title?: string;
     showMenuIcon?: boolean;
     showBackIcon?: boolean;
+    backIconClick?: () => void;
     menuIconClick?: () => void;
     onMenuClose?: () => void;
     actionButtonLabel?: string;
@@ -451,7 +452,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const handleButtonClick = () => {
     console.log('Footer button clicked!');
   };
-
+  console.log('showTopAppBar', showTopAppBar?.showBackIcon);
   return (
     <Box
       sx={{
@@ -489,6 +490,8 @@ export const Layout: React.FC<LayoutProps> = ({
               menuIconClick={() => setIsDrawerOpen(true)}
               onLogoutClick={(event) => action.onLogoutClick(event)}
               {...showTopAppBar}
+              showBackIcon={showTopAppBar.showBackIcon}
+              backIconClick={showTopAppBar.backIconClick}
             />
           </Box>
         </Box>
@@ -512,7 +515,7 @@ export const Layout: React.FC<LayoutProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             marginTop: '70px',
-            marginLeft:'10px'
+            marginLeft: '10px',
           }}
         >
           <CommonSearch
@@ -546,7 +549,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   boxShadow: '0px 4px 8px 3px #00000026',
                 },
                 marginLeft: '10px',
-                marginRight:'10px',
+                marginRight: '10px',
                 boxShadow: '0px 1px 3px 0px #0000004D',
               }}
               onClick={() => setFilterShow(true)}
