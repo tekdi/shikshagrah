@@ -760,7 +760,11 @@ const NewUserWithStepper: React.FC = () => {
                     '&:hover': { bgcolor: '#543E98' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
-                  disabled={!udisecode}
+                  disabled={
+                    !udisecode ||
+                    (selectedRole === 'administrator' &&
+                      selectedSubRole.length === 0)
+                  }
                 >
                   Fetch Location
                 </Button>
@@ -828,7 +832,12 @@ const NewUserWithStepper: React.FC = () => {
                     '&:hover': { bgcolor: '#543E98' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
-                  disabled={!locationData?.state || !udisecode}
+                  disabled={
+                    !locationData?.state ||
+                    !udisecode ||
+                    (selectedRole === 'administrator' &&
+                      selectedSubRole.length === 0)
+                  }
                 >
                   Continue
                 </Button>

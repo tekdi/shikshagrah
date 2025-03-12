@@ -87,7 +87,7 @@ function SearchParamsWrapper({
             },
           ],
         }}
-        isFooter={true}
+        isFooter={false}
         showLogo={true}
       >
         <iframe
@@ -101,7 +101,7 @@ function SearchParamsWrapper({
         ></iframe>
       </Layout>
 
-      <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
+      {/* <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -116,7 +116,7 @@ function SearchParamsWrapper({
             Yes, Logout
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 }

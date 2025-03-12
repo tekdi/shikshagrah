@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
   useEffect(() => {
     if (pathname === '/home') {
       setValue(0);
-    } else if (pathname === '/content') {
+    } else if (pathname.startsWith('/content')) {
       setValue(1);
     } else if (pathname.startsWith('/profile')) {
       setValue(2);
