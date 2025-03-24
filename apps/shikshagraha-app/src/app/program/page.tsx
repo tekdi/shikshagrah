@@ -21,12 +21,13 @@ function SearchParamsHandler() {
   const title = searchParams.get('title'); // Get card title from query
 
   const iframeSources = {
-    Programs: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/program?type=program`,
-    Projects: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/project?type=project`,
-    Survey: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/project-library?type=library`,
-    Reports: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/report/list?type=report`,
+    Programs:
+      'https://dev.sunbirdsaas.com/mfe_pwa/listing/program?type=program',
+    Projects:
+      'https://dev.sunbirdsaas.com/mfe_pwa/listing/project?type=project',
+    Survey: 'https://dev.sunbirdsaas.com/mfe_pwa/project-library?type=library',
+    Reports: 'https://dev.sunbirdsaas.com/mfe_pwa/report/list?type=report',
   };
-
   const iframeSrc = iframeSources[title] || '';
 
   return { iframeSrc, title };
