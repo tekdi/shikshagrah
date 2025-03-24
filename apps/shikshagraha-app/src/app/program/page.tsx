@@ -29,7 +29,9 @@ function SearchParamsHandler() {
     Reports: 'https://dev.sunbirdsaas.com/mfe_pwa/report/list?type=report',
   };
   const iframeSrc = iframeSources[title] || '';
-
+  if (iframeSrc) {
+    window.location.href = iframeSrc; // Redirect to the URL
+  }
   return { iframeSrc, title };
 }
 
