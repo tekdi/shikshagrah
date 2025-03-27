@@ -27,6 +27,7 @@ export default function Home() {
     { title: 'Projects', icon: '/shikshagraha/assets/images/ic_project.png' },
     { title: 'Library', icon: '/shikshagraha/assets/images/ic_survey.png' },
     { title: 'Reports', icon: '/shikshagraha/assets/images/ic_report.png' },
+    { title: 'Observation', icon: '/shikshagraha/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
