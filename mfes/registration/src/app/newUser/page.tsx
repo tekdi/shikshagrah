@@ -508,9 +508,9 @@ const NewUserWithStepper: React.FC = () => {
         <Box
           sx={{
             p: 2,
-            borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
+            borderBottom: '2px solid #FFC857', // Light shade of #FFC857 for the bottom border
             boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-            backgroundColor: '#FFF7E6', // Light background derived from #FF9911
+            backgroundColor: '#FFF7E6', // Light background derived from #FFC857
             borderRadius: '0 0 25px 25px', // Rounded corners only on the bottom left and right
           }}
         >
@@ -521,7 +521,7 @@ const NewUserWithStepper: React.FC = () => {
                 <Button
                   onClick={handleBack}
                   sx={{
-                    color: '#572E91',
+                    color: '#073763',
                     display: 'flex',
                     alignItems: 'center',
                     fontWeight: 'bold',
@@ -550,7 +550,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: '#572E91',
+                  color: '#073763',
                   fontWeight: 'bold',
                   fontSize: '1.2rem',
                   textTransform: 'uppercase',
@@ -579,7 +579,7 @@ const NewUserWithStepper: React.FC = () => {
               >
                 <Box
                   component="img"
-                  src="assets/images/SG_Logo.jpg"
+                  src="assets/images/SG_Logo.png"
                   alt="logo"
                   sx={{
                     width: '50%',
@@ -592,13 +592,13 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 sx={{
-                  color: '#572E91',
+                  color: '#073763',
                   fontWeight: 'bold',
                   mb: 1,
                   textAlign: 'center',
                 }}
               >
-                Welcome to Shikshagraha
+                Welcome to SOT
               </Typography>
               <Typography
                 variant="body1"
@@ -650,7 +650,7 @@ const NewUserWithStepper: React.FC = () => {
               >
                 <Button
                   sx={{
-                    bgcolor: '#582E92',
+                    bgcolor: '#073763',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -658,7 +658,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontSize: '14px',
                     padding: '8px 16px',
                     '&:hover': {
-                      bgcolor: '#543E98',
+                      bgcolor: '#FFC857',
                     },
 
                     width: '50%', // Ensures it spans the width of its container
@@ -750,14 +750,14 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={handleFetchLocation}
                   sx={{
-                    bgcolor: '#582E92',
+                    bgcolor: '#073763',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#543E98' },
+                    '&:hover': { bgcolor: '#FFC857' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
                   disabled={
@@ -804,7 +804,7 @@ const NewUserWithStepper: React.FC = () => {
                             variant="body1"
                             sx={{ fontWeight: 'bold', color: '#333' }}
                           >
-                            <span style={{ color: '#FF9911' }}>
+                            <span style={{ color: '#FFC857' }}>
                               {item.label}:{' '}
                             </span>
                             {item.value}
@@ -822,14 +822,14 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={() => setActiveStep(2)}
                   sx={{
-                    bgcolor: '#582E92',
+                    bgcolor: '#073763',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#543E98' },
+                    '&:hover': { bgcolor: '#FFC857' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
                   disabled={
@@ -851,7 +851,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 align="center"
-                sx={{ color: '#572E91', fontWeight: 'bold', fontSize: '1rem' }}
+                sx={{ color: '#073763', fontWeight: 'bold', fontSize: '1rem' }}
               >
                 Enter your Email or Mobile Number{' '}
                 <Typography component="span" sx={{ color: 'red' }}>
@@ -993,7 +993,7 @@ const NewUserWithStepper: React.FC = () => {
                 <Button
                   onClick={handleStep3Continue}
                   sx={{
-                    bgcolor: '#582E92',
+                    bgcolor: '#073763',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -1001,7 +1001,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontSize: '14px',
                     padding: '8px 16px',
                     '&:hover': {
-                      bgcolor: '#543E98',
+                      bgcolor: '#FFC857',
                     },
                     width: '50%',
                   }}
@@ -1047,7 +1047,7 @@ const NewUserWithStepper: React.FC = () => {
                   align="center"
                   sx={{
                     fontWeight: 'bold',
-                    color: '#572E91',
+                    color: '#073763',
                     marginBottom: '20px',
                   }}
                 >
@@ -1064,7 +1064,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>Name: </span>
+                      <span style={{ color: '#FFC857' }}>Name: </span>
                       {userData?.username || 'N/A'}
                     </Typography>
                     <Typography
@@ -1075,7 +1075,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>Year of Birth: </span>
+                      <span style={{ color: '#FFC857' }}>Year of Birth: </span>
                       {userData?.yearOfBirth || 'N/A'}
                     </Typography>
                     <Typography
@@ -1086,7 +1086,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>State: </span>
+                      <span style={{ color: '#FFC857' }}>State: </span>
                       {userData?.locationData?.state?.name || 'N/A'}
                     </Typography>
 
@@ -1098,7 +1098,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>District: </span>
+                      <span style={{ color: '#FFC857' }}>District: </span>
                       {userData?.locationData?.district?.name || 'N/A'}
                     </Typography>
 
@@ -1110,7 +1110,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>Block: </span>
+                      <span style={{ color: '#FFC857' }}>Block: </span>
                       {userData?.locationData?.block?.name || 'N/A'}
                     </Typography>
                     <Typography
@@ -1121,7 +1121,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>Cluster: </span>
+                      <span style={{ color: '#FFC857' }}>Cluster: </span>
                       {userData?.locationData?.cluster?.name || 'N/A'}
                     </Typography>
                     <Typography
@@ -1132,7 +1132,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>School: </span>
+                      <span style={{ color: '#FFC857' }}>School: </span>
                       {userData?.locationData?.school?.name || 'N/A'}
                     </Typography>
                   </Grid>
@@ -1209,7 +1209,7 @@ const NewUserWithStepper: React.FC = () => {
                   sx={{
                     bgcolor:
                       otp.length >= 5 && remainingAttempts > 0
-                        ? '#572e91'
+                        ? '#073763'
                         : '#ddd',
                     color:
                       otp.length >= 5 && remainingAttempts > 0
@@ -1220,7 +1220,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#543E98' },
+                    '&:hover': { bgcolor: '#FFC857' },
                     width: '50%',
                   }}
                   disabled={otp.length < 5 || remainingAttempts <= 0}
@@ -1243,7 +1243,7 @@ const NewUserWithStepper: React.FC = () => {
                     disabled={!enableResend || resendCount >= 2}
                     sx={{
                       textTransform: 'none',
-                      color: '#572E91',
+                      color: '#073763',
                       fontWeight: 'bold',
                     }}
                   >
@@ -1267,7 +1267,7 @@ const NewUserWithStepper: React.FC = () => {
         left: 0,
         right: 0,
         backgroundColor: '#F8FAFC',
-        borderTop: '1px solid #FF9911',
+        borderTop: '1px solid #FFC857',
         py: 2,
         textAlign: 'center',
         zIndex: 1000, // Ensure the footer stays on top
@@ -1278,7 +1278,7 @@ const NewUserWithStepper: React.FC = () => {
         <Button
           sx={{
             textTransform: 'uppercase',
-            color: '#582E92',
+            color: '#073763',
             fontWeight: 'bold',
           }}
           onClick={() => router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`)}

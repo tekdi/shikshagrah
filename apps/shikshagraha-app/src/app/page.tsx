@@ -110,7 +110,6 @@ export default function Login() {
 
   const getProfileData = async () => {
     try {
-
       const token = localStorage.getItem('accToken') || '';
       const userId = localStorage.getItem('userId') || '';
 
@@ -139,7 +138,6 @@ export default function Login() {
         'headers',
         JSON.stringify({ 'org-id': profileData?.rootOrgId })
       );
-
     }
   }, [profileData]);
   const handleRegisterClick = () => {
@@ -205,7 +203,7 @@ export default function Login() {
             bottom: 0,
             borderRadius: 'inherit',
             padding: '4px',
-            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+            background: 'linear-gradient(to right, #FFC857 50%, #073763 50%)',
             WebkitMask:
               'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
@@ -223,7 +221,7 @@ export default function Login() {
         >
           <Box
             component="img"
-            src={`${basePath}/assets/images/SG_Logo.jpg`}
+            src={`${basePath}/assets/images/SG_Logo.png`}
             alt="logo"
             sx={{
               width: { xs: '100%', sm: '100%' },
@@ -276,10 +274,10 @@ export default function Login() {
           sx={{
             mb: 1,
             '& .MuiInputBase-root': {
-              backgroundColor: 'inherit', 
+              backgroundColor: 'inherit',
             },
             '& .MuiInputAdornment-root': {
-              backgroundColor: 'inherit', 
+              backgroundColor: 'inherit',
             },
           }}
         />
@@ -288,7 +286,7 @@ export default function Login() {
           <ButtonBase
             onClick={handlePasswordClick}
             sx={{
-              color: '#6750A4',
+              color: '#073763',
               fontWeight: '600',
               cursor: 'pointer',
               fontSize: '15px',
@@ -311,7 +309,7 @@ export default function Login() {
           <Button
             onClick={handleButtonClick}
             sx={{
-              bgcolor: '#582E92',
+              bgcolor: '#073763',
               color: '#FFFFFF',
               borderRadius: '30px',
               textTransform: 'none',
@@ -319,7 +317,7 @@ export default function Login() {
               fontSize: '14px',
               padding: '8px 16px',
               '&:hover': {
-                bgcolor: '#543E98',
+                bgcolor: '#FFC857',
               },
               width: { xs: '50%', sm: '50%' },
             }}
@@ -333,7 +331,7 @@ export default function Login() {
           <ButtonBase
             onClick={handleRegisterClick}
             sx={{
-              color: '#6750A4',
+              color: '#073763',
               fontWeight: 'bold',
               cursor: 'pointer',
               textDecoration: 'underline',

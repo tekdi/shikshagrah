@@ -117,7 +117,7 @@ export default function Home() {
               <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography
                   variant="h5"
-                  color="#582E92"
+                  color="#073763"
                   fontWeight="bold"
                   fontSize={{ xs: '22px', sm: '24px', md: '26px' }}
                 >

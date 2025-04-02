@@ -369,7 +369,7 @@ export const ContentCard: React.FC<CommonCardProps> = ({
             sx={{
               fontSize: '14px',
               fontWeight: 500,
-              color: '#6750A4',
+              color: '#073763',
             }}
           >
             {actions}

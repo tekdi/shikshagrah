@@ -147,7 +147,7 @@ const ContentDetails = () => {
         <Button
           variant="contained"
           sx={{
-            // bgcolor: '#6750A4',
+            // bgcolor: '#073763',
 
             bgcolor: theme.palette.primary.main,
             color: theme.palette.text.secondary,
