@@ -97,21 +97,21 @@ const ForgotPassword: React.FC = () => {
     >
       <Box
         sx={{
-          backgroundColor: '#FF9911',
+          backgroundColor: '#FFC857',
           p: 2,
-          borderBottom: '2px solid #FF9911',
+          borderBottom: '2px solid #FFC857',
         }}
       >
         <Grid container alignItems="center">
           <Grid item xs={2}>
-            <Button onClick={handleBack} sx={{ color: '#572E91' }}>
+            <Button onClick={handleBack} sx={{ color: '#073763' }}>
               <ArrowBackIcon />
             </Button>
           </Grid>
           <Grid item xs={8} textAlign="center">
             <Typography
               variant="h6"
-              sx={{ color: '#572E91', fontWeight: 'bold' }}
+              sx={{ color: '#073763', fontWeight: 'bold' }}
             >
               {step === 'input'
                 ? 'Forgot Password'
@@ -147,7 +147,7 @@ const ForgotPassword: React.FC = () => {
           <>
             <Typography
               variant="h5"
-              sx={{ color: '#572E91', fontWeight: 'bold', mb: 1 }}
+              sx={{ color: '#073763', fontWeight: 'bold', mb: 1 }}
             >
               Reset Your Password
             </Typography>
@@ -178,7 +178,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleSendOtp}
               fullWidth
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#073763',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -186,7 +186,7 @@ const ForgotPassword: React.FC = () => {
                 fontSize: '14px',
                 padding: '8px 16px',
                 '&:hover': {
-                  bgcolor: '#543E98',
+                  bgcolor: '#FFC857',
                 },
                 width: '50%', // Ensures it spans the width of its container
               }}
@@ -213,7 +213,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleVerifyOtp}
               fullWidth
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#073763',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -221,7 +221,7 @@ const ForgotPassword: React.FC = () => {
                 fontSize: '14px',
                 padding: '8px 16px',
                 '&:hover': {
-                  bgcolor: '#543E98',
+                  bgcolor: '#FFC857',
                 },
                 width: '50%', // Ensures it spans the width of its container
               }}
@@ -257,7 +257,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleResetPassword}
               fullWidth
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#073763',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -265,7 +265,7 @@ const ForgotPassword: React.FC = () => {
                 fontSize: '14px',
                 padding: '8px 16px',
                 '&:hover': {
-                  bgcolor: '#543E98',
+                  bgcolor: '#FFC857',
                 },
                 width: '50%', // Ensures it spans the width of its container
               }}
@@ -280,7 +280,7 @@ const ForgotPassword: React.FC = () => {
         sx={{
           p: 2,
           textAlign: 'center',
-          borderTop: '1px solid #FF9911',
+          borderTop: '1px solid #FFC857',
           backgroundColor: '#FFFFFF',
         }}
       >
@@ -289,7 +289,7 @@ const ForgotPassword: React.FC = () => {
           <Button
             variant="text"
             onClick={() => router.push('/login')}
-            sx={{ color: '#572E91', fontWeight: 'bold' }}
+            sx={{ color: '#073763', fontWeight: 'bold' }}
           >
             Sign In
           </Button>

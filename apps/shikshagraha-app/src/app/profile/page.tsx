@@ -292,7 +292,7 @@ export default function Profile() {
                 borderRadius: 'inherit',
                 padding: '1px',
                 background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                  'linear-gradient(to right, #FFC857 50%, #073763 50%)',
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                 WebkitMaskComposite: 'xor',
@@ -323,7 +323,7 @@ export default function Profile() {
                 <Typography
                   variant="h5"
                   textAlign="center"
-                  color="#582E92"
+                  color="#073763"
                   fontWeight="bold"
                 >
                   {profileData?.firstName || 'User'}
@@ -350,7 +350,7 @@ export default function Profile() {
                 borderRadius: 'inherit', // Inherit borderRadius for rounded corners
                 padding: '1px', // Thickness of the border line
                 background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  'linear-gradient(to right, #FFC857 50%, #073763 50%)', // Gradient effect
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
                 WebkitMaskComposite: 'xor',
@@ -369,7 +369,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>Role: </span>
+                  <span style={{ color: '#FFC857' }}>Role: </span>
                   {displayRole === 'administrator'
                     ? 'HT & Officials'
                     : toCamelCase(displayRole)}
@@ -383,7 +383,7 @@ export default function Profile() {
                       paddingBottom: '10px',
                     }}
                   >
-                    <span style={{ color: '#FF9911' }}>Sub-role: </span>
+                    <span style={{ color: '#FFC857' }}>Sub-role: </span>
                     {displaySubRole || 'N/A'}
                   </Typography>
                 )}
@@ -397,7 +397,7 @@ export default function Profile() {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>
+                      <span style={{ color: '#FFC857' }}>
                         {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
                       </span>{' '}
                       {loc.name || 'N/A'}
@@ -412,7 +412,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>School: </span>
+                  <span style={{ color: '#FFC857' }}>School: </span>
                   {profileData?.organisations[0]?.orgName || 'N/A'}
                 </Typography>
               </Grid>
@@ -437,7 +437,7 @@ export default function Profile() {
                 borderRadius: 'inherit', // Inherit borderRadius for rounded corners
                 padding: '1px', // Thickness of the border line
                 background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  'linear-gradient(to right, #FFC857 50%, #073763 50%)', // Gradient effect
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
                 WebkitMaskComposite: 'xor',
@@ -451,7 +451,7 @@ export default function Profile() {
                 top: 10,
                 right: 10,
                 cursor: 'pointer',
-                color: '#582E92',
+                color: '#073763',
               }}
               onClick={handleEditClick}
             />
@@ -466,7 +466,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>Board: </span>
+                  <span style={{ color: '#FFC857' }}>Board: </span>
                   {displayBoard}
                 </Typography>
                 <Typography
@@ -477,7 +477,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>Medium: </span>
+                  <span style={{ color: '#FFC857' }}>Medium: </span>
                   {displayMedium}
                 </Typography>
                 <Typography
@@ -488,7 +488,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>Classes: </span>
+                  <span style={{ color: '#FFC857' }}>Classes: </span>
                   {displayGradeLevel}
                 </Typography>
                 <Typography
@@ -499,7 +499,7 @@ export default function Profile() {
                     paddingBottom: '10px',
                   }}
                 >
-                  <span style={{ color: '#FF9911' }}>Subjects: </span>
+                  <span style={{ color: '#FFC857' }}>Subjects: </span>
                   {displaySubject}
                 </Typography>
               </Grid>
@@ -510,7 +510,7 @@ export default function Profile() {
               onClick={handleDeleteAccountClick}
               variant="contained"
               sx={{
-                bgcolor: '#582E92',
+                bgcolor: '#073763',
                 color: 'white',
                 ':hover': { bgcolor: '#461B73' },
               }}
@@ -534,7 +534,7 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenDeleteDialog(false)}
-            sx={{ color: '#582E92' }}
+            sx={{ color: '#073763' }}
           >
             Cancel
           </Button>
@@ -591,11 +591,11 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenEmailDialog(false)}
-            sx={{ color: '#582E92' }}
+            sx={{ color: '#073763' }}
           >
             Cancel
           </Button>
-          <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
+          <Button onClick={handleSendOtp} sx={{ color: '#073763' }}>
             Send OTP
           </Button>
         </DialogActions>
@@ -615,7 +615,7 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenOtpDialog(false)}
-            sx={{ color: '#582E92' }}
+            sx={{ color: '#073763' }}
           >
             Cancel
           </Button>
@@ -632,7 +632,7 @@ export default function Profile() {
         <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
         <DialogContent></DialogContent>
         <DialogActions>
-          <Button onClick={confirm} sx={{ color: '#582E92' }}>
+          <Button onClick={confirm} sx={{ color: '#073763' }}>
             OK
           </Button>
         </DialogActions>
