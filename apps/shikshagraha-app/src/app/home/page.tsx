@@ -23,11 +23,11 @@ import AppConst from '../../utils/AppConst/AppConst';
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
   const cardData = [
-    { title: 'Programs', icon: '/shikshagraha/assets/images/ic_program.png' },
-    { title: 'Projects', icon: '/shikshagraha/assets/images/ic_project.png' },
-    { title: 'Library', icon: '/shikshagraha/assets/images/ic_survey.png' },
-    { title: 'Reports', icon: '/shikshagraha/assets/images/ic_report.png' },
-    { title: 'Observation', icon: '/shikshagraha/assets/images/ic_report.png' },
+    { title: 'Programs', icon: '/sot/assets/images/ic_program.png' },
+    { title: 'Projects', icon: '/sot/assets/images/ic_project.png' },
+    { title: 'Library', icon: '/sot/assets/images/ic_survey.png' },
+    { title: 'Reports', icon: '/sot/assets/images/ic_report.png' },
+    { title: 'Observation', icon: '/sot/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
