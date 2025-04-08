@@ -543,7 +543,7 @@ export default function ContentHelp() {
               color: '#FFFFFF',
               width: '20%',
               height: '40px',
-              bgcolor: '#6750A4',
+              bgcolor: '#024F9D',
               borderRadius: '50px',
               fontSize: '14px',
               fontWeight: 500,

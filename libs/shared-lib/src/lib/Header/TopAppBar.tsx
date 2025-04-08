@@ -62,7 +62,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
   color = 'transparent',
   actionIcons = [],
   profileIcon = [],
-  bgcolor = '#FF9911',
+  bgcolor = '#FFC857',
 }) => {
   const accountIcon = actionIcons.find((icon) => icon.ariaLabel === 'Account');
 
@@ -71,11 +71,11 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
       <AppBar
         component="nav"
         sx={{
-          borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
+          borderBottom: '2px solid #FFD580', // Light shade of #FFC857 for the bottom border
           boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-          backgroundColor: '#FFF7E6', // Light background derived from #FF9911
+          backgroundColor: '#FFF7E6', // Light background derived from #FFC857
           borderRadius: '0 0 25px 25px',
-          color: '#572E91', // Rounded corners only on the bottom left and right
+          color: '#024F9D', // Rounded corners only on the bottom left and right
         }}
       >
         <Toolbar>
