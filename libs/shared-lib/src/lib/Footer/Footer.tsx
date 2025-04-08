@@ -26,11 +26,11 @@ export const Footer: React.FC = () => {
     if (value !== newValue) {
       setValue(newValue);
       if (newValue === 0) {
-        window.location.href = '/sot/home';
+        window.location.href = '/shikshalokam/home';
       } else if (newValue === 1) {
         router.replace(`${process.env.NEXT_PUBLIC_CONTENT}/content`);
       } else {
-        window.location.href = '/sot/profile';
+        window.location.href = '/shikshalokam/profile';
       }
     }
   };
@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
                 fontSize: value === 0 ? '2rem' : '1.5rem', // Zoom in for selected icon
                 transition: 'transform 0.3s ease, color 0.3s ease', // Smooth zoom and color transition
                 transform: value === 0 ? 'scale(1.2)' : 'scale(1)',
-                color: value === 0 ? '#073763 ' : 'inherit', // Selected icon color
+                color: value === 0 ? '#024F9D ' : 'inherit', // Selected icon color
               }}
             />
           }
@@ -83,7 +83,7 @@ export const Footer: React.FC = () => {
                 fontSize: value === 1 ? '2rem' : '1.5rem',
                 transition: 'transform 0.3s ease, color 0.3s ease',
                 transform: value === 1 ? 'scale(1.2)' : 'scale(1)',
-                color: value === 1 ? '#073763 ' : 'inherit', // Selected icon color
+                color: value === 1 ? '#024F9D ' : 'inherit', // Selected icon color
               }}
             />
           }
@@ -95,7 +95,7 @@ export const Footer: React.FC = () => {
                 fontSize: value === 2 ? '2rem' : '1.5rem',
                 transition: 'transform 0.3s ease, color 0.3s ease',
                 transform: value === 2 ? 'scale(1.2)' : 'scale(1)',
-                color: value === 2 ? '#073763 ' : 'inherit', // Selected icon color
+                color: value === 2 ? '#024F9D ' : 'inherit', // Selected icon color
               }}
             />
           }

@@ -16,8 +16,7 @@ const nextConfig = {
     svgr: false,
   },
 
-  basePath: '/sot/registration', // This should match the path set in Nginx
-
+  basePath: '/shikshalokam/registration', // This should match the path set in Nginx
 };
 
 const plugins = [

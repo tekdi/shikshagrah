@@ -521,7 +521,7 @@ const NewUserWithStepper: React.FC = () => {
                 <Button
                   onClick={handleBack}
                   sx={{
-                    color: '#073763',
+                    color: '#024F9D',
                     display: 'flex',
                     alignItems: 'center',
                     fontWeight: 'bold',
@@ -550,7 +550,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: '#073763',
+                  color: '#024F9D',
                   fontWeight: 'bold',
                   fontSize: '1.2rem',
                   textTransform: 'uppercase',
@@ -592,7 +592,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 sx={{
-                  color: '#073763',
+                  color: '#024F9D',
                   fontWeight: 'bold',
                   mb: 1,
                   textAlign: 'center',
@@ -650,7 +650,7 @@ const NewUserWithStepper: React.FC = () => {
               >
                 <Button
                   sx={{
-                    bgcolor: '#073763',
+                    bgcolor: '#024F9D',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -750,7 +750,7 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={handleFetchLocation}
                   sx={{
-                    bgcolor: '#073763',
+                    bgcolor: '#024F9D',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -822,7 +822,7 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={() => setActiveStep(2)}
                   sx={{
-                    bgcolor: '#073763',
+                    bgcolor: '#024F9D',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -851,7 +851,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 align="center"
-                sx={{ color: '#073763', fontWeight: 'bold', fontSize: '1rem' }}
+                sx={{ color: '#024F9D', fontWeight: 'bold', fontSize: '1rem' }}
               >
                 Enter your Email or Mobile Number{' '}
                 <Typography component="span" sx={{ color: 'red' }}>
@@ -993,7 +993,7 @@ const NewUserWithStepper: React.FC = () => {
                 <Button
                   onClick={handleStep3Continue}
                   sx={{
-                    bgcolor: '#073763',
+                    bgcolor: '#024F9D',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -1047,7 +1047,7 @@ const NewUserWithStepper: React.FC = () => {
                   align="center"
                   sx={{
                     fontWeight: 'bold',
-                    color: '#073763',
+                    color: '#024F9D',
                     marginBottom: '20px',
                   }}
                 >
@@ -1209,7 +1209,7 @@ const NewUserWithStepper: React.FC = () => {
                   sx={{
                     bgcolor:
                       otp.length >= 5 && remainingAttempts > 0
-                        ? '#073763'
+                        ? '#024F9D'
                         : '#ddd',
                     color:
                       otp.length >= 5 && remainingAttempts > 0
@@ -1243,7 +1243,7 @@ const NewUserWithStepper: React.FC = () => {
                     disabled={!enableResend || resendCount >= 2}
                     sx={{
                       textTransform: 'none',
-                      color: '#073763',
+                      color: '#024F9D',
                       fontWeight: 'bold',
                     }}
                   >
@@ -1278,7 +1278,7 @@ const NewUserWithStepper: React.FC = () => {
         <Button
           sx={{
             textTransform: 'uppercase',
-            color: '#073763',
+            color: '#024F9D',
             fontWeight: 'bold',
           }}
           onClick={() => router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`)}

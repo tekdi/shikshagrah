@@ -292,7 +292,7 @@ export default function Profile() {
                 borderRadius: 'inherit',
                 padding: '1px',
                 background:
-                  'linear-gradient(to right, #FFC857 50%, #073763 50%)',
+                  'linear-gradient(to right, #FFC857 50%, #024F9D 50%)',
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                 WebkitMaskComposite: 'xor',
@@ -323,7 +323,7 @@ export default function Profile() {
                 <Typography
                   variant="h5"
                   textAlign="center"
-                  color="#073763"
+                  color="#024F9D"
                   fontWeight="bold"
                 >
                   {profileData?.firstName || 'User'}
@@ -350,7 +350,7 @@ export default function Profile() {
                 borderRadius: 'inherit', // Inherit borderRadius for rounded corners
                 padding: '1px', // Thickness of the border line
                 background:
-                  'linear-gradient(to right, #FFC857 50%, #073763 50%)', // Gradient effect
+                  'linear-gradient(to right, #FFC857 50%, #024F9D 50%)', // Gradient effect
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
                 WebkitMaskComposite: 'xor',
@@ -441,7 +441,7 @@ export default function Profile() {
                 borderRadius: 'inherit', // Inherit borderRadius for rounded corners
                 padding: '1px', // Thickness of the border line
                 background:
-                  'linear-gradient(to right, #FFC857 50%, #073763 50%)', // Gradient effect
+                  'linear-gradient(to right, #FFC857 50%, #024F9D 50%)', // Gradient effect
                 WebkitMask:
                   'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
                 WebkitMaskComposite: 'xor',
@@ -455,7 +455,7 @@ export default function Profile() {
                 top: 10,
                 right: 10,
                 cursor: 'pointer',
-                color: '#073763',
+                color: '#024F9D',
               }}
               onClick={handleEditClick}
             />
@@ -514,7 +514,7 @@ export default function Profile() {
               onClick={handleDeleteAccountClick}
               variant="contained"
               sx={{
-                bgcolor: '#073763',
+                bgcolor: '#024F9D',
                 color: 'white',
                 ':hover': { bgcolor: '#461B73' },
               }}
@@ -538,7 +538,7 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenDeleteDialog(false)}
-            sx={{ color: '#073763' }}
+            sx={{ color: '#024F9D' }}
           >
             Cancel
           </Button>
@@ -595,11 +595,11 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenEmailDialog(false)}
-            sx={{ color: '#073763' }}
+            sx={{ color: '#024F9D' }}
           >
             Cancel
           </Button>
-          <Button onClick={handleSendOtp} sx={{ color: '#073763' }}>
+          <Button onClick={handleSendOtp} sx={{ color: '#024F9D' }}>
             Send OTP
           </Button>
         </DialogActions>
@@ -619,7 +619,7 @@ export default function Profile() {
         <DialogActions>
           <Button
             onClick={() => setOpenOtpDialog(false)}
-            sx={{ color: '#073763' }}
+            sx={{ color: '#024F9D' }}
           >
             Cancel
           </Button>
@@ -636,7 +636,7 @@ export default function Profile() {
         <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
         <DialogContent></DialogContent>
         <DialogActions>
-          <Button onClick={confirm} sx={{ color: '#073763' }}>
+          <Button onClick={confirm} sx={{ color: '#024F9D' }}>
             OK
           </Button>
         </DialogActions>

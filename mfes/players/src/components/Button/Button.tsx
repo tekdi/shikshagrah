@@ -23,7 +23,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   // Define styles for each variant
   const styles: Record<string, SxProps> = {
     primary: {
-      backgroundColor: '#073763',
+      backgroundColor: '#024F9D',
       color: '#fff',
       borderRadius: '20px',
       padding: '8px 20px',
@@ -34,7 +34,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     },
     secondary: {
       backgroundColor: '#fff',
-      color: '#073763',
+      color: '#024F9D',
       border: '1px solid #79747E',
       borderRadius: '20px',
       padding: '8px 20px',
@@ -45,7 +45,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     },
     outlined: {
       backgroundColor: 'transparent',
-      color: '#073763',
+      color: '#024F9D',
       border: '1px solid #79747E',
       borderRadius: '20px',
       padding: '8px 20px',
@@ -56,7 +56,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     },
     icon: {
       backgroundColor: 'transparent',
-      color: '#073763',
+      color: '#024F9D',
       padding: '8px',
       '&:hover': {
         backgroundColor: '#f3f1fc',

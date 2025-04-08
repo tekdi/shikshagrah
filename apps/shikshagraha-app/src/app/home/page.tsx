@@ -23,11 +23,11 @@ import AppConst from '../../utils/AppConst/AppConst';
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
   const cardData = [
-    { title: 'Programs', icon: '/sot/assets/images/ic_program.png' },
-    { title: 'Projects', icon: '/sot/assets/images/ic_project.png' },
-    { title: 'Library', icon: '/sot/assets/images/ic_survey.png' },
-    { title: 'Reports', icon: '/sot/assets/images/ic_report.png' },
-    { title: 'Observation', icon: '/sot/assets/images/ic_report.png' },
+    { title: 'Programs', icon: '/shikshalokam/assets/images/ic_program.png' },
+    { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
+    { title: 'Library', icon: '/shikshalokam/assets/images/ic_survey.png' },
+    { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
+    { title: 'Observation', icon: '/shikshalokam/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
@@ -117,7 +117,7 @@ export default function Home() {
               <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography
                   variant="h5"
-                  color="#073763"
+                  color="#024F9D"
                   fontWeight="bold"
                   fontSize={{ xs: '22px', sm: '24px', md: '26px' }}
                 >

@@ -104,14 +104,14 @@ const ForgotPassword: React.FC = () => {
       >
         <Grid container alignItems="center">
           <Grid item xs={2}>
-            <Button onClick={handleBack} sx={{ color: '#073763' }}>
+            <Button onClick={handleBack} sx={{ color: '#024F9D' }}>
               <ArrowBackIcon />
             </Button>
           </Grid>
           <Grid item xs={8} textAlign="center">
             <Typography
               variant="h6"
-              sx={{ color: '#073763', fontWeight: 'bold' }}
+              sx={{ color: '#024F9D', fontWeight: 'bold' }}
             >
               {step === 'input'
                 ? 'Forgot Password'
@@ -147,7 +147,7 @@ const ForgotPassword: React.FC = () => {
           <>
             <Typography
               variant="h5"
-              sx={{ color: '#073763', fontWeight: 'bold', mb: 1 }}
+              sx={{ color: '#024F9D', fontWeight: 'bold', mb: 1 }}
             >
               Reset Your Password
             </Typography>
@@ -178,7 +178,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleSendOtp}
               fullWidth
               sx={{
-                bgcolor: '#073763',
+                bgcolor: '#024F9D',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -213,7 +213,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleVerifyOtp}
               fullWidth
               sx={{
-                bgcolor: '#073763',
+                bgcolor: '#024F9D',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -257,7 +257,7 @@ const ForgotPassword: React.FC = () => {
               onClick={handleResetPassword}
               fullWidth
               sx={{
-                bgcolor: '#073763',
+                bgcolor: '#024F9D',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -289,7 +289,7 @@ const ForgotPassword: React.FC = () => {
           <Button
             variant="text"
             onClick={() => router.push('/login')}
-            sx={{ color: '#073763', fontWeight: 'bold' }}
+            sx={{ color: '#024F9D', fontWeight: 'bold' }}
           >
             Sign In
           </Button>

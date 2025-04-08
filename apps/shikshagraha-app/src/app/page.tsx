@@ -203,7 +203,7 @@ export default function Login() {
             bottom: 0,
             borderRadius: 'inherit',
             padding: '4px',
-            background: 'linear-gradient(to right, #FFC857 50%, #073763 50%)',
+            background: 'linear-gradient(to right, #FFC857 50%, #024F9D 50%)',
             WebkitMask:
               'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
@@ -228,9 +228,11 @@ export default function Login() {
               height: { xs: '100%', sm: '100%' },
               borderRadius: '50%',
               objectFit: 'cover',
+              margin: '30px',
             }}
           />
         </Box>
+
         <TextField
           fullWidth
           label="Username/Email"
@@ -286,7 +288,7 @@ export default function Login() {
           <ButtonBase
             onClick={handlePasswordClick}
             sx={{
-              color: '#073763',
+              color: '#024F9D',
               fontWeight: '600',
               cursor: 'pointer',
               fontSize: '15px',
@@ -309,7 +311,7 @@ export default function Login() {
           <Button
             onClick={handleButtonClick}
             sx={{
-              bgcolor: '#073763',
+              bgcolor: '#024F9D',
               color: '#FFFFFF',
               borderRadius: '30px',
               textTransform: 'none',
@@ -331,7 +333,7 @@ export default function Login() {
           <ButtonBase
             onClick={handleRegisterClick}
             sx={{
-              color: '#073763',
+              color: '#024F9D',
               fontWeight: 'bold',
               cursor: 'pointer',
               textDecoration: 'underline',

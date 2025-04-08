@@ -75,7 +75,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
           boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
           backgroundColor: '#FFF7E6', // Light background derived from #FFC857
           borderRadius: '0 0 25px 25px',
-          color: '#073763', // Rounded corners only on the bottom left and right
+          color: '#024F9D', // Rounded corners only on the bottom left and right
         }}
       >
         <Toolbar>

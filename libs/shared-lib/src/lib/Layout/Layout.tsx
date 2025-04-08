@@ -251,9 +251,9 @@ const FilterDialog = ({
                       <MenuItem key={option.value} value={option.value}>
                         <Checkbox
                           sx={{
-                            color: '#073763', // Default checkbox color
+                            color: '#024F9D', // Default checkbox color
                             '&.Mui-checked': {
-                              color: '#073763', // Checked checkbox color
+                              color: '#024F9D', // Checked checkbox color
                             },
                           }}
                           checked={currentSelectedValues.includes(option.value)}
@@ -391,7 +391,7 @@ const FilterDialog = ({
               }}
               sx={{
                 borderRadius: '100px',
-                color: '#073763',
+                color: '#024F9D',
                 textTransform: 'none',
               }}
             >
@@ -405,7 +405,7 @@ const FilterDialog = ({
               }}
               sx={{
                 borderRadius: '100px',
-                bgcolor: '#073763',
+                bgcolor: '#024F9D',
                 color: '#FFFFFF',
                 marginLeft: 2,
                 textTransform: 'none',
@@ -554,7 +554,7 @@ export const Layout: React.FC<LayoutProps> = ({
               onClick={() => setFilterShow(true)}
             >
               <FilterAltOutlinedIcon
-                sx={{ color: '#073763', fontSize: '25px' }}
+                sx={{ color: '#024F9D', fontSize: '25px' }}
               />
             </Box>
           )}
