@@ -598,7 +598,7 @@ const NewUserWithStepper: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                Welcome to SOT
+                Welcome to Shikshalokam
               </Typography>
               <Typography
                 variant="body1"
