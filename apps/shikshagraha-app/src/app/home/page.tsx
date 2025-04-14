@@ -78,13 +78,13 @@ export default function Home() {
           title: 'Home',
           showMenuIcon: true,
           showBackIcon: false,
-          profileIcon: [
-            {
-              icon: <LogoutIcon />,
-              ariaLabel: 'Account',
-              onLogoutClick: handleAccountClick,
-            },
-          ],
+          // profileIcon: [
+          //   {
+          //     icon: <LogoutIcon />,
+          //     ariaLabel: 'Account',
+          //     onLogoutClick: handleAccountClick,
+          //   },
+          // ],
         }}
         isFooter={true}
         showLogo={true}
