@@ -54,7 +54,7 @@ export default function Content() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <SearchParamsWrapper
-        handleAccountClick={handleAccountClick}
+        // handleAccountClick={handleAccountClick}
         showLogoutModal={showLogoutModal}
         handleLogoutCancel={handleLogoutCancel}
         handleLogoutConfirm={handleLogoutConfirm}
@@ -81,13 +81,13 @@ function SearchParamsWrapper({
           showMenuIcon: true,
           showBackIcon: true,
           backIconClick: backIconClick,
-          profileIcon: [
-            {
-              icon: <LogoutIcon />,
-              ariaLabel: 'Account',
-              onLogoutClick: handleAccountClick,
-            },
-          ],
+          // profileIcon: [
+          //   {
+          //     icon: <LogoutIcon />,
+          //     ariaLabel: 'Account',
+          //     onLogoutClick: handleAccountClick,
+          //   },
+          // ],
         }}
         isFooter={false}
         showLogo={true}
