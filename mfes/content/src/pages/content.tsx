@@ -438,13 +438,13 @@ export default function Content() {
         title: 'Content',
         showMenuIcon: true,
 
-        profileIcon: [
-          {
-            icon: <LogoutIcon />,
-            ariaLabel: 'Account',
-            onLogoutClick: handleAccountClick,
-          },
-        ],
+        // profileIcon: [
+        //   {
+        //     icon: <LogoutIcon />,
+        //     ariaLabel: 'Account',
+        //     onLogoutClick: handleAccountClick,
+        //   },
+        // ],
       }}
       isFooter={true}
       showLogo={true}
