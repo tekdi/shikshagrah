@@ -23,7 +23,7 @@ function SearchParamsHandler() {
   const iframeSources = {
     Programs: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/program?type=program`,
     Projects: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/project?type=project`,
-    Survey: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/project-library?type=library`,
+    Survey: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
     Reports: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/report/list?type=report`,
     Observation: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/observation?type=listing`,
   };
