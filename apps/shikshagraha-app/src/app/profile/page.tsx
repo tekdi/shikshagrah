@@ -413,11 +413,9 @@ export default function Profile() {
                   }}
                 >
                   <span style={{ color: '#FFC857' }}>School: </span>
-                  {profileData?.organisations[0]?.orgName === 'SOT'
-                    ? profileData?.organisations[1]?.orgName || 'N/A'
-                    : profileData?.organisations[0]?.orgName ||
-                      profileData?.organisations[1]?.orgName ||
-                      'N/A'}
+                  {profileData?.organisations[0]?.orgName !== 'SOT'
+                    ? profileData?.organisations[0]?.orgName || 'N/A'
+                    : profileData?.organisations[1]?.orgName || 'N/A'}
                 </Typography>
               </Grid>
             </Grid>
