@@ -32,8 +32,11 @@ import {
   DialogContentText,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
+  const [userData, setUserData] = useState(null);
+
   const [locationDetails, setLocationDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,23 +54,36 @@ export default function Profile() {
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
+  const [userDataProfile, setUserDataProfile] = useState([
+    { label: 'First Name', value: '' },
+    { label: 'Middle Name', value: '' },
+    { label: 'Last Name', value: '' },
+    { label: 'Profile Type', value: '' },
+  ]);
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('accToken') || '';
-        const userId = localStorage.getItem('userId') || '';
-        const data = await fetchProfileData(userId, token);
-        setProfileData(data?.content[0]);
+        const acc_token = localStorage.getItem('accToken');
+        const tenantResponse = await authenticateUser({
+          token: acc_token,
+        });
+        if (tenantResponse?.result) {
+          setUserData(tenantResponse?.result);
+          const { firstName, middleName, lastName } =
+            tenantResponse?.result ?? {};
 
-        const locations = data?.content[0]?.profileLocation || [];
-        const flattenedLocationData = await fetchLocationDetails(locations);
-        const order = ['state', 'district', 'block', 'cluster'];
-        const sortedLocations = flattenedLocationData.sort(
-          (a, b) => order.indexOf(a.type) - order.indexOf(b.type)
-        );
-        setLocationDetails(sortedLocations);
+          const mappedProfile = [
+            { label: 'First Name', value: firstName ?? '-' },
+            { label: 'Middle Name', value: middleName ?? '-' },
+            { label: 'Last Name', value: lastName ?? '-' },
+            {
+              label: 'Profile Type',
+              value: tenantResponse?.result?.tenantData[0].roleName ?? '-',
+            },
+          ];
+          setUserDataProfile(mappedProfile);
+        }
       } catch (err) {
         setShowError(true);
       } finally {
@@ -207,12 +223,13 @@ export default function Profile() {
   const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
   const displaySubject = framework.subject?.join(', ') || 'N/A';
   // localStorage.setItem('frameworkname', framework?.id);
-  useEffect(() => {
-    if (typeof window !== 'undefined' && profileData?.framework?.id) {
-      localStorage.setItem('frameworkname', profileData.framework.id);
-    }
-  }, [profileData]);
+
   const [value, setValue] = useState(profileData?.email || '');
+  /*************  ✨ Codeium Command ⭐  *************/
+  /**
+   * Navigates to profile-edit page and saves the current profile data in local storage to be used in the edit page.
+
+/******  7caf34e5-ba9f-4626-ab14-da5095326e23  *******/
   const handleEditClick = () => {
     router.push('/profile-edit');
     localStorage.setItem('selectedBoard', displayBoard);
@@ -269,7 +286,7 @@ export default function Profile() {
           // backgroundColor: '#f5f5f5',
           minHeight: '100vh',
           overflowY: 'auto',
-          paddingTop: '10%',
+          paddingTop: '3%',
           paddingBottom: '56px',
         }}
       >
@@ -314,9 +331,9 @@ export default function Profile() {
                     height: 80,
                     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
                   }}
-                  src={profileData?.avatar || ''}
+                  src={profileData?.avatar ?? ''}
                 >
-                  {profileData?.firstName?.charAt(0) || 'U'}
+                  {(userData?.firstName?.charAt(0) ?? 'U').toUpperCase()}
                 </Avatar>
               </Grid>
               <Grid item>
@@ -326,7 +343,7 @@ export default function Profile() {
                   color="#582E92"
                   fontWeight="bold"
                 >
-                  {profileData?.firstName || 'User'}
+                  {userData?.firstName ?? 'User'}
                 </Typography>
               </Grid>
             </Grid>
@@ -361,19 +378,25 @@ export default function Profile() {
             <Grid container spacing={2}>
               {/* Role */}
               <Grid item xs={12}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Role: </span>
-                  {displayRole === 'administrator'
-                    ? 'HT & Officials'
-                    : toCamelCase(displayRole)}
-                </Typography>
+                {userDataProfile?.map((item) => {
+                  return (
+                    <Typography
+                      variant="body1"
+                      key={item.label}
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#333',
+                        paddingBottom: '10px',
+                      }}
+                    >
+                      <span style={{ color: '#FF9911' }}>{item.label}: </span>
+                      {displayRole === 'administrator'
+                        ? 'HT & Officials'
+                        : toCamelCase(item.value)}
+                    </Typography>
+                  );
+                })}
+
                 {displayRole === 'administrator' && (
                   <Typography
                     variant="body1"
@@ -404,7 +427,7 @@ export default function Profile() {
                     </Typography>
                   </>
                 ))}
-                <Typography
+                {/* <Typography
                   variant="body1"
                   sx={{
                     fontWeight: 'bold',
@@ -414,12 +437,12 @@ export default function Profile() {
                 >
                   <span style={{ color: '#FF9911' }}>School: </span>
                   {profileData?.organisations[0]?.orgName || 'N/A'}
-                </Typography>
+                </Typography> */}
               </Grid>
             </Grid>
           </Box>
           {/* Framework Card */}
-          <Box
+          {/* <Box
             sx={{
               // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
               borderRadius: '12px',
@@ -456,7 +479,6 @@ export default function Profile() {
               onClick={handleEditClick}
             />
             <Grid container spacing={2}>
-              {/* Board */}
               <Grid item xs={12}>
                 <Typography
                   variant="body1"
@@ -504,8 +526,8 @@ export default function Profile() {
                 </Typography>
               </Grid>
             </Grid>
-          </Box>
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
+          </Box> */}
+          {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Button
               onClick={handleDeleteAccountClick}
               variant="contained"
@@ -517,7 +539,7 @@ export default function Profile() {
             >
               Delete Account
             </Button>
-          </Box>
+          </Box> */}
         </Box>
       </Box>
       {showError && (

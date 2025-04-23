@@ -3,18 +3,8 @@
 //@ts-nocheck
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Box,
-  Fab,
-  Typography,
-  Button
-} from '@mui/material';
-import {
-  ContentCard,
-  CommonTabs,
-  Layout,
-  Circular,
-} from '@shared-lib';
+import { Box, Fab, Typography, Button } from '@mui/material';
+import { ContentCard, CommonTabs, Layout, Circular } from '@shared-lib';
 import { ContentSearch } from '../services/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
@@ -139,7 +129,7 @@ export default function Content() {
     }
   };
   useEffect(() => {
-    const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+    const type = 'Learning Resource';
     // setContentData([]);
     const cookies = document.cookie.split('; ');
     const subid = cookies
@@ -158,7 +148,7 @@ export default function Content() {
 
     const currentScrollPosition = window.scrollY;
 
-    const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+    const type = 'Learning Resource';
 
     fetchContent(type, searchValue, filterValues, limit, newOffset).then(() => {
       setTimeout(() => {
@@ -169,17 +159,18 @@ export default function Content() {
 
   const handleAccountClick = (event: React.MouseEvent<HTMLElement>) => {
     // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-     const LOGIN = process.env.NEXT_PUBLIC_LOGINPAGE;
-     //@ts-ignore
-     window.location.href = LOGIN;
+    const LOGIN = process.env.NEXT_PUBLIC_LOGINPAGE;
+    //@ts-ignore
+    window.location.href = LOGIN;
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
 
-
   const handleSearchClick = async () => {
     if (searchValue.trim()) {
-      const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+      const type = 'Learning Resource';
+
+      console.log('searchValue', type);
       // fetchContent(type, searchValue, filterValues);
       let result =
         type &&
@@ -196,7 +187,7 @@ export default function Content() {
     } else {
       setSearchValue('');
       setContentData([]);
-      const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+      const type = 'Learning Resource';
       fetchContent(type, searchValue, filterValues);
     }
   };
@@ -277,7 +268,7 @@ export default function Content() {
             {contentData?.map((item) => (
               <Grid
                 key={item?.identifier}
-                size={{ xs: 6, sm: 6, md: 3, lg: 3 }}
+                size={{ xs: 6, sm: 6, md: 2, lg: 2 }}
               >
                 <ContentCard
                   title={item?.name.trim()}
@@ -292,7 +283,8 @@ export default function Content() {
                   orientation="horizontal"
                   item={[item]}
                   TrackData={trackData}
-                  type={tabValue === 0 ? 'course' : 'content'}
+                  // type={tabValue === 0 ? 'course' : 'content'}
+                  type={'content'}
                   onClick={() =>
                     handleCardClick(item?.identifier, item?.mimeType)
                   }
@@ -426,25 +418,12 @@ export default function Content() {
         [field]: value,
       });
     };
-  const handleOtpSubmit = async () => {
-    console.log(issueData);
-    const queryString = new URLSearchParams(issueData).toString();
-    const frappeDeskUrl = `http://localhost:8000/helpdesk/tickets/new?${queryString}`;
-    router.push(frappeDeskUrl);
-  };
+
   return (
     <Layout
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: true,
-
-        // profileIcon: [
-        //   {
-        //     icon: <LogoutIcon />,
-        //     ariaLabel: 'Account',
-        //     onLogoutClick: handleAccountClick,
-        //   },
-        // ],
       }}
       isFooter={true}
       showLogo={true}
@@ -479,6 +458,7 @@ export default function Content() {
           flexDirection: 'column',
           marginTop: '20px',
           paddingBottom: '80px',
+          overflowX: 'hidden',
         }}
       >
         <CommonTabs

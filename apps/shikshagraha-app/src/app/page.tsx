@@ -16,7 +16,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getToken } from '../services/LoginService';
+import {
+  authenticateUser,
+  fetchTenantData,
+  signin,
+} from '../services/LoginService';
 import { jwtDecode } from 'jwt-decode';
 import { fetchProfileData } from '../services/ProfileService';
 import { ButtonBase } from '@mui/material';
@@ -80,20 +84,54 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const response = await getToken({
+      const response = await signin({
         username: formData.userName,
         password: formData.password,
       });
 
-      if (response?.access_token) {
-        const decoded = jwtDecode(response?.access_token);
-        const subValue = decoded?.sub?.split(':')[2];
-        localStorage.setItem('userId', subValue);
-        localStorage.setItem('accToken', response?.access_token);
-        localStorage.setItem('refToken', response?.refresh_token);
+      if (response?.result?.access_token) {
+        localStorage.setItem('accToken', response?.result?.access_token);
+        localStorage.setItem('refToken', response?.result?.refresh_token);
+        const tenantResponse = await authenticateUser({
+          token: response?.result?.access_token,
+        });
+        console.log('tenantResponse===', tenantResponse);
+        if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
+          localStorage.setItem('userId', tenantResponse?.result?.userId);
+          const tenantIdToCompare =
+            tenantResponse?.result?.tenantData?.[0]?.tenantId;
+          if (tenantIdToCompare) {
+            localStorage.setItem(
+              'headers',
+              JSON.stringify({
+                'org-id': tenantIdToCompare,
+              })
+            );
+          }
 
-        // Fetch profile data
-        await getProfileData();
+          const tenantData = await fetchTenantData({
+            token: response?.result?.access_token,
+          });
+          if (tenantIdToCompare) {
+            const matchedTenant = tenantData?.result?.find(
+              (tenant) => tenant.tenantId === tenantIdToCompare
+            );
+            localStorage.setItem('channelId', matchedTenant?.channelId);
+            localStorage.setItem(
+              'frameworkname',
+              matchedTenant?.contentFramework
+            );
+            if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+              const redirectUrl = '/home';
+              router.push(redirectUrl);
+            } else {
+              setShowError(true);
+              setErrorMessage(
+                'The user does not belong to the same organization.'
+              );
+            }
+          }
+        }
 
         // Check rootOrgId and route or show error
       } else {
@@ -108,40 +146,6 @@ export default function Login() {
     }
   };
 
-  const getProfileData = async () => {
-    try {
-
-      const token = localStorage.getItem('accToken') || '';
-      const userId = localStorage.getItem('userId') || '';
-
-      const data = await fetchProfileData(userId, token);
-
-      setProfileData(data?.content[0]);
-      localStorage.setItem('name', data?.content[0]?.userName);
-      if (data?.content[0]?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
-        const redirectUrl = '/home';
-        router.push(redirectUrl);
-      } else {
-        setShowError(true);
-        setErrorMessage('The user does not belong to the same organization.');
-      }
-    } catch (err) {
-      setError('Failed to load profile data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (profileData) {
-      console.log('Updated Profile Data:', profileData);
-      localStorage.setItem(
-        'headers',
-        JSON.stringify({ 'org-id': profileData?.rootOrgId })
-      );
-
-    }
-  }, [profileData]);
   const handleRegisterClick = () => {
     console.log('Registration clicked');
     console.log(process.env.NEXT_PUBLIC_REGISTRATION);
@@ -218,12 +222,14 @@ export default function Login() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexDirection: 'column',
+            mb: 2,
             gap: 1,
           }}
         >
           <Box
             component="img"
-            src={`${basePath}/assets/images/SG_Logo.jpg`}
+            src={`${basePath}/assets/images/SG_Logo.png`}
             alt="logo"
             sx={{
               width: { xs: '100%', sm: '100%' },
@@ -232,6 +238,16 @@ export default function Login() {
               objectFit: 'cover',
             }}
           />
+          <Typography
+            variant="h6"
+            sx={{
+              color: '#582E92',
+              fontWeight: 'bold',
+              textAlign: 'center',
+            }}
+          >
+            Shikshalokam
+          </Typography>
         </Box>
         <TextField
           fullWidth
@@ -276,10 +292,10 @@ export default function Login() {
           sx={{
             mb: 1,
             '& .MuiInputBase-root': {
-              backgroundColor: 'inherit', 
+              backgroundColor: 'inherit',
             },
             '& .MuiInputAdornment-root': {
-              backgroundColor: 'inherit', 
+              backgroundColor: 'inherit',
             },
           }}
         />
