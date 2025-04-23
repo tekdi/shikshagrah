@@ -23,11 +23,11 @@ import AppConst from '../../utils/AppConst/AppConst';
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
   const cardData = [
-    { title: 'Programs', icon: '/shikshagraha/assets/images/ic_program.png' },
-    { title: 'Projects', icon: '/shikshagraha/assets/images/ic_project.png' },
-    { title: 'Survey', icon: '/shikshagraha/assets/images/ic_survey.png' },
-    { title: 'Reports', icon: '/shikshagraha/assets/images/ic_report.png' },
-    { title: 'Observation', icon: '/shikshagraha/assets/images/ic_report.png' },
+    { title: 'Programs', icon: '/shikshalokam/assets/images/ic_program.png' },
+    { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
+    { title: 'Library', icon: '/shikshalokam/assets/images/ic_survey.png' },
+    { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
+    { title: 'Observation', icon: '/shikshalokam/assets/images/ic_report.png' },
   ];
 
   const router = useRouter();
@@ -41,9 +41,6 @@ export default function Home() {
       try {
         const token = localStorage.getItem('accToken') || '';
         const userId = localStorage.getItem('userId') || '';
-        const data = await fetchProfileData(userId, token);
-        setProfileData(data?.content[0]);
-        localStorage.setItem('frameworkname', 'NCF');
       } catch (err) {
         setError('Failed to load profile data');
       } finally {
@@ -78,13 +75,6 @@ export default function Home() {
           title: 'Home',
           showMenuIcon: true,
           showBackIcon: false,
-          // profileIcon: [
-          //   {
-          //     icon: <LogoutIcon />,
-          //     ariaLabel: 'Account',
-          //     onLogoutClick: handleAccountClick,
-          //   },
-          // ],
         }}
         isFooter={true}
         showLogo={true}
@@ -143,8 +133,14 @@ export default function Home() {
               >
                 {cardData
                   .filter((card) => {
+                    const storedHeaders = JSON.parse(
+                      localStorage.getItem('headers') ?? '{}'
+                    ); // Parse the JSON
+                    const storedOrgId = storedHeaders['org-id']; // Get org-id
                     const isSameOrg =
-                      profileData?.rootOrgId === process.env.NEXT_PUBLIC_ORGID;
+                      storedOrgId === process.env.NEXT_PUBLIC_ORGID;
+                    console.log(isSameOrg);
+                    console.log(storedOrgId);
 
                     return isSameOrg
                       ? true // Show only these if org ID matches
