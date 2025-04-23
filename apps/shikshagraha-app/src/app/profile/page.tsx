@@ -71,7 +71,7 @@ export default function Profile() {
         if (tenantResponse?.result) {
           setUserData(tenantResponse?.result);
           const { firstName, middleName, lastName } =
-            tenantResponse?.result || {};
+            tenantResponse?.result ?? {};
 
           const mappedProfile = [
             { label: 'First Name', value: firstName ?? '-' },
