@@ -111,7 +111,7 @@ export const ContentSearch = async (
   type: string,
   searchText?: string,
   filterValues?: object,
-  limit: number = 4,
+  limit: number = 10,
   offset: number = 0
 ): Promise<ContentSearchResponse[]> => {
   try {
@@ -129,24 +129,24 @@ export const ContentSearch = async (
           // identifier: 'do_1141652605790289921389',
           ...filterValues,
           //need below after login user channel for dynamic load content
-          channel: '0135656861912678406',
+          channel: process.env.NEXT_PUBLIC_ORGID,
 
           primaryCategory: [type],
         },
-        fields: [
-          'name',
-          'appIcon',
-          'description',
-          'posterImage',
-          'mimeType',
-          'identifier',
-          'resourceType',
-          'primaryCategory',
-          'contentType',
-          'trackable',
-          'children',
-          'leafNodes',
-        ],
+        // fields: [
+        //   'name',
+        //   'appIcon',
+        //   'description',
+        //   'posterImage',
+        //   'mimeType',
+        //   'identifier',
+        //   'resourceType',
+        //   'primaryCategory',
+        //   'contentType',
+        //   'trackable',
+        //   'children',
+        //   'leafNodes',
+        // ],
         query: searchText,
         limit: limit,
         offset: offset,
@@ -155,7 +155,7 @@ export const ContentSearch = async (
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${searchApiUrl}/api/content/v1/search`,
+      url: `${searchApiUrl}/action/composite/v3/search`,
       data: data,
     };
 
