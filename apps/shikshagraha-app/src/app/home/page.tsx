@@ -134,7 +134,7 @@ export default function Home() {
                 {cardData
                   .filter((card) => {
                     const storedHeaders = JSON.parse(
-                      localStorage.getItem('headers') || '{}'
+                      localStorage.getItem('headers') ?? '{}'
                     ); // Parse the JSON
                     const storedOrgId = storedHeaders['org-id']; // Get org-id
                     const isSameOrg =

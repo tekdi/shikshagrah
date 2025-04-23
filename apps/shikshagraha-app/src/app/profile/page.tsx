@@ -64,37 +64,22 @@ export default function Profile() {
     const getProfileData = async () => {
       setLoading(true);
       try {
-        // const token = localStorage.getItem('accToken') || '';
-        // const userId = localStorage.getItem('userId') || '';
-        // const data = await fetchProfileData(userId, token);
-        // setProfileData(data?.content[0]);
-
-        // const locations = data?.content[0]?.profileLocation || [];
-        // const flattenedLocationData = await fetchLocationDetails(locations);
-        // const order = ['state', 'district', 'block', 'cluster'];
-        // const sortedLocations = flattenedLocationData.sort(
-        //   (a, b) => order.indexOf(a.type) - order.indexOf(b.type)
-        // );
-        // setLocationDetails(sortedLocations);
-
         const acc_token = localStorage.getItem('accToken');
         const tenantResponse = await authenticateUser({
           token: acc_token,
         });
-        console.log('tenantResponse===', tenantResponse?.result);
         if (tenantResponse?.result) {
           setUserData(tenantResponse?.result);
-          const { firstName, middleName, lastName } = tenantResponse?.result;
-          const { profileType } =
-            tenantResponse?.result?.tenantData[0].roleName;
+          const { firstName, middleName, lastName } =
+            tenantResponse?.result || {};
 
           const mappedProfile = [
-            { label: 'First Name', value: firstName || '-' },
-            { label: 'Middle Name', value: middleName || '-' },
-            { label: 'Last Name', value: lastName || '-' },
+            { label: 'First Name', value: firstName ?? '-' },
+            { label: 'Middle Name', value: middleName ?? '-' },
+            { label: 'Last Name', value: lastName ?? '-' },
             {
               label: 'Profile Type',
-              value: tenantResponse?.result?.tenantData[0].roleName || '-',
+              value: tenantResponse?.result?.tenantData[0].roleName ?? '-',
             },
           ];
           setUserDataProfile(mappedProfile);
@@ -346,9 +331,9 @@ export default function Profile() {
                     height: 80,
                     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
                   }}
-                  src={profileData?.avatar || ''}
+                  src={profileData?.avatar ?? ''}
                 >
-                  {(userData?.firstName?.charAt(0) || 'U').toUpperCase()}
+                  {(userData?.firstName?.charAt(0) ?? 'U').toUpperCase()}
                 </Avatar>
               </Grid>
               <Grid item>
@@ -358,7 +343,7 @@ export default function Profile() {
                   color="#582E92"
                   fontWeight="bold"
                 >
-                  {userData?.firstName || 'User'}
+                  {userData?.firstName ?? 'User'}
                 </Typography>
               </Grid>
             </Grid>
@@ -397,6 +382,7 @@ export default function Profile() {
                   return (
                     <Typography
                       variant="body1"
+                      key={item.label}
                       sx={{
                         fontWeight: 'bold',
                         color: '#333',
