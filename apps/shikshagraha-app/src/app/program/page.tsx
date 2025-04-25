@@ -21,11 +21,11 @@ function SearchParamsHandler() {
   const title = searchParams.get('title'); // Get card title from query
 
   const iframeSources = {
-    Programs: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/program?type=program`,
-    Projects: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/project?type=project`,
-    Survey: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
-    Reports: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/report/list?type=report`,
-    Observation: `${process.env.NEXT_PUBLIC_BASE_URL}/mfe_pwa/observation?type=listing`,
+    Programs: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
+    Projects: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
+    Survey: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
+    Reports: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
+    Observation: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
   };
   const iframeSrc = iframeSources[title] || '';
   // if (iframeSrc) {

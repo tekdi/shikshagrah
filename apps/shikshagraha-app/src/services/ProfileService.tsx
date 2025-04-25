@@ -1,6 +1,9 @@
 // src/services/profileService.ts
 import axios from 'axios';
-
+interface MyCourseDetailsProps {
+  token: string | null;
+  userId: string | null;
+}
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
     const response = await fetch(
@@ -102,7 +105,11 @@ export const sendOtp = async (key: string, type: 'email' | 'phone') => {
 };
 
 // Delete Account
-export const verifyOtp = async (email: string, otp: string, contactType: string) => {
+export const verifyOtp = async (
+  email: string,
+  otp: string,
+  contactType: string
+) => {
   console.log('contactType', contactType);
   const headers = {
     Authorization: process.env.NEXT_PUBLIC_AUTH,
@@ -128,11 +135,15 @@ export const verifyOtp = async (email: string, otp: string, contactType: string)
   }
 };
 
-export const updateProfile = async (userId: string | null, selectedValues: { board: any; medium: any; gradeLevel: any; subject: any; }) => {
+export const updateProfile = async (
+  userId: string | null,
+  selectedValues: { board: any; medium: any; gradeLevel: any; subject: any }
+) => {
   const { board, medium, gradeLevel, subject } = selectedValues;
 
   // Filter out 'N/A' from each field
-  const filterNA = (arr: any) => (arr || []).filter((item: string) => item !== 'N/A');
+  const filterNA = (arr: any) =>
+    (arr || []).filter((item: string) => item !== 'N/A');
 
   const requestData = {
     request: {
@@ -175,8 +186,6 @@ export const updateProfile = async (userId: string | null, selectedValues: { boa
   }
 };
 
-
-
 export const deleteUser = async () => {
   const headers = {
     Authorization: process.env.NEXT_PUBLIC_AUTH,
@@ -185,7 +194,7 @@ export const deleteUser = async () => {
   };
   const req = {
     request: {
-    "userId":localStorage.getItem("userId")
+      userId: localStorage.getItem('userId'),
     },
   };
 
@@ -204,3 +213,61 @@ export const deleteUser = async () => {
 function async() {
   throw new Error('Function not implemented.');
 }
+
+export const myCourseDetails = async ({
+  token,
+  userId,
+}: MyCourseDetailsProps): Promise<any> => {
+  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/interface/v1/tracking/user_certificate/status/search`;
+  try {
+    const response = await axios.post(
+      apiUrl,
+      {
+        filters: {
+          userId: userId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          tenantId: localStorage.getItem('tenantId') ?? '',
+        },
+      }
+    );
+    return response?.data;
+  } catch (error) {
+    console.error('error in reset', error);
+    throw error;
+  }
+};
+
+export const renderCertificate = async (
+  credentialId: string,
+  templateId?: string
+): Promise<string> => {
+  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/interface/v1/tracking/certificate/render`;
+
+  try {
+    if (typeof window === 'undefined') {
+      throw new Error('Cannot access localStorage in server environment');
+    }
+    const response = await axios.post(
+      apiUrl,
+      {
+        credentialId,
+        templateId: 'cm9r175dm0000qa0ijqfdvlgv',
+      },
+      {
+        headers: {
+          tenantId: localStorage.getItem('tenantId') ?? '',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error rendering certificate:', error);
+    throw error;
+  }
+};

@@ -20,9 +20,7 @@ export const searchLocation = async (id, type = 'school') => {
     }
 
     const payload = {
-      request: {
-        filters: filters,
-      },
+      filters: filters,
     };
 
     const response = await axios.post(
@@ -30,8 +28,8 @@ export const searchLocation = async (id, type = 'school') => {
       payload,
       { headers }
     );
-
-    return response.data;
+    console.log('response', response?.data?.result);
+    return response?.data?.result;
   } catch (error) {
     console.error('Error fetching location data:', error);
     return error;
@@ -40,52 +38,55 @@ export const searchLocation = async (id, type = 'school') => {
 
 export const fetchLocationData = async (udisecode) => {
   try {
-    const locationData = {};
+    const locationData = { school: {} };
 
     // First API call to validate UDISE code (school)
     const firstResponse = await searchLocation(udisecode, 'school');
-    if (firstResponse.result.count === 0) {
+    console.log('firstResponse--', firstResponse);
+
+    if (firstResponse.length === 0) {
       throw new Error('INVALID UDISE CODE');
     }
 
-    const school = firstResponse.result.response[0];
+    const school = firstResponse;
     locationData.school = {
       ...school,
-      type: 'school',
-      code: school.code,
+      // type: 'school',
+      // code: school.code,
     };
 
     // Define a helper function to handle the recursive fetching for cluster, block, district, and state
-    const fetchParentData = async (parentId, type) => {
-      const response = await searchLocation(parentId, type);
-      if (response.result.count === 0) {
+    const fetchParentData = async (parentid, type) => {
+      const response = await searchLocation(parentid, type);
+      if (response.length === 0) {
         throw new Error(
           `${type.charAt(0).toUpperCase() + type.slice(1)} data not found`
         );
       }
-      const data = response.result.response[0];
+      const data = response;
+      console.log(data)
       return {
         ...data,
         type: type,
-        id: data.parentId, // Use `parentId` as `id` for cluster, block, district, state
+        id: data.parentid, // Use `parentId` as `id` for cluster, block, district, state
       };
     };
-
+    console.log('school.parentid--', school);
     // Fetch parent data recursively based on the hierarchy
-    if (school.parentId) {
-      const cluster = await fetchParentData(school.parentId, 'cluster');
+    if (school[0].parentid) {
+      const cluster = await fetchParentData(school[0].parentid, 'cluster');
       locationData.cluster = cluster;
 
-      if (cluster.parentId) {
-        const block = await fetchParentData(cluster.parentId, 'block');
+      if (cluster[0].parentid) {
+        const block = await fetchParentData(cluster[0].parentid, 'block');
         locationData.block = block;
 
-        if (block.parentId) {
-          const district = await fetchParentData(block.parentId, 'district');
+        if (block[0].parentid) {
+          const district = await fetchParentData(block[0].parentid, 'district');
           locationData.district = district;
 
-          if (district.parentId) {
-            const state = await fetchParentData(district.parentId, 'state');
+          if (district[0].parentid) {
+            const state = await fetchParentData(district[0].parentid, 'state');
             locationData.state = state;
           } else {
             throw new Error('District does not have parentId');

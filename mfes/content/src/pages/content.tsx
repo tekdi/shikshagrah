@@ -104,7 +104,7 @@ export default function Content() {
   );
   const fetchDataTrack = async (resultData: any) => {
     if (!resultData.length) return; // Ensure contentData is available
-
+    console.log('trackdata---', resultData);
     try {
       const courseList = resultData.map((item: any) => item.identifier); // Extract all identifiers
       const userId = localStorage.getItem('subId');
@@ -116,11 +116,14 @@ export default function Content() {
 
       if (course_track_data?.data) {
         //@ts-ignore
-
-        const userTrackData =
+        // const userTrackData =
+        //   course_track_data.data.find((course: any) => course.userId === userId)
+        //     ?.course || [];
+        // setTrackData(userTrackData);
+        return (
           course_track_data.data.find((course: any) => course.userId === userId)
-            ?.course || [];
-        setTrackData(userTrackData);
+            ?.course ?? []
+        );
       }
     } catch (error) {
       console.error('Error fetching track data:', error);
@@ -367,6 +370,31 @@ export default function Content() {
       ],
     },
   ];
+
+  // useEffect(() => {
+  //   const init = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const result = await fetchContent(filterValues);
+  //       const newContentData = Array.from(
+  //         new Map(result.map((item: any) => [item.identifier, item])).values()
+  //       );
+
+  //       const userTrackData = await fetchDataTrack(newContentData || []);
+  //       setContentData((newContentData as ContentSearchResponse[]) || []);
+  //       setTrackData(userTrackData);
+
+  //       setHasMoreData(
+  //         result?.count > filterValues.offset + newContentData?.length
+  //       );
+  //     } catch (error) {
+  //       console.error(error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   init();
+  // }, [filterValues, fetchContent, fetchDataTrack]);
 
   //@ts-ignore
   const handleApplyFilters = async (selectedValues) => {

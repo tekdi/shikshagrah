@@ -9,6 +9,8 @@ import {
   sendOtp,
   verifyOtp,
   deleteUser,
+  myCourseDetails,
+  renderCertificate,
 } from '../../services/ProfileService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -30,6 +32,13 @@ import {
   FormControlLabel,
   Radio,
   DialogContentText,
+  Card,
+  Divider,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
@@ -60,6 +69,7 @@ export default function Profile() {
     { label: 'Last Name', value: '' },
     { label: 'Profile Type', value: '' },
   ]);
+  const [courseDetails, setCourseDetails] = useState<any>(null);
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
@@ -92,9 +102,40 @@ export default function Profile() {
     };
 
     getProfileData();
+    handleMyCourses();
   }, [router]);
 
   console.log('profileData', profileData);
+
+  const handleMyCourses = async () => {
+    const token = localStorage.getItem('accToken');
+    if (token) {
+      const userId = localStorage.getItem('userId');
+      const detailsResponse = await myCourseDetails({
+        token,
+        userId,
+      });
+      setCourseDetails(detailsResponse?.result);
+      console.log('detailsResponse', detailsResponse);
+    }
+  };
+  const handleViewTest = async (certificateId: string) => {
+    console.log('View Test clicked for course:', certificateId);
+
+    try {
+      const response = await renderCertificate(certificateId);
+      console.log('Certificate HTML:', typeof response, response);
+      const responseData = JSON.parse(response);
+      const certificateHtml = responseData?.result; // <-- grab HTML from the 'result' field
+
+      const blob = new Blob([certificateHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Error rendering certificate:', err);
+    }
+  };
+
   const handleAccountClick = () => {
     setShowLogoutModal(true);
   };
@@ -440,6 +481,97 @@ export default function Profile() {
                 </Typography> */}
               </Grid>
             </Grid>
+          </Box>
+
+          {/* Courses Card */}
+
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              boxShadow: 3,
+              borderRadius: '12px',
+              p: 3,
+              mt: 3,
+              transform: 'translateY(-5px)',
+              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                padding: '1px', // Thickness of the border line
+                background:
+                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                WebkitMask:
+                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude', // Ensures only the border is visible
+              },
+            }}
+          >
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              gutterBottom
+              color="black"
+            >
+              📘 My Courses
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            {courseDetails?.data?.length > 0 ? (
+              <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>
+                        Course ID
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {courseDetails?.data
+                      ?.filter(
+                        (course: any) => course.status === 'viewCertificate'
+                      )
+                      .map((course: any) => (
+                        <TableRow
+                          key={course.usercertificateId}
+                          hover
+                          sx={{
+                            transition: '0.3s',
+                            '&:hover': { backgroundColor: '#f9f9f9' },
+                          }}
+                        >
+                          <TableCell>{course.courseId}</TableCell>
+                          <TableCell>{course.status}</TableCell>
+                          <TableCell>
+                            <Link
+                              component="button"
+                              variant="body2"
+                              underline="hover"
+                              onClick={() =>
+                                handleViewTest(course.certificateId)
+                              }
+                            >
+                              View Certificate
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No course data found.
+              </Typography>
+            )}
           </Box>
           {/* Framework Card */}
           {/* <Box
