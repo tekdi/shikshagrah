@@ -219,6 +219,7 @@ const NewUserWithStepper: React.FC = () => {
 
       if (newLocationData?.state) {
         setLocationData(newLocationData);
+        console.log(newLocationData, 'hello');
         setShowError(false);
       } else {
         setShowError(true);
@@ -248,102 +249,107 @@ const NewUserWithStepper: React.FC = () => {
       try {
         formData.contact = contact;
         formData.password = password;
-        const response = await generateOTP(formData.contact, contactType);
-        if (response.success == false) {
-          setError(response.message);
-          setShowError(true);
-          setErrorMessage(response.message);
-        } else {
-          setOtpSent(true);
-          setActiveStep(3);
+        // const response = await generateOTP(formData.contact, contactType);
+        const response = await registerUserService(
+          formData.contact,
+          contactType
+        );
 
-          // Prepare request data
-          const name = formData.username || '';
-          const nameParts = name.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
+        // if (response.success == false) {
+        //   setError(response.message);
+        //   setShowError(true);
+        //   setErrorMessage(response.message);
+        // } else {
+        //   setOtpSent(true);
+        //   setActiveStep(3);
 
-          const firstNameLower = firstName.toLowerCase();
-          const lastNameLower = lastName
-            .split(' ')
-            .map(
-              (part) =>
-                part.charAt(0).toLowerCase() + part.slice(1).toLowerCase()
-            )
-            .join('');
+        //   // Prepare request data
+        //   const name = formData.username || '';
+        //   const nameParts = name.split(' ');
+        //   const firstName = nameParts[0] || '';
+        //   const lastName = nameParts.slice(1).join(' ') || '';
 
-          const userName = `${firstNameLower}_${lastNameLower}`;
-          const dob = formData.yearOfBirth; // Assuming this is in YYYY format
+        //   const firstNameLower = firstName.toLowerCase();
+        //   const lastNameLower = lastName
+        //     .split(' ')
+        //     .map(
+        //       (part) =>
+        //         part.charAt(0).toLowerCase() + part.slice(1).toLowerCase()
+        //     )
+        //     .join('');
 
-          const profileLocation = [
-            locationData.state,
-            locationData.district,
-            locationData.block,
-            locationData.cluster,
-            locationData.school,
-          ].filter(Boolean);
+        //   const userName = `${firstNameLower}_${lastNameLower}`;
+        //   const dob = formData.yearOfBirth; // Assuming this is in YYYY format
 
-          const userTypes = [];
-          const userRole = selectedRole || '';
+        //   const profileLocation = [
+        //     locationData.state[0],
+        //     locationData.district[0],
+        //     locationData.block[0],
+        //     locationData.cluster[0],
+        //     locationData.school[0],
+        //   ].filter(Boolean);
 
-          if (userRole === 'administrator') {
-            selectedSubRole.forEach((role) => {
-              userTypes.push({
-                type: userRole,
-                subType: role.toLowerCase(),
-              });
-            });
-          } else if (userRole === 'youth' || userRole === 'teacher') {
-            userTypes.push({
-              type: userRole,
-              subType: '',
-            });
-          }
+        //   const userTypes = [];
+        //   const userRole = selectedRole || '';
 
-          if (contactType === 'email') {
-            setRequestData({
-              usercreate: {
-                request: {
-                  firstName,
-                  lastName,
-                  organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
-                  email: contact,
-                  emailVerified: true,
-                  userName,
-                  password: formData.password,
-                  dob,
-                  roles: ['PUBLIC'],
-                },
-              },
-              profileLocation,
-              profileUserTypes: userTypes,
-            });
-          } else {
-            setRequestData({
-              usercreate: {
-                request: {
-                  firstName,
-                  lastName,
-                  organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
-                  phone: contact,
-                  phoneVerified: true,
-                  userName,
-                  password: formData.password,
-                  dob,
-                  roles: ['PUBLIC'],
-                },
-              },
-              profileLocation,
-              profileUserTypes: userTypes,
-            });
-          }
+        //   if (userRole === 'administrator') {
+        //     selectedSubRole.forEach((role) => {
+        //       userTypes.push({
+        //         type: userRole,
+        //         subType: role.toLowerCase(),
+        //       });
+        //     });
+        //   } else if (userRole === 'youth' || userRole === 'teacher') {
+        //     userTypes.push({
+        //       type: userRole,
+        //       subType: '',
+        //     });
+        //   }
 
-          setUserData({
-            ...formData,
-            locationData,
-          });
-          localStorage.setItem('contact', contact);
-        }
+        //   if (contactType === 'email') {
+        //     setRequestData({
+        //       usercreate: {
+        //         request: {
+        //           firstName,
+        //           lastName,
+        //           organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
+        //           email: contact,
+        //           emailVerified: true,
+        //           userName,
+        //           password: formData.password,
+        //           dob,
+        //           roles: ['PUBLIC'],
+        //         },
+        //       },
+        //       profileLocation,
+        //       profileUserTypes: userTypes,
+        //     });
+        //   } else {
+        //     setRequestData({
+        //       usercreate: {
+        //         request: {
+        //           firstName,
+        //           lastName,
+        //           organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
+        //           phone: contact,
+        //           phoneVerified: true,
+        //           userName,
+        //           password: formData.password,
+        //           dob,
+        //           roles: ['PUBLIC'],
+        //         },
+        //       },
+        //       profileLocation,
+        //       profileUserTypes: userTypes,
+        //     });
+        //   }
+
+        //   setUserData({
+        //     ...formData,
+        //     locationData,
+        //   });
+        //   localStorage.setItem('contact', contact);
+        // }
       } catch (error) {
         console.error('Error generating OTP:', error);
       }
@@ -357,54 +363,64 @@ const NewUserWithStepper: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (remainingAttempts <= 0) {
-      setShowError(true);
-      setErrorMessage(
-        'You have exceeded the maximum OTP attempts. Please request a new OTP.'
-      );
-      return;
-    }
+    console.log('OTP submitted');
+    // if (remainingAttempts <= 0) {
+    //   setShowError(true);
+    //   setErrorMessage(
+    //     'You have exceeded the maximum OTP attempts. Please request a new OTP.'
+    //   );
+    //   return;
+    // }
 
     setShowError(false);
-    if (otp.length < 5 || otp.length > 6) {
-      setInvalidOtp(true);
-      setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
-      return;
-    }
+    // if (otp.length < 5 || otp.length > 6) {
+    //   setInvalidOtp(true);
+    //   setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
+    //   return;
+    // }
 
     try {
       const email = contact;
-      const otpResponse = await verifyOtpService(email, otp, contactType);
-      const err = otpResponse?.response;
+      // const otpResponse = await verifyOtpService(email, otp, contactType);
+      // const err = otpResponse?.response;
 
-      if (
-        otpResponse ===
-          'OTP verification failed. Remaining attempt count is 0.' ||
-        otpResponse ===
-          'OTP verification failed. Remaining attempt count is 1.' ||
-        err?.data?.params?.status === 'FAILED'
-      ) {
+      // if (
+      //   otpResponse ===
+      //     'OTP verification failed. Remaining attempt count is 0.' ||
+      //   otpResponse ===
+      //     'OTP verification failed. Remaining attempt count is 1.' ||
+      //   err?.data?.params?.status === 'FAILED'
+      // ) {
+      //   setShowError(true);
+      //   setErrorMessage(err.data.params.errmsg);
+      //   setInvalidOtp(true);
+      //   setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
+      //   return;
+      // } else if (otpResponse.params.status === 'SUCCESS') {
+      // console.log('OTP verified successfully', requestData);
+      // formData.contact = contact;
+      // formData.password = password;
+      const contactValid =
+        contactType === 'email'
+          ? emailRegex.test(contact)
+          : phoneRegex.test(contact);
+      const registrationResponse = await registerUserService(
+        formData.contact,
+        contactType
+      );
+
+      if (registrationResponse.success === true) {
+        setErrorMessage(registrationResponse.message);
+        setDialogOpen(true);
+      } else {
         setShowError(true);
-        setErrorMessage(err.data.params.errmsg);
-        setInvalidOtp(true);
-        setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
-        return;
-      } else if (otpResponse.params.status === 'SUCCESS') {
-        console.log('OTP verified successfully', requestData);
-        const registrationResponse = await registerUserService({ requestData });
-
-        if (registrationResponse.success === true) {
-          setErrorMessage(registrationResponse.message);
-          setDialogOpen(true);
-        } else {
-          setShowError(true);
-          setErrorMessage(
-            registrationResponse.data
-              ? registrationResponse.data.error.params.errmsg
-              : registrationResponse.error.params.errmsg
-          );
-        }
+        setErrorMessage(
+          registrationResponse.data
+            ? registrationResponse.data.error.params.errmsg
+            : registrationResponse.error.params.errmsg
+        );
       }
+      // }
     } catch (error) {
       setShowError(true);
       setErrorMessage(error.message || 'An error occurred');
@@ -427,7 +443,7 @@ const NewUserWithStepper: React.FC = () => {
     setRemainingAttempts(3); // Reset attempts after resending OTP
 
     console.log('OTP resent');
-    handleStep3Continue();
+    // handleStep3Continue();
 
     if (resendCount + 1 >= 4) {
       setTimeout(() => {
@@ -598,7 +614,7 @@ const NewUserWithStepper: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                Welcome to Shikshagraha
+                Welcome to Shikshalokam
               </Typography>
               <Typography
                 variant="body1"
@@ -788,14 +804,20 @@ const NewUserWithStepper: React.FC = () => {
                   >
                     <Grid container spacing={2}>
                       {[
-                        { label: 'State', value: locationData.state?.name },
+                        { label: 'State', value: locationData.state[0]?.name },
                         {
                           label: 'District',
-                          value: locationData.district?.name,
+                          value: locationData.district[0]?.name,
                         },
-                        { label: 'Block', value: locationData.block?.name },
-                        { label: 'Cluster', value: locationData.cluster?.name },
-                        { label: 'School', value: locationData.school?.name },
+                        { label: 'Block', value: locationData.block[0]?.name },
+                        {
+                          label: 'Cluster',
+                          value: locationData.cluster[0]?.name,
+                        },
+                        {
+                          label: 'School',
+                          value: locationData.school[0]?.name,
+                        },
                       ].map((item, index) => (
                         <Grid item xs={12} key={index}>
                           {' '}
@@ -991,7 +1013,8 @@ const NewUserWithStepper: React.FC = () => {
                 }}
               >
                 <Button
-                  onClick={handleStep3Continue}
+                  // onClick={handleStep3Continue}
+                  onClick={handleSubmit}
                   sx={{
                     bgcolor: '#582E92',
                     color: '#FFFFFF',

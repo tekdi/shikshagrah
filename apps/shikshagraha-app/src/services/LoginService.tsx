@@ -66,3 +66,30 @@ export const fetchTenantData = async ({
     return error;
   }
 };
+export const schemaRead = async (): Promise<any> => {
+  const apiUrl: string = `${process.env.NEXT_PUBLIC_BASE_URL_READ}/interface/v1/form/read?context=USERS&contextType=LEARNER`;
+  console.log(apiUrl);
+  try {
+    const response = await axios.get(apiUrl);
+    return response?.data;
+  } catch (error) {
+    console.error('error in login', error);
+    // throw error;
+    return error;
+  }
+};
+
+// export const registerUserService = async (requestData) => {
+//   const modifiedRequestData = requestData?.requestData || requestData;
+
+//   try {
+//     const response = await axios.post(
+//       `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_NEW_REGISTRATION}`,
+//       modifiedRequestData
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error submitting registration data:', error);
+//     return error.response;
+//   }
+// };

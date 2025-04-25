@@ -10,6 +10,7 @@ import Grid from '@mui/material/Grid2';
 
 import { useRouter } from 'next/router';
 import { fetchContent } from '../../services/Read';
+import { createUserCertificateStatus } from '../../services/Certificate';
 
 interface ContentDetailsObject {
   name: string;
@@ -52,18 +53,33 @@ const ContentDetails = () => {
     return <Typography>Loading...</Typography>; // Show loading state while identifier is undefined
   }
   console.log('contentDetails', contentDetails);
+
+  const handleClick = async () => {
+    try {
+      const data = await createUserCertificateStatus({
+        userId: localStorage.getItem('userId') ?? '',
+        courseId: identifier as string,
+      });
+      console.log('createUserCertificateStatus', data);
+
+      router.replace(`/details/${identifier}`);
+      // }
+    } catch (error) {
+      console.error('Failed to create user certificate:', error);
+    }
+  };
   return (
     <Layout
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: false,
-        actionIcons: [
-          {
-            icon: <LogoutIcon />,
-            ariaLabel: 'Logout',
-            onClick: handleAccountClick,
-          },
-        ],
+        // actionIcons: [
+        //   {
+        //     icon: <LogoutIcon />,
+        //     ariaLabel: 'Logout',
+        //     onClick: handleAccountClick,
+        //   },
+        // ],
       }}
       isFooter={true}
       showLogo={true}
@@ -156,7 +172,8 @@ const ContentDetails = () => {
             textTransform: 'none',
             boxShadow: 'none',
           }}
-          onClick={() => router.push(`/details/${identifier}`)}
+          //onClick={() => router.push(`/details/${identifier}`)}
+          onClick={handleClick}
         >
           Join Now/Start Course
         </Button>

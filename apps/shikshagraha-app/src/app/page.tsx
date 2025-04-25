@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import {
   authenticateUser,
   fetchTenantData,
+  schemaRead,
   signin,
 } from '../services/LoginService';
 import { jwtDecode } from 'jwt-decode';
@@ -146,11 +147,10 @@ export default function Login() {
     }
   };
 
-  const handleRegisterClick = () => {
-    console.log('Registration clicked');
-    console.log(process.env.NEXT_PUBLIC_REGISTRATION);
+  const handleRegisterClick = async () => {
+    // const registrationUrl = process.env.NEXT_PUBLIC_REGISTRATION ?? '/';
 
-    const registrationUrl = process.env.NEXT_PUBLIC_REGISTRATION ?? '/';
+    const registrationUrl = '/register';
     router.push(registrationUrl);
   };
 
