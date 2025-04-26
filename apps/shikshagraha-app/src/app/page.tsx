@@ -141,7 +141,7 @@ export default function Login() {
       }
     } catch (error) {
       setShowError(true);
-      setErrorMessage(error?.message || 'Login failed. Please try again.');
+      setErrorMessage(error?.message ?? 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

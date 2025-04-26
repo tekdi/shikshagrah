@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import { TextField, Button, Box } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { fetchContentOnUdise } from '../../services/LoginService';
@@ -18,7 +18,7 @@ const UdiaseWithButton = ({
   placeholder,
   onFetchData,
 }: WidgetProps & { onFetchData: (data: string) => void }) => {
-  const [udiseCode, setUdiasecode] = React.useState(value ?? '');
+  const [udiseCode, setUdiasecode] = useState(value ?? '');
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value.replace(/\s/g, '');
 

@@ -1191,7 +1191,6 @@ const DynamicForm = ({
   };
 
   const transformErrors = (errors) => {
-    const skipRequiredFields = ['subRoles', 'anotherField'];
     let updatedError = errors;
 
     if (!submitted) {

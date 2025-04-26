@@ -115,7 +115,7 @@ export default function Profile() {
 
             if (typeof value === 'string') {
               // Remove { and } and extra quotes
-              value = value.replace(/^\{\"|\"\}$/g, '');
+              value = value.replace(/^\{\"(.*)\"\}$/g, '$1');
             }
 
             return {
