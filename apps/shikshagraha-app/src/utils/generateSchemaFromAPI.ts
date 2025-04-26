@@ -1,4 +1,13 @@
-export const generateRJSFSchema = (fields: any[]) => {
+const toCamelCase = (str: string) => {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w|\s+|\-|\_|\s+)/g, (match, index) =>
+      index === 0 ? match.toLowerCase() : match.toUpperCase()
+    )
+    .replace(/\s+/g, '')
+    .replace(/[\-_]+/g, '');
+};
+
+export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
   const schema: any = {
     type: 'object',
     properties: {},
@@ -6,7 +15,7 @@ export const generateRJSFSchema = (fields: any[]) => {
   };
 
   const uiSchema: any = {};
-
+  const fieldNameToFieldIdMapping: Record<string, string> = {};
   fields
     .filter((f) => f.coreField === 1 || f.coreField === 0)
     .sort((a, b) => Number(a.order) - Number(b.order))
@@ -22,13 +31,14 @@ export const generateRJSFSchema = (fields: any[]) => {
         isMultiSelect,
         dependsOn,
         visibleIf,
+        fieldId,
       } = field;
 
       const fieldSchema: any = {
         title: label || name,
         type: 'string',
       };
-      if (type === 'Drop Down') {
+      if (type === 'drop_down') {
         fieldSchema.enum = options.map((option: any) => option.value); // Use options to populate the enum
         // if (isMultiSelect) {
         fieldSchema.items = {
@@ -36,43 +46,56 @@ export const generateRJSFSchema = (fields: any[]) => {
           // };
         };
       }
+
+      if (type === 'drop_down') {
+        const enumValues = options?.map((option: any) => option.value) || [];
+        if (isMultiSelect) {
+          fieldSchema.items = { type: 'string', enum: enumValues };
+          fieldSchema.uniqueItems = true;
+        } else {
+          fieldSchema.enum = enumValues;
+        }
+      }
       if (pattern) {
         fieldSchema.pattern = pattern;
       }
 
       schema.properties[name] = fieldSchema;
 
-      if (isRequired) {
-        schema.required.push(name);
-      }
-
-      uiSchema[name] = {
-        // 'ui:placeholder': placeholder ? placeholder : null,
-        'ui:disabled': field.isEditable === false,
-        'ui:widget':
-          type === 'Drop Down'
-            ? 'select'
-            : type === 'email'
-            ? 'email'
-            : type === 'password'
-            ? 'password'
-            : 'text',
-      };
-      // if (isMultiSelect) {
-      //   uiSchema[name]['ui:options'] = { multiple: true };
+      // if (isRequired) {
+      //   schema.required.push(name);
       // }
-      if (dependsOn) {
-        uiSchema['ui:options'] = {
-          ...uiSchema['ui:options'],
-          // You can extend this with custom logic
-          condition: {
-            field: dependsOn,
-            value: visibleIf || true, // Default to true if not explicitly defined
-          },
-        };
 
-        // Optionally hide it initially, and handle in custom logic
-        uiSchema['ui:hide'] = true;
+      if (name === 'subRoles' && rolesValue !== 'administrator') {
+        uiSchema[name] = {
+          'ui:widget': 'hidden',
+        };
+      } else {
+        uiSchema[name] = {
+          'ui:disabled': field.isEditable === false,
+          'ui:readonly': [
+            'school',
+            'cluster',
+            'district',
+            'block',
+            'state',
+          ].includes(name),
+          'ui:widget':
+            name === 'udise'
+              ? 'UdiaseWithButton'
+              : name === 'roles'
+              ? 'CustomSingleSelectWidget'
+              : name == 'subRoles'
+              ? 'CustomMultiSelectWidget'
+              : type === 'email'
+              ? 'CustomEmailWidget'
+              : type === 'password'
+              ? 'password'
+              : 'CustomTextFieldWidget',
+        };
+      }
+      if (fieldId) {
+        fieldNameToFieldIdMapping[name] = fieldId;
       }
     });
 
@@ -81,5 +104,5 @@ export const generateRJSFSchema = (fields: any[]) => {
       norender: true,
     },
   };
-  return { schema, uiSchema };
+  return { schema, uiSchema, fieldNameToFieldIdMapping };
 };

@@ -1,11 +1,20 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import Form from '@rjsf/mui';
 import validator from '@rjsf/validator-ajv8';
 import axios from 'axios';
 import Grid from '@mui/material/Grid';
-import { Box } from '@mui/material';
-import { TextField, Container, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import {
+  TextField,
+  Container,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
 import _ from 'lodash'; // Lodash for deep comparison
 import CustomMultiSelectWidget from './RJSFWidget/CustomMultiSelectWidget';
 import CustomCheckboxWidget from './RJSFWidget/CustomCheckboxWidget';
@@ -19,6 +28,10 @@ import {
   toPascalCase,
   transformLabel,
 } from '../utils/Helper';
+import UdiaseWithButton from './RJSFWidget/UdiaseWithButton';
+import CustomEmailWidget from './RJSFWidget/CustomEmailWidget';
+import { registerUserService } from '../services/LoginService';
+import { useRouter } from 'next/navigation';
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
   const { uiSchema } = props;
@@ -28,6 +41,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
   }
   return <button type="submit" style={{ display: 'none' }}></button>;
 };
+
 const DynamicForm = ({
   schema,
   uiSchema,
@@ -37,6 +51,8 @@ const DynamicForm = ({
   FormSubmitFunction,
   extraFields,
   hideSubmit,
+  onChange,
+  fieldIdMapping,
 }: any) => {
   const [submitted, setSubmitted] = useState(false);
   const formRef = useRef(null);
@@ -48,6 +64,10 @@ const DynamicForm = ({
   const [isInitialCompleted, setIsInitialCompleted] = useState(false);
   const [hideAndSkipFields, setHideAndSkipFields] = useState({});
   const [isRenderCompleted, setIsRenderCompleted] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [requestData, setRequestData] = useState<any>({});
+  const router = useRouter();
 
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
@@ -102,8 +122,40 @@ const DynamicForm = ({
         setFormUiSchema(oldFormUiSchema);
       }
     }
-  }, [formData]);
+    if (formData?.roles === 'administrator') {
+      const updatedFormSchema = {
+        ...formSchema,
+        required: formSchema.required?.filter((key) => key !== 'roles'),
+      };
 
+      const updatedFormUiSchema = {
+        ...formUiSchema,
+        subRoles: {
+          ...formUiSchema.subRoles,
+          'ui:widget': 'CustomMultiSelectWidget',
+        },
+      };
+
+      setFormSchema(updatedFormSchema);
+      setFormUiSchema(updatedFormUiSchema);
+    } else {
+      const updatedFormSchema = {
+        ...formSchema,
+        required: formSchema.required?.filter((key) => key !== 'roles'),
+      };
+
+      const updatedFormUiSchema = {
+        ...formUiSchema,
+        subRoles: {
+          ...formUiSchema.subRoles,
+          'ui:widget': 'hidden',
+        },
+      };
+
+      setFormSchema(updatedFormSchema);
+      setFormUiSchema(updatedFormUiSchema);
+    }
+  }, [formData]);
   const widgets = {
     CustomMultiSelectWidget,
     CustomCheckboxWidget,
@@ -112,6 +164,10 @@ const DynamicForm = ({
     CustomSingleSelectWidget,
     CustomRadioWidget,
     CustomTextFieldWidget,
+    UdiaseWithButton: (props) => (
+      <UdiaseWithButton {...props} onFetchData={handleFetchData} />
+    ),
+    CustomEmailWidget,
   };
 
   useEffect(() => {
@@ -129,7 +185,7 @@ const DynamicForm = ({
 
   useEffect(() => {
     if (isRenderCompleted === true) {
-      handleChange({ formData: prefilledFormData });
+      // handleChange({ formData: prefilledFormData });
     }
   }, [isRenderCompleted]);
 
@@ -149,8 +205,6 @@ const DynamicForm = ({
     }
     const extractedSkipAndHide = extractSkipAndHide(schema);
     setHideAndSkipFields(extractedSkipAndHide);
-    // console.log('extractedSkipAndHide', extractedSkipAndHide);
-    // console.log('formUiSchema', uiSchema);
   }, [schema]);
 
   const prevFormData = useRef({});
@@ -199,14 +253,12 @@ const DynamicForm = ({
         });
 
         const responses = await Promise.all(apiRequests);
-        // console.log('API Responses:', responses);
+
         // Update schema dynamically
         if (!responses[0]?.error) {
           setFormSchema((prevSchema) => {
             const updatedProperties = { ...prevSchema.properties };
             responses.forEach(({ fieldKey, data }) => {
-              // // console.log('Data:', data);
-              // // console.log('fieldKey:', fieldKey);
               let label = prevSchema.properties[fieldKey].api.options.label;
               let value = prevSchema.properties[fieldKey].api.options.value;
               if (updatedProperties[fieldKey]?.isMultiSelect === true) {
@@ -264,7 +316,6 @@ const DynamicForm = ({
           });
         }
 
-        //setIsInitialCompleted
         setIsInitialCompleted(true);
       } catch (error) {
         // console.error("Error fetching API data:", error);
@@ -318,17 +369,14 @@ const DynamicForm = ({
 
   const renderPrefilledForm = () => {
     const temp_prefilled_form = { ...prefilledFormData };
-    // console.log('temp', temp_prefilled_form);
     const dependentApis = extractApiProperties(schema, 'dependent');
     const initialApis = extractApiProperties(schema, 'initial');
-    // // console.log('initialApis', initialApis);
-    // console.log('dependentFields', dependentApis);
+
     if (dependentApis.length > 0 && initialApis.length > 0) {
       let initialKeys = initialApis.map((item) => item.key);
       let dependentKeys = dependentApis.map((item) => item.key);
       dependentKeys = [...initialKeys, ...dependentKeys];
-      // console.log('dependentKeys', dependentKeys);
-      // console.log('prefilledFormData', temp_prefilled_form);
+
       const removeDependentKeys = (formData, keysToRemove) => {
         const updatedData = { ...formData };
         keysToRemove.forEach((key) => delete updatedData[key]);
@@ -338,7 +386,6 @@ const DynamicForm = ({
         temp_prefilled_form,
         dependentKeys
       );
-      // // console.log('updatedFormData', updatedFormData);
       setFormData(updatedFormData);
 
       //prefill other dependent keys
@@ -354,9 +401,7 @@ const DynamicForm = ({
         temp_prefilled_form,
         dependentKeys
       );
-      // console.log('filteredFormData', filteredFormData);
       const filteredFormDataKey = Object.keys(filteredFormData);
-      // console.log('filteredFormDataKey', filteredFormDataKey);
       let filterDependentApis = [];
       for (let i = 0; i < filteredFormDataKey.length; i++) {
         filterDependentApis.push({
@@ -364,7 +409,6 @@ const DynamicForm = ({
           data: schema.properties[filteredFormDataKey[i]],
         });
       }
-      // console.log('filterDependentApis', filterDependentApis);
       //dependent calls
       const workingSchema = filterDependentApis;
 
@@ -380,13 +424,10 @@ const DynamicForm = ({
         // Filter only the dependent APIs based on the changed field
         const dependentApis = workingSchema;
         try {
-          // console.log('dependentApis dependentApis', dependentApis);
           const apiRequests = dependentApis.map((realField) => {
             const field = realField?.data;
             const { api } = realField?.data;
             const key = realField?.key;
-
-            // console.log('API field:', field);
 
             const changedField = field?.api?.dependent;
             const changedFieldValue = temp_prefilled_form[changedField];
@@ -422,12 +463,9 @@ const DynamicForm = ({
             if (key) {
               const changedField = key;
 
-              // // console.log(`Field changed: ${changedField}, New Value: ${formData[changedField]}`);
-              // // console.log('dependentSchema', dependentSchema);
               const workingSchema1 = dependentSchema?.filter(
                 (item) => item.api && item.api.dependent === changedField
               );
-              // // console.log('workingSchema1', workingSchema1);
               if (workingSchema1.length > 0) {
                 const changedFieldValue = temp_prefilled_form[changedField];
 
@@ -454,13 +492,6 @@ const DynamicForm = ({
                         changedFieldValue,
                         isMultiSelect
                       );
-                      // Replace "**" in the payload with changedFieldValue
-                      // const updatedPayload = JSON.parse(
-                      //   JSON.stringify(api.payload).replace(
-                      //     /\*\*/g,
-                      //     changedFieldValue
-                      //   )
-                      // );
 
                       // If header exists, replace values with localStorage values
                       let customHeader = api?.header
@@ -505,13 +536,10 @@ const DynamicForm = ({
                     });
 
                     const responses = await Promise.all(apiRequests);
-                    // // console.log('API Responses:', responses);
                     if (!responses[0]?.error) {
                       setFormSchema((prevSchema) => {
                         const updatedProperties = { ...prevSchema.properties };
                         responses.forEach(({ fieldKey, data }) => {
-                          // // console.log('Data:', data);
-                          // // console.log('fieldKey:', fieldKey);
                           let label =
                             prevSchema.properties[fieldKey].api.options.label;
                           let value =
@@ -588,12 +616,9 @@ const DynamicForm = ({
           });
 
           const responses = await Promise.all(apiRequests);
-          // console.log('API Responses:', responses);
           setFormSchema((prevSchema) => {
             const updatedProperties = { ...prevSchema.properties };
             responses.forEach(({ fieldKey, data }) => {
-              // console.log('Data:', data);
-              // console.log('fieldKey:', fieldKey);
               let label = prevSchema.properties[fieldKey].api.options.label;
               let value = prevSchema.properties[fieldKey].api.options.value;
               if (updatedProperties[fieldKey]?.isMultiSelect === true) {
@@ -644,7 +669,6 @@ const DynamicForm = ({
       }
 
       const skipKeys = getSkipKeys(hideAndSkipFields, temp_prefilled_form);
-      // console.log('skipKeys', skipKeys);
       let updatedUISchema = formUiSchemaOriginal;
       function hideFieldsInUISchema(uiSchema, fieldsToHide) {
         const updatedUISchema = { ...uiSchema };
@@ -773,7 +797,7 @@ const DynamicForm = ({
     });
   };
 
-  const handleChange = ({
+  const handleChange = async ({
     formData,
     errors,
   }: {
@@ -1032,8 +1056,6 @@ const DynamicForm = ({
   };
 
   const handleSubmit = ({ formData }: { formData: any }) => {
-    console.log('########### issue debug formData', formData);
-
     //step-1 : Check and remove skipped Data
     function filterFormData(skipHideObject, formData) {
       const updatedFormData = { ...formData };
@@ -1049,7 +1071,6 @@ const DynamicForm = ({
       return updatedFormData;
     }
     const filteredData = filterFormData(hideAndSkipFields, formData);
-    // console.log('######### filteredData', JSON.stringify(filteredData));
     const cleanedData = Object.fromEntries(
       Object.entries(filteredData).filter(
         ([_, value]) => !Array.isArray(value) || value.length > 0
@@ -1100,9 +1121,6 @@ const DynamicForm = ({
       transformedFormData.name = transformedFormData.name.toLowerCase();
     }
 
-    // // console.log('formSchema', transformedFormData);
-    // console.log('Form Data Submitted:', filteredData);
-    // console.log('formattedFormData', transformedFormData);
     if (!isCallSubmitInHandle) {
       FormSubmitFunction(cleanedData, transformedFormData);
     }
@@ -1143,9 +1161,6 @@ const DynamicForm = ({
       // ✅ Clear error if field is empty or invalid
       if (!value || value === '' || value === null || value === undefined) {
         if (errors[key]?.__errors) {
-          console.log('####### field', field);
-          console.log('####### value', value);
-          console.log('####### key', key);
           errors[key].__errors = []; // ✅ Clear existing errors
         }
         delete errors[key]; // ✅ Completely remove errors if empty
@@ -1176,9 +1191,6 @@ const DynamicForm = ({
   };
 
   const transformErrors = (errors) => {
-    // console.log('########### issue debug error // if (isMultiSelect) {
-    //   uiSchema[name]['ui:options'] = { multiple: true };
-    // }s 123 ', JSON.stringify(errors));
     let updatedError = errors;
     if (!submitted) {
       // updatedError = errors.filter((error) => error.name !== 'required');
@@ -1187,10 +1199,84 @@ const DynamicForm = ({
       //   setUiSchema;
       updatedError = updatedError.filter((error) => error.name !== 'pattern');
     }
-    // console.log('########### issue debug updatedError 123 ', JSON.stringify(updatedError));
     return updatedError;
   };
+  const handleFetchData = (response: any) => {
+    // Example: Update specific fields from API response
+    setFormData((prev) => ({
+      ...prev,
+      state: response?.state || '',
+      district: response?.district || '',
+      block: response?.block || '',
+      cluster: response?.cluster || '',
+      school: response?.school || '',
+      udise: response?.udise || '',
+    }));
+  };
+  const handleRegister = async () => {
+    const customFields = Object.entries(fieldIdMapping).map(
+      ([name, fieldId]) => {
+        let fieldValue = formData[name] ?? '';
 
+        // Check if name is 'roles' or 'subRoles' and convert value to an array if so
+        if (name === 'roles' || name === 'subRoles') {
+          // Ensure fieldValue is an array
+          fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        }
+
+        return {
+          fieldId,
+          value: fieldValue,
+        };
+      }
+    );
+    const userName = formData.firstName;
+    const payload = {
+      name: formData.firstName,
+      username: `${formData.firstName}_${formData.lastName}`,
+      password: formData.password,
+      gender: formData.gender ?? 'male',
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      mobile: formData.mobile,
+      email: formData.email,
+      tenantCohortRoleMapping: [
+        {
+          tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
+          roleId: 'ac21322c-9c7c-4a39-8c56-4b5722f14c04',
+        },
+      ],
+      customFields,
+    };
+
+    const registrationResponse = await registerUserService(payload);
+    console.log('registrationResponse', registrationResponse);
+    if (
+      registrationResponse?.params?.successmessage ===
+      'User created successfully'
+    ) {
+      setRequestData({
+        usercreate: {
+          request: {
+            userName: registrationResponse?.result?.userData?.username,
+          },
+        },
+      });
+      setErrorMessage(registrationResponse.message);
+      setDialogOpen(true);
+    } else {
+      setErrorMessage(
+        registrationResponse.data
+          ? registrationResponse.data.error.params.errmsg
+          : registrationResponse.error.params.errmsg
+      );
+    }
+  };
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    router.push('/');
+    // localStorage.clear();
+  };
   return (
     <>
       {!isCallSubmitInHandle ? (
@@ -1200,11 +1286,10 @@ const DynamicForm = ({
           uiSchema={formUiSchema}
           formData={formData}
           onChange={handleChange}
+          // onChange={(data) => setFormData(data)}
           // onSubmit={handleSubmit}
 
           onSubmit={({ formData, errors }) => {
-            // console.log("########### issue debug SUBMIT", formData);
-            // console.log("########### issue debug ERRORS", errors); // 👈 this will be empty if validation passed
             if (errors.length > 0) {
               // Block submission if needed
               return;
@@ -1222,12 +1307,33 @@ const DynamicForm = ({
           widgets={widgets}
           id="dynamic-form-id"
         >
-          <button
-            type="submit"
-            style={{ display: hideSubmit ? 'none' : 'block' }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+            }}
           >
-            Submit
-          </button>
+            <Button
+              onClick={handleRegister}
+              sx={{
+                bgcolor: '#582E92',
+                color: '#FFFFFF',
+                borderRadius: '30px',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                padding: '8px 16px',
+                '&:hover': {
+                  bgcolor: '#543E98',
+                },
+                width: '50%',
+              }}
+            >
+              Register
+            </Button>
+          </Box>
         </Form>
       ) : (
         <Grid container spacing={2}>
@@ -1241,7 +1347,9 @@ const DynamicForm = ({
                 }}
                 uiSchema={{ [key]: formUiSchema[key] }}
                 formData={formData}
-                onChange={handleChange}
+                fields={fields}
+                // onChange={handleChange}
+                onChange={(data) => setFormData(data)}
                 onSubmit={handleSubmit}
                 validator={validator}
                 showErrorList={false} // Hides the error list card at the top
@@ -1260,262 +1368,27 @@ const DynamicForm = ({
           ))}
         </Grid>
       )}
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle>Registration Successful</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Welcome,
+            <span style={{ fontWeight: 'bold' }}>
+              {' '}
+              {requestData?.usercreate?.request?.userName}{' '}
+            </span>{' '}
+            Your account has been successfully registered. Please use your
+            username to login.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
 
 export default DynamicForm;
-
-/*
-below are sample json
-
-
-    const schema = {
-        type: 'object',
-        properties: {
-          studentName: {
-            type: 'string',
-            title: 'Student Name',
-            pattern: '^[A-Za-z ]+$',
-          },
-          rollNo: {
-            type: 'string',
-            title: 'Roll No',
-            pattern: '^[0-9]{1,6}$',
-          },
-          gender: {
-            type: 'string',
-            title: 'Gender',
-            enum: ['Male', 'Female', 'Other'],
-          },
-          lastEducation: {
-            type: 'string',
-            title: 'Last Completed Education',
-            enum: ['SSC', 'HSC', 'Degree'],
-          },
-          state: {
-            type: 'number',
-            title: 'State',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: 'https://dev-interface.prathamdigital.org/interface/v1/fields/options/read',
-              method: 'POST',
-              payload: { fieldName: 'state', sort: ['state_name', 'asc'] },
-              options: {
-                optionObj: 'result.values',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'initial', // initial or dependent
-            },
-          },
-          district: {
-            type: 'number',
-            title: 'District',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: 'https://dev-interface.prathamdigital.org/interface/v1/fields/options/read',
-              method: 'POST',
-              payload: {
-                fieldName: 'district',
-                controllingfieldfk: '**',
-                sort: ['district_name', 'asc'],
-              },
-              options: {
-                optionObj: 'result.values',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'dependent', // initial or dependent,
-              dependent: 'state',
-            },
-          },
-          block: {
-            type: 'number',
-            title: 'Block',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: 'https://dev-interface.prathamdigital.org/interface/v1/fields/options/read',
-              method: 'POST',
-              payload: {
-                fieldName: 'block',
-                controllingfieldfk: '**',
-                sort: ['block_name', 'asc'],
-              },
-              options: {
-                optionObj: 'result.values',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'dependent', // initial or dependent,
-              dependent: 'district',
-            },
-          },
-          village: {
-            type: 'number',
-            title: 'Village',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: 'https://dev-interface.prathamdigital.org/interface/v1/fields/options/read',
-              method: 'POST',
-              payload: {
-                fieldName: 'village',
-                controllingfieldfk: '**',
-                sort: ['village_name', 'asc'],
-              },
-              options: {
-                optionObj: 'result.values',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'dependent', // initial or dependent,
-              dependent: 'block',
-            },
-          },
-          board: {
-            type: 'string',
-            title: 'Board',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: '/api/dynamic-form/get-framework',
-              method: 'POST',
-              payload: {
-                code: 'board',
-                fetchUrl:
-                  'https://qa-lap.prathamdigital.org/api/framework/v1/read/scp-framework',
-              },
-              options: {
-                optionObj: 'options',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'initial', // initial or dependent,
-            },
-          },
-          medium: {
-            type: 'string',
-            title: 'Medium',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: '/api/dynamic-form/get-framework',
-              method: 'POST',
-              payload: {
-                code: 'board',
-                findcode: 'medium',
-                selectedvalue: '**',
-                fetchUrl:
-                  'https://qa-lap.prathamdigital.org/api/framework/v1/read/scp-framework',
-              },
-              options: {
-                optionObj: 'options',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'dependent', // initial or dependent,
-              dependent: 'board',
-            },
-          },
-          grade: {
-            type: 'string',
-            title: 'Grade',
-            enum: ['Select'], // Clear the enum
-            enumNames: ['Select'], // Clear the enumNames
-            api: {
-              url: '/api/dynamic-form/get-framework',
-              method: 'POST',
-              payload: {
-                code: 'medium',
-                findcode: 'gradeLevel',
-                selectedvalue: '**',
-                fetchUrl:
-                  'https://qa-lap.prathamdigital.org/api/framework/v1/read/scp-framework',
-              },
-              options: {
-                optionObj: 'options',
-                label: 'label',
-                value: 'value',
-              },
-              callType: 'dependent', // initial or dependent,
-              dependent: 'medium',
-            },
-          },
-        },
-        dependencies: {
-          lastEducation: {
-            oneOf: [
-              {
-                properties: {
-                  lastEducation: { const: 'SSC' },
-                  schoolName: { type: 'string', title: 'School Name' },
-                  percentage: {
-                    type: 'number',
-                    title: 'Percentage',
-                    minimum: 0,
-                    maximum: 100,
-                  },
-                },
-              },
-              {
-                properties: {
-                  lastEducation: { const: 'HSC' },
-                  collegeName: { type: 'string', title: 'College Name' },
-                  percentage: {
-                    type: 'number',
-                    title: 'Percentage',
-                    minimum: 0,
-                    maximum: 100,
-                  },
-                },
-              },
-              {
-                properties: {
-                  lastEducation: { const: 'Degree' },
-                  degreeCollege: {
-                    type: 'string',
-                    title: "Model's Degree College",
-                  },
-                  modelGrade: {
-                    type: 'string',
-                    title: 'Model Grade Received',
-                    enum: ['A', 'B', 'C', 'D'],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      };
-      
-const uiSchema = {
-    studentName: {
-      'ui:autofocus': true,
-      'ui:emptyValue': '',
-      'ui:options': { liveValidate: true },
-    },
-    rollNo: {
-      'ui:options': { liveValidate: true },
-    },
-    lastEducation: {
-      'ui:order': [
-        'lastEducation',
-        'schoolName',
-        'collegeName',
-        'degreeCollege',
-        'percentage',
-        'modelGrade',
-      ],
-    },
-    percentage: {
-      'ui:options': { liveValidate: true },
-    },
-    state: { 'ui:widget': 'select' },
-    phoneDetails: { 'ui:widget': 'select' },
-    district: { 'ui:widget': 'select' },
-  };
-  */

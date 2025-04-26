@@ -27,7 +27,7 @@ export * from './lib/Drawer/CommonDrawer';
 // export * from './lib/Services/Content/Search';
 export * from './lib/QuestionSetEditor/QuestionSet';
 export * from './lib/CollectionEditor/Collection';
-
+export * from './lib/Progress/CircularProgressWithLabel';
 export * from './lib/Progress/Circular';
 export * from './lib/Progress/Progress';
 export const IMAGES = {
