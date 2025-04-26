@@ -1,45 +1,34 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Form from '@rjsf/core';
 import { generateRJSFSchema } from '../../utils/generateSchemaFromAPI';
-
-import validator from '@rjsf/validator-ajv8';
 import DynamicForm from '../../Components/DynamicForm';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Grid,
-  Typography,
-} from '@mui/material';
-import { SubmitButtonProps, getSubmitButtonOptions } from '@rjsf/utils';
-import { registerUserService, schemaRead } from '../../services/LoginService';
+import { Box, Button, Grid, Typography } from '@mui/material';
+import { schemaRead } from '../../services/LoginService';
 import { useRouter } from 'next/navigation';
 
 export default function Register() {
   const [formSchema, setFormSchema] = useState<any>();
   const [uiSchema, setUiSchema] = useState<any>();
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const router = useRouter();
 
+  const router = useRouter();
+  const [formData, setFormData] = useState({ roles: '' });
+  const [udiseData, setUdiaseData] = useState<any>(null);
+  const [fieldNameToFieldIdMapping, setFieldNameToFieldIdMapping] = useState(
+    {}
+  );
   useEffect(() => {
     const fetchSchema = async () => {
       try {
         const response = await schemaRead(); // replace with your API endpoint
         // const data = await response.json();
-        const { schema, uiSchema } = generateRJSFSchema(
-          response?.result?.fields
-        ); // your conversion logic
+        const { schema, uiSchema, fieldNameToFieldIdMapping } =
+          generateRJSFSchema(response?.result?.fields, formData.roles); // your conversion logic
         setFormSchema(schema);
         setUiSchema(uiSchema);
+        setFieldNameToFieldIdMapping(fieldNameToFieldIdMapping);
       } catch (error) {
         console.error('Error fetching schema:', error);
       } finally {
@@ -48,33 +37,20 @@ export default function Register() {
     };
 
     fetchSchema();
-  }, []);
+  }, [formData.roles]);
   const handleSubmit = ({ formData }: any) => {
     console.log('Form Data:', formData);
+    setFormData(formData);
   };
-  //   if (loading) return <p>Loading form...</p>;
-  //   if (!formSchema) return <p>Failed to load form.</p>;
-  const handleRegister = async () => {
-    // const registrationResponse = await registerUserService();
-    // if (registrationResponse.success === true) {
-    //   setErrorMessage(registrationResponse.message);
-    //   setDialogOpen(true);
-    // } else {
-    //   setErrorMessage(
-    //     registrationResponse.data
-    //       ? registrationResponse.data.error.params.errmsg
-    //       : registrationResponse.error.params.errmsg
-    //   );
-    // }
+
+  const handleUdiaseData = (data: any) => {
+    setUdiaseData(data); // Store the UDISE data in state
   };
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-    // localStorage.clear();
-  };
+
   const handleBack = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
   };
+
   return (
     <Box
       sx={{
@@ -123,45 +99,11 @@ export default function Register() {
               justifyContent: 'center',
               alignItems: 'center',
             }}
-          >
-            <Typography
-              variant="h6"
-              sx={{
-                color: '#572E91',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              Registration
-            </Typography>
-          </Grid>
+          ></Grid>
         </Grid>
       </Box>
       <Box sx={{ mx: 'auto', p: 2, width: '100%', maxWidth: 400 }}>
         <Box>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1,
-              mb: 3,
-              bgcolor: '#f5f5f5',
-            }}
-          >
-            <Box
-              component="img"
-              src="assets/images/SG_Logo.png"
-              alt="logo"
-              sx={{
-                width: '30%',
-                height: '30%',
-                bgcolor: '#f5f5f5',
-                objectFit: 'cover',
-              }}
-            />
-          </Box>
           <Typography
             variant="h5"
             sx={{
@@ -179,52 +121,13 @@ export default function Register() {
               schema={formSchema}
               uiSchema={uiSchema}
               SubmitaFunction={handleSubmit}
-              hideSubmit={true}
+              hideSubmit={false}
+              onChange={(data: any) => setFormData(data.formData)}
+              fieldIdMapping={fieldNameToFieldIdMapping}
             />
           )}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
-            <Button
-              //   onClick={handleRegister}
-              sx={{
-                bgcolor: '#582E92',
-                color: '#FFFFFF',
-                borderRadius: '30px',
-                textTransform: 'none',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                padding: '8px 16px',
-                '&:hover': {
-                  bgcolor: '#543E98',
-                },
-                width: '50%',
-              }}
-            >
-              Submit
-            </Button>
-          </Box>
         </Box>
       </Box>
-      <Dialog open={dialogOpen} onClose={handleDialogClose}>
-        <DialogTitle>Registration Successful</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Welcome, Your account has been successfully registered. Please use
-            your username to login.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

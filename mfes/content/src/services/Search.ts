@@ -129,7 +129,7 @@ export const ContentSearch = async (
           // identifier: 'do_1141652605790289921389',
           ...filterValues,
           //need below after login user channel for dynamic load content
-          channel: process.env.NEXT_PUBLIC_ORGID,
+          channel: 'shikshalokam-channel',
 
           primaryCategory: [type],
         },

@@ -25,7 +25,7 @@ export default function Home() {
   const cardData = [
     { title: 'Programs', icon: '/shikshalokam/assets/images/ic_program.png' },
     { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
-    { title: 'Library', icon: '/shikshalokam/assets/images/ic_survey.png' },
+    { title: 'Survey', icon: '/shikshalokam/assets/images/ic_survey.png' },
     { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
     { title: 'Observation', icon: '/shikshalokam/assets/images/ic_report.png' },
   ];

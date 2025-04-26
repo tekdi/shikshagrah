@@ -3,7 +3,7 @@ import React from 'react';
 import { TextField } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 
-const CustomTextFieldWidget = ({
+const CustomEmailWidget = ({
   id,
   label,
   value,
@@ -27,7 +27,6 @@ const CustomTextFieldWidget = ({
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) =>
     onFocus(id, event.target.value);
 
-  // Filter out 'is a required property' messages
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
@@ -35,6 +34,7 @@ const CustomTextFieldWidget = ({
   return (
     <TextField
       fullWidth
+      type="email"
       id={id}
       label={label}
       value={value ?? ''}
@@ -43,9 +43,9 @@ const CustomTextFieldWidget = ({
       onChange={handleChange}
       onBlur={handleBlur}
       onFocus={handleFocus}
-      placeholder={placeholder}
+      placeholder={placeholder || 'Enter your email'}
       error={displayErrors.length > 0}
-      // helperText={displayErrors.length > 0 ? displayErrors[0] : ''}
+      helperText={displayErrors.length > 0 ? displayErrors[0] : ''}
       variant="outlined"
       size="small"
       InputProps={{
@@ -58,20 +58,19 @@ const CustomTextFieldWidget = ({
       }}
       InputLabelProps={{
         sx: {
-          fontSize: '12px', // Label font size
+          fontSize: '12px',
           '&.Mui-focused': {
-            transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-            color: '#582E92', // Optional: change label color on focus
+            transform: 'translate(14px, -6px) scale(0.75)',
+            color: '#582E92',
           },
           '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-            color: '#582E92', // Optional: change label color when filled
+            transform: 'translate(14px, -6px) scale(0.75)',
+            color: '#582E92',
           },
         },
       }}
-      //   margin="normal"
     />
   );
 };
 
-export default CustomTextFieldWidget;
+export default CustomEmailWidget;

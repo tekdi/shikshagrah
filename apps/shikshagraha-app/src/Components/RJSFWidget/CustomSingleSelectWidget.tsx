@@ -1,11 +1,9 @@
-// @ts-nocheck
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { WidgetProps } from '@rjsf/utils';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import FormHelperText from '@mui/material/FormHelperText';
 import { useTranslation } from 'react-i18next';
 
 const CustomSingleSelectWidget = ({
@@ -21,6 +19,7 @@ const CustomSingleSelectWidget = ({
 }: WidgetProps) => {
   const { enumOptions = [] } = options;
   const { t } = useTranslation();
+  const [subRolesVisible, setSubRolesVisible] = useState(false);
 
   const isDisabled = uiSchema?.['ui:disabled'] === true;
   const isEmptyOptionIncluded = schema?.allowEmptyOption || false;
@@ -28,53 +27,81 @@ const CustomSingleSelectWidget = ({
   const handleChange = (event: any) => {
     const selected = event.target.value;
     onChange(selected);
+
+    // Check if the selected role is 'administrator' and toggle the visibility of subRoles
+    if (selected === 'administrator') {
+      setSubRolesVisible(true);
+    } else {
+      setSubRolesVisible(false);
+    }
   };
 
+  useEffect(() => {
+    // Check if the current value is 'administrator' on component mount
+    if (value === 'administrator') {
+      setSubRolesVisible(true);
+    }
+  }, [value]);
+
   return (
-    <FormControl
-      fullWidth
-      required={required}
-      error={rawErrors.length > 0}
-      disabled={
-        isDisabled 
-        //bug fix for if zero value then no disable it not reflect in required if disable
-        // ||
-        // enumOptions.length === 0 ||
-        // (enumOptions.length === 1 && enumOptions[0]?.value === 'Select')
-      }
-    >
-      <InputLabel id={`${id}-label`}>{label}</InputLabel>
-      <Select
-        id={id}
-        labelId={`${id}-label`}
-        value={value}
-        onChange={handleChange}
-        displayEmpty
-        label={value ? label : ''}
+    <>
+      <FormControl
+        fullWidth
+        // required={required}
+        // error={rawErrors.length > 0}
+        size="small"
+        disabled={isDisabled}
       >
-        {isEmptyOptionIncluded && (
-          <MenuItem value="">
-            <em>
-              {t('FORM.Select')}
-              {required && '*'}
-            </em>
-          </MenuItem>
-        )}
-
-        {enumOptions
-          .filter((option) => option.value !== 'Select')
-          .map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {t(`FORM.${option.label}`, { defaultValue: option.label })}
+        <InputLabel
+          id={`${id}-label`}
+          sx={{
+            fontSize: '12px',
+            '&.Mui-focused': {
+              transform: 'translate(14px, -6px) scale(0.75)',
+              color: '#582E92',
+            },
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(14px, -6px) scale(0.75)',
+              color: '#582E92',
+            },
+          }}
+        >
+          {label}
+        </InputLabel>
+        <Select
+          id={id}
+          labelId={`${id}-label`}
+          value={value}
+          onChange={handleChange}
+          displayEmpty
+          label={value ? label : ''}
+          size="small"
+          sx={{
+            '& .MuiSelect-select': {
+              padding: '10px 12px',
+              fontSize: '12px',
+            },
+          }}
+        >
+          {isEmptyOptionIncluded && (
+            <MenuItem value="">
+              <em>
+                {t('FORM.Select')}
+                {required && '*'}
+              </em>
             </MenuItem>
-          ))}
-      </Select>
+          )}
 
-      {/* Form submission error */}
-      {/* {rawErrors.length > 0 && (
-        <FormHelperText>{rawErrors[0]}</FormHelperText>
-      )} */}
-    </FormControl>
+          {enumOptions
+            .filter((option) => option.value !== 'Select')
+            .map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {t(`FORM.${option.label}`, { defaultValue: option.label })}
+              </MenuItem>
+            ))}
+        </Select>
+      </FormControl>
+    </>
   );
 };
 

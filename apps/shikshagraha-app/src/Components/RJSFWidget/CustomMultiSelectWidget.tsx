@@ -7,7 +7,6 @@ import Checkbox from '@mui/material/Checkbox';
 import ListItemText from '@mui/material/ListItemText';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import FormHelperText from '@mui/material/FormHelperText';
 import { useTranslation } from 'react-i18next';
 
 const CustomMultiSelectWidget = ({
@@ -19,8 +18,8 @@ const CustomMultiSelectWidget = ({
   onChange,
   schema,
   uiSchema,
-  rawErrors = [],
-}: WidgetProps) => {
+}: // rawErrors = [],
+WidgetProps) => {
   const { enumOptions = [] } = options;
   const maxSelections = schema.maxSelection || enumOptions.length;
   const { t } = useTranslation();
@@ -63,17 +62,26 @@ const CustomMultiSelectWidget = ({
   return (
     <FormControl
       fullWidth
-      error={rawErrors.length > 0}
-      required={required}
-      disabled={
-        isDisabled
-        //bug fix for if zero value then no disable it not reflect in required if disable
-        // ||
-        // enumOptions.length === 0 ||
-        // (enumOptions.length === 1 && enumOptions[0]?.value === 'Select')
-      }
+      // error={rawErrors.length > 0}
+      // required={required}
+      disabled={isDisabled}
     >
-      <InputLabel id="demo-multiple-checkbox-label">{label}</InputLabel>
+      <InputLabel
+        id="demo-multiple-checkbox-label"
+        sx={{
+          fontSize: '12px',
+          '&.Mui-focused': {
+            transform: 'translate(14px, -6px) scale(0.75)',
+            color: '#582E92',
+          },
+          '&.MuiInputLabel-shrink': {
+            transform: 'translate(14px, -6px) scale(0.75)',
+            color: '#582E92',
+          },
+        }}
+      >
+        {label}
+      </InputLabel>
       <Select
         id={id}
         multiple
@@ -131,9 +139,6 @@ const CustomMultiSelectWidget = ({
             </MenuItem>
           ))}
       </Select>
-
-      {/* Form submission error */}
-      {rawErrors.length > 0 && <FormHelperText>{rawErrors[0]}</FormHelperText>}
     </FormControl>
   );
 };
