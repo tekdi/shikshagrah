@@ -110,22 +110,22 @@ export default function Profile() {
             'Cluster',
             'School',
           ];
-          const data = customFields.map((field: any) => {
-            let value = field?.selectedValues;
-
+          const cleanValue = (value: any) => {
             if (typeof value === 'string') {
-              // Remove { and } and extra quotes
-              value = value.replace(/^\{\"(.*)\"\}$/g, '$1');
+              return value.replace(/^\{"(.*)"\}$/g, '$1');
             }
+            return value;
+          };
+          const fieldMap = new Map(
+            customFields.map((field: any) => [
+              field?.label,
+              { label: field?.label, value: cleanValue(field?.selectedValues) },
+            ])
+          );
 
-            return {
-              label: field?.label,
-              value: value,
-            };
-          });
           const sortedData = desiredOrder
-            .map((label) => data.find((item) => item.label === label))
-            .filter(Boolean); // to remove undefined if any label doesn't exist
+            .map((label) => fieldMap.get(label))
+            .filter(Boolean);
 
           setUserCustomFields(sortedData);
         }
