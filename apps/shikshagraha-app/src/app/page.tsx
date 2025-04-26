@@ -68,6 +68,7 @@ export default function Login() {
     };
 
   const handleButtonClick = async () => {
+    setShowError(false);
     if (!formData.userName || !formData.password) {
       setError({
         userName: !formData.userName,
@@ -136,7 +137,7 @@ export default function Login() {
         // Check rootOrgId and route or show error
       } else {
         setShowError(true);
-        setErrorMessage(response?.data?.params?.message);
+        setErrorMessage('Login failed. Invalid Username or Password.');
       }
     } catch (error) {
       setShowError(true);
@@ -360,10 +361,12 @@ export default function Login() {
         </Typography>
         <Grid container justifyContent="center" alignItems="center">
           {showError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {errorMessage}
+            <Alert severity="error">
+              {typeof errorMessage === 'object'
+                ? JSON.stringify(errorMessage)
+                : errorMessage}
             </Alert>
-          )}
+          )}{' '}
         </Grid>
       </Grid>
     </Box>
