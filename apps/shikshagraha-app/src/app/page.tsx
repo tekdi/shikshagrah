@@ -17,6 +17,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  authenticateLoginUser,
   authenticateUser,
   fetchTenantData,
   schemaRead,
@@ -82,7 +83,6 @@ export default function Login() {
       );
       return;
     }
-
     setLoading(true);
     try {
       const response = await signin({
@@ -93,10 +93,9 @@ export default function Login() {
       if (response?.result?.access_token) {
         localStorage.setItem('accToken', response?.result?.access_token);
         localStorage.setItem('refToken', response?.result?.refresh_token);
-        const tenantResponse = await authenticateUser({
+        const tenantResponse = await authenticateLoginUser({
           token: response?.result?.access_token,
         });
-        console.log('tenantResponse===', tenantResponse);
         if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
           localStorage.setItem('userId', tenantResponse?.result?.userId);
           const tenantIdToCompare =
@@ -137,11 +136,11 @@ export default function Login() {
         // Check rootOrgId and route or show error
       } else {
         setShowError(true);
-        setErrorMessage(response);
+        setErrorMessage(response?.data?.params?.message);
       }
     } catch (error) {
       setShowError(true);
-      setErrorMessage('Login failed. Please try again.');
+      setErrorMessage(error?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

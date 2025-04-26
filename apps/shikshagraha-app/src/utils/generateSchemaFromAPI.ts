@@ -36,7 +36,7 @@ export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
 
       const fieldSchema: any = {
         title: label || name,
-        type: 'string',
+        type: isMultiSelect ? 'array' : 'string',
       };
       if (type === 'drop_down') {
         fieldSchema.enum = options.map((option: any) => option.value); // Use options to populate the enum

@@ -18,7 +18,7 @@ const UdiaseWithButton = ({
   placeholder,
   onFetchData,
 }: WidgetProps & { onFetchData: (data: string) => void }) => {
-  const [udiseCode, setUdiasecode] = React.useState('');
+  const [udiseCode, setUdiasecode] = React.useState(value ?? '');
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value.replace(/\s/g, '');
 
