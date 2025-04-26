@@ -60,6 +60,7 @@ export default function Register() {
         bgcolor: '#f5f5f5',
         // Allow scrolling if content is large
         paddingBottom: '60px',
+        margin:'-1rem'
       }}
     >
       <Box
