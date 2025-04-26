@@ -1192,13 +1192,11 @@ const DynamicForm = ({
 
   const transformErrors = (errors) => {
     let updatedError = errors;
+
     if (!submitted) {
-      // updatedError = errors.filter((error) => error.name !== 'required');
+      return [];
     }
-    if (!submitted) {
-      //   setUiSchema;
-      updatedError = updatedError.filter((error) => error.name !== 'pattern');
-    }
+
     return updatedError;
   };
   const handleFetchData = (response: any) => {
@@ -1317,7 +1315,19 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleRegister}
+              disabled={
+                !formData?.firstName ||
+                !formData?.lastName ||
+                !formData?.password ||
+                !formData?.mobile ||
+                !formData?.email ||
+                !formData.roles ||
+                (formData?.roles.includes('administrator') &&
+                  !formData?.subRoles?.length) ||
+                !formData?.udise
+              }
               sx={{
+                whiteSpace: 'nowrap',
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
                 borderRadius: '30px',
@@ -1327,6 +1337,10 @@ const DynamicForm = ({
                 padding: '8px 16px',
                 '&:hover': {
                   bgcolor: '#543E98',
+                },
+                '&.Mui-disabled': {
+                  bgcolor: '#BDBDBD', // light grey when disabled
+                  color: '#FFFFFF',
                 },
                 width: '50%',
               }}
@@ -1352,10 +1366,10 @@ const DynamicForm = ({
                 onChange={(data) => setFormData(data)}
                 onSubmit={handleSubmit}
                 validator={validator}
-                showErrorList={false} // Hides the error list card at the top
+                // showErrorList={false} // Hides the error list card at the top
                 liveValidate //all validate live
                 customValidate={customValidate} // Dynamic Validation
-                transformErrors={transformErrors} // ✅ Suppress default pattern errors
+                // transformErrors={transformErrors} // ✅ Suppress default pattern errors
                 widgets={widgets}
               >
                 {!isCallSubmitInHandle ? null : (

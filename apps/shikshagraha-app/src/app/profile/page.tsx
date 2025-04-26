@@ -69,19 +69,24 @@ export default function Profile() {
     { label: 'Last Name', value: '' },
     { label: 'Profile Type', value: '' },
   ]);
+  const [userCustomFields, setUserCustomFields] = useState([]);
   const [courseDetails, setCourseDetails] = useState<any>(null);
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
       try {
         const acc_token = localStorage.getItem('accToken');
+        const userId = localStorage.getItem('userId');
         const tenantResponse = await authenticateUser({
           token: acc_token,
+          userId: userId,
         });
         if (tenantResponse?.result) {
-          setUserData(tenantResponse?.result);
-          const { firstName, middleName, lastName } =
-            tenantResponse?.result ?? {};
+          // No .result.userData → directly tenantResponse
+          setUserData(tenantResponse?.result?.userData);
+
+          const { firstName, middleName, lastName, tenantData } =
+            tenantResponse?.result?.userData ?? {};
 
           const mappedProfile = [
             { label: 'First Name', value: firstName ?? '-' },
@@ -89,10 +94,40 @@ export default function Profile() {
             { label: 'Last Name', value: lastName ?? '-' },
             {
               label: 'Profile Type',
-              value: tenantResponse?.result?.tenantData[0].roleName ?? '-',
+              value: tenantData?.[0]?.roleName ?? '-',
             },
           ];
+
           setUserDataProfile(mappedProfile);
+
+          const customFields = tenantResponse?.result?.userData?.customFields;
+          const desiredOrder = [
+            'Roles',
+            'subRoles',
+            'State',
+            'District',
+            'Block',
+            'Cluster',
+            'School',
+          ];
+          const cleanValue = (value: any) => {
+            if (typeof value === 'string') {
+              return value.replace(/^\{"(.*)"\}$/g, '$1');
+            }
+            return value;
+          };
+          const fieldMap = new Map(
+            customFields.map((field: any) => [
+              field?.label,
+              { label: field?.label, value: cleanValue(field?.selectedValues) },
+            ])
+          );
+
+          const sortedData = desiredOrder
+            .map((label) => fieldMap.get(label))
+            .filter(Boolean);
+
+          setUserCustomFields(sortedData);
         }
       } catch (err) {
         setShowError(true);
@@ -105,8 +140,6 @@ export default function Profile() {
     handleMyCourses();
   }, [router]);
 
-  console.log('profileData', profileData);
-
   const handleMyCourses = async () => {
     const token = localStorage.getItem('accToken');
     if (token) {
@@ -116,15 +149,11 @@ export default function Profile() {
         userId,
       });
       setCourseDetails(detailsResponse?.result);
-      console.log('detailsResponse', detailsResponse);
     }
   };
   const handleViewTest = async (certificateId: string) => {
-    console.log('View Test clicked for course:', certificateId);
-
     try {
       const response = await renderCertificate(certificateId);
-      console.log('Certificate HTML:', typeof response, response);
       const responseData = JSON.parse(response);
       const certificateHtml = responseData?.result; // <-- grab HTML from the 'result' field
 
@@ -223,7 +252,6 @@ export default function Profile() {
         if (registrationResponse.result.response == 'SUCCESS') {
           setOpenOtpDialog(false);
           setOpenConfirmDeleteDialog(true);
-          console.log('Account successfully deleted');
           // setShowError(true);
           // setErrorMessage('Account successfully deleted');
         } else {
@@ -266,11 +294,6 @@ export default function Profile() {
   // localStorage.setItem('frameworkname', framework?.id);
 
   const [value, setValue] = useState(profileData?.email || '');
-  /*************  ✨ Codeium Command ⭐  *************/
-  /**
-   * Navigates to profile-edit page and saves the current profile data in local storage to be used in the edit page.
-
-/******  7caf34e5-ba9f-4626-ab14-da5095326e23  *******/
   const handleEditClick = () => {
     router.push('/profile-edit');
     localStorage.setItem('selectedBoard', displayBoard);
@@ -451,6 +474,7 @@ export default function Profile() {
                     {displaySubRole || 'N/A'}
                   </Typography>
                 )}
+
                 {locationDetails.map((loc, index) => (
                   <>
                     <Typography
@@ -468,21 +492,68 @@ export default function Profile() {
                     </Typography>
                   </>
                 ))}
-                {/* <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>School: </span>
-                  {profileData?.organisations[0]?.orgName || 'N/A'}
-                </Typography> */}
               </Grid>
             </Grid>
           </Box>
 
+          <Box
+            sx={{
+              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
+              borderRadius: '12px',
+              p: 3,
+              mt: 3,
+              transform: 'translateY(-5px)',
+              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                padding: '1px', // Thickness of the border line
+                background:
+                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                WebkitMask:
+                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude', // Ensures only the border is visible
+              },
+            }}
+          >
+            <Grid container spacing={2}>
+              {/* Role */}
+              <Grid item xs={12}>
+                {userCustomFields?.map((item) => {
+                  return (
+                    <Typography
+                      variant="body1"
+                      key={item.label}
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#333',
+                        paddingBottom: '10px',
+                      }}
+                    >
+                      <span style={{ color: '#FF9911' }}>
+                        {toCamelCase(item.label)}:{' '}
+                      </span>
+                      {Array.isArray(item.value)
+                        ? item.value
+                            .map((val) =>
+                              val.value === 'administrator'
+                                ? 'HT & Officials'
+                                : toCamelCase(val.value)
+                            )
+                            .join(', ') // show list values
+                        : item.value}
+                    </Typography>
+                  );
+                })}
+              </Grid>
+            </Grid>
+          </Box>
           {/* Courses Card */}
 
           <Box

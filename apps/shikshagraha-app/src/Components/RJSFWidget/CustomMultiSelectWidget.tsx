@@ -65,6 +65,7 @@ WidgetProps) => {
       // error={rawErrors.length > 0}
       // required={required}
       disabled={isDisabled}
+      error={false}
     >
       <InputLabel
         id="demo-multiple-checkbox-label"
@@ -105,6 +106,7 @@ WidgetProps) => {
             },
           },
         }}
+        error={false}
       >
         {enumOptions.length > 1 && maxSelections >= enumOptions.length && (
           <MenuItem

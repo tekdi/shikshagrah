@@ -10,7 +10,11 @@ interface TenantParams {
   tenantId: string;
   token: string;
 }
-
+interface AuthParamsProfile {
+  token: string;
+  userId: string;
+  tenantId: string;
+}
 export const signin = async ({
   username,
   password,
@@ -30,12 +34,35 @@ export const signin = async ({
   }
 };
 
-export const authenticateUser = async ({ token }: AuthParams): Promise<any> => {
+export const authenticateLoginUser = async ({
+  token,
+}: AuthParams): Promise<any> => {
   const apiUrl: string = `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/auth`;
   try {
     const response = await axios.get(apiUrl, {
       headers: {
         Authorization: `Bearer ${token}`, // Token passed as a parameter
+      },
+    });
+    return response?.data;
+  } catch (error) {
+    console.error('error in login', error);
+    // throw error;
+    return error;
+  }
+};
+
+export const authenticateUser = async ({
+  token,
+  userId,
+  tenantId,
+}: AuthParamsProfile): Promise<any> => {
+  const apiUrl: string = `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/read/${userId}?fieldvalue=true`;
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436', // Token passed as a parameter
       },
     });
     return response?.data;
