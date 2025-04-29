@@ -218,7 +218,7 @@ export const myCourseDetails = async ({
   token,
   userId,
 }: MyCourseDetailsProps): Promise<any> => {
-  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/interface/v1/tracking/user_certificate/status/search`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/tracking/user_certificate/status/search`;
   try {
     const response = await axios.post(
       apiUrl,

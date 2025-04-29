@@ -40,13 +40,29 @@ const UdiaseWithButton = ({
     try {
       const response = await fetchContentOnUdise(udiseCode);
       const locationInfo = response.result[0];
+
       const sampleResponse = {
         udise: udiseCode,
-        school: locationInfo?.metaInformation?.name || '',
-        state: locationInfo?.parentInformation?.state?.[0]?.name || '',
-        district: locationInfo?.parentInformation?.district?.[0]?.name || '',
-        block: locationInfo?.parentInformation?.block?.[0]?.name || '',
-        cluster: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
+        school: {
+          _id: locationInfo?.metaInformation?.externalId || '',
+          name: locationInfo?.metaInformation?.name || '',
+        },
+        state: {
+          _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.state?.[0]?.name || '',
+        },
+        district: {
+          _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.district?.[0]?.name || '',
+        },
+        block: {
+          _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.block?.[0]?.name || '',
+        },
+        cluster: {
+          _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
+        },
       };
 
       onFetchData(sampleResponse);
