@@ -1,8 +1,8 @@
 // @ts-nocheck
-import React from 'react';
-import { TextField } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { TextField, IconButton, InputAdornment } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
-
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 const CustomTextFieldWidget = ({
   id,
   label,
@@ -16,8 +16,41 @@ const CustomTextFieldWidget = ({
   rawErrors = [],
   placeholder,
 }: WidgetProps) => {
+  console.log('value', value);
+  console.log('label', label);
+
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPasswordField = label?.toLowerCase() === 'password';
+
+  const passwordRegex =
+    /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
+
+  // useEffect(() => {
+  //   if (label === 'First Name' || label === 'Last Name') {
+  //     const fnameValue = value; // Current field value (fname or lname)
+  //     const lnameValue = value; // Current field value (fname or lname)
+
+  //     if (fnameValue && lnameValue) {
+  //       const Username = `${fnameValue}_${lnameValue}`;
+  //       // Triggering change for username field
+  //       onChange(Username);
+  //     }
+  //   }
+  // }, [value, label, onChange]);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
+    if (isPasswordField) {
+      if (!passwordRegex.test(val)) {
+        setLocalError(
+          'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.'
+        );
+      } else {
+        setLocalError(null);
+      }
+    }
     onChange(val === '' ? undefined : val);
   };
 
@@ -31,13 +64,18 @@ const CustomTextFieldWidget = ({
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
-
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
   return (
     <TextField
       fullWidth
       id={id}
       label={label}
-      value={value ?? ''}
+      value={
+        typeof value === 'object' && value !== null ? value.name : value ?? ''
+      }
+      type={isPasswordField && !showPassword ? 'password' : 'text'}
       required={required}
       disabled={disabled || readonly}
       onChange={handleChange}
@@ -45,9 +83,18 @@ const CustomTextFieldWidget = ({
       onFocus={handleFocus}
       placeholder={placeholder}
       error={displayErrors.length > 0}
-      // helperText={displayErrors.length > 0 ? displayErrors[0] : ''}
+      helperText={
+        localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+      }
       variant="outlined"
       size="small"
+      FormHelperTextProps={{
+        sx: {
+          color: 'red', // ✅ helperText color set manually
+          fontSize: '11px',
+          marginLeft: '0px',
+        },
+      }}
       InputProps={{
         sx: {
           '& .MuiInputBase-input': {
@@ -55,6 +102,13 @@ const CustomTextFieldWidget = ({
             fontSize: '12px',
           },
         },
+        endAdornment: isPasswordField && (
+          <InputAdornment position="end">
+            <IconButton onClick={toggleShowPassword} edge="end" size="small">
+              {showPassword ? <Visibility /> : <VisibilityOff />}
+            </IconButton>
+          </InputAdornment>
+        ),
       }}
       InputLabelProps={{
         sx: {

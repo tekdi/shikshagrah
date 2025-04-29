@@ -131,8 +131,7 @@ export const registerUserService = async (requestData: any) => {
 
 export const fetchContentOnUdise = async (udise: string): Promise<any> => {
   console.log(udise);
-  // const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_ENTITY}/entities/details/${udise}`;
-  const apiUrl = `https://project-qa.elevate-apis.shikshalokam.org/entity-management/v1/entities/details/${udise}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_ENTITY}/entities/details/${udise}`;
   try {
     const response = await axios.get(apiUrl);
     return response?.data;

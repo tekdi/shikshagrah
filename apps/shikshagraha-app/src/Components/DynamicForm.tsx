@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Alert,
 } from '@mui/material';
 import _ from 'lodash'; // Lodash for deep comparison
 import CustomMultiSelectWidget from './RJSFWidget/CustomMultiSelectWidget';
@@ -30,7 +31,14 @@ import {
 } from '../utils/Helper';
 import UdiaseWithButton from './RJSFWidget/UdiaseWithButton';
 import CustomEmailWidget from './RJSFWidget/CustomEmailWidget';
-import { registerUserService } from '../services/LoginService';
+import {
+  authenticateLoginUser,
+  authenticateUser,
+  fetchTenantData,
+  schemaRead,
+  signin,
+  registerUserService,
+} from '../services/LoginService';
 import { useRouter } from 'next/navigation';
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
@@ -68,6 +76,7 @@ const DynamicForm = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [requestData, setRequestData] = useState<any>({});
   const router = useRouter();
+  const [showError, setShowError] = useState(false);
 
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
@@ -804,8 +813,12 @@ const DynamicForm = ({
     formData: any;
     errors: any;
   }) => {
-    console.log('hasObjectChanged formData', formData);
-
+    if (formData?.firstName && formData?.lastName) {
+      formData.Username = `${formData.firstName}_${formData.lastName}`;
+    }
+    if (formData?.Username && (formData?.firstName || formData?.lastName)) {
+      formData.Username = `${formData.firstName}_${formData.lastName}`;
+    }
     // if (formData?.roles === 'administrator') {
     //   formUiSchema.subroles['ui:hide'] = false;
     // }
@@ -1153,7 +1166,6 @@ const DynamicForm = ({
     Object.keys(formSchema.properties).forEach((key) => {
       const field = formSchema.properties[key];
       const value = formData[key];
-
       // Ensure errors[key] is defined
       if (!errors[key]) {
         errors[key] = {};
@@ -1203,31 +1215,71 @@ const DynamicForm = ({
     // Example: Update specific fields from API response
     setFormData((prev) => ({
       ...prev,
-      state: response?.state || '',
-      district: response?.district || '',
-      block: response?.block || '',
-      cluster: response?.cluster || '',
-      school: response?.school || '',
+      state: {
+        _id: response?.state?._id || '',
+        name: response?.state?.name || '',
+      },
+      district: {
+        _id: response?.district?._id || '',
+        name: response?.district?.name || '',
+      },
+      block: {
+        _id: response?.block?._id || '',
+        name: response?.block?.name || '',
+      },
+      cluster: {
+        _id: response?.cluster?._id || '',
+        name: response?.cluster?.name || '',
+      },
+      school: {
+        _id: response?.school?._id || '',
+        name: response?.school?.name || '',
+      },
       udise: response?.udise || '',
     }));
   };
   const handleRegister = async () => {
-    const customFields = Object.entries(fieldIdMapping).map(
-      ([name, fieldId]) => {
-        let fieldValue = formData[name] ?? '';
+  const customFields = Object.entries(fieldIdMapping).flatMap(
+    ([name, fieldId]) => {
+      let fieldValue = formData[name] ?? '';
 
-        // Check if name is 'roles' or 'subRoles' and convert value to an array if so
-        if (name === 'roles' || name === 'subRoles') {
-          // Ensure fieldValue is an array
-          fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+      // Skip subRoles if not present or empty
+      if (name === 'subRoles') {
+        if (
+          !fieldValue ||
+          (Array.isArray(fieldValue) && fieldValue.length === 0)
+        ) {
+          return []; // Skip this field
         }
-
-        return {
-          fieldId,
-          value: fieldValue,
-        };
+        // Ensure it's an array
+        fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        return [{ fieldId, value: fieldValue }];
       }
-    );
+
+      // Ensure roles is an array
+      if (name === 'roles') {
+        fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        return [{ fieldId, value: fieldValue }];
+      }
+
+      // For other fields, stringify if object
+      if (typeof fieldValue === 'object' && fieldValue !== null) {
+        return [
+          {
+            fieldId,
+            value: JSON.stringify({
+              id: fieldValue._id ?? fieldValue.id ?? '',
+              name: fieldValue.name ?? '',
+            }),
+          },
+        ];
+      }
+
+      // For primitives
+      return [{ fieldId, value: fieldValue }];
+    }
+  );
+
     const userName = formData.firstName;
     const payload = {
       name: formData.firstName,
@@ -1247,8 +1299,7 @@ const DynamicForm = ({
       customFields,
     };
 
-    const registrationResponse = await registerUserService(payload);
-    console.log('registrationResponse', registrationResponse);
+     const registrationResponse = await registerUserService(payload);
     if (
       registrationResponse?.params?.successmessage ===
       'User created successfully'
@@ -1263,18 +1314,77 @@ const DynamicForm = ({
       setErrorMessage(registrationResponse.message);
       setDialogOpen(true);
     } else {
+      setShowError(true);
       setErrorMessage(
-        registrationResponse.data
-          ? registrationResponse.data.error.params.errmsg
-          : registrationResponse.error.params.errmsg
+        registrationResponse.data && registrationResponse.data.params.err
       );
     }
   };
-  const handleDialogClose = () => {
+  const handleDialogClose = async () => {
     setDialogOpen(false);
-    router.push('/');
+    try {
+      const response = await signin({
+        username: `${formData.firstName}_${formData.lastName}`,
+        password: formData.password,
+      });
+      if (response?.result?.access_token) {
+        localStorage.setItem('accToken', response?.result?.access_token);
+        localStorage.setItem('refToken', response?.result?.refresh_token);
+        const tenantResponse = await authenticateLoginUser({
+          token: response?.result?.access_token,
+        });
+        if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
+          localStorage.setItem('userId', tenantResponse?.result?.userId);
+          const tenantIdToCompare =
+            tenantResponse?.result?.tenantData?.[0]?.tenantId;
+          if (tenantIdToCompare) {
+            localStorage.setItem(
+              'headers',
+              JSON.stringify({
+                'org-id': tenantIdToCompare,
+              })
+            );
+          }
+
+          const tenantData = await fetchTenantData({
+            token: response?.result?.access_token,
+          });
+          if (tenantIdToCompare) {
+            const matchedTenant = tenantData?.result?.find(
+              (tenant) => tenant.tenantId === tenantIdToCompare
+            );
+            localStorage.setItem('channelId', matchedTenant?.channelId);
+            localStorage.setItem(
+              'frameworkname',
+              matchedTenant?.contentFramework
+            );
+            if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+              const redirectUrl = '/home';
+              router.push(redirectUrl);
+            } else {
+              setShowError(true);
+              setErrorMessage(
+                'The user does not belong to the same organization.'
+              );
+            }
+          }
+        }
+
+        // Check rootOrgId and route or show error
+      } else {
+        setShowError(true);
+        setErrorMessage('Login failed. Invalid Username or Password.');
+      }
+    } catch (error) {
+      setShowError(true);
+      setErrorMessage(error?.message ?? 'Login failed. Please try again.');
+    } finally {
+      // setLoading(false);
+    }
+    // router.push('/');
     // localStorage.clear();
   };
+
   return (
     <>
       {!isCallSubmitInHandle ? (
@@ -1319,8 +1429,6 @@ const DynamicForm = ({
                 !formData?.firstName ||
                 !formData?.lastName ||
                 !formData?.password ||
-                !formData?.mobile ||
-                !formData?.email ||
                 !formData.roles ||
                 (formData?.roles.includes('administrator') &&
                   !formData?.subRoles?.length) ||
@@ -1401,6 +1509,7 @@ const DynamicForm = ({
           </Button>
         </DialogActions>
       </Dialog>
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
     </>
   );
 };
