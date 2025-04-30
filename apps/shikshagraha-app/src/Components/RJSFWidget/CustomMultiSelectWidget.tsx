@@ -8,6 +8,7 @@ import ListItemText from '@mui/material/ListItemText';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import { useTranslation } from 'react-i18next';
+import { FormHelperText } from '@mui/material';
 
 const CustomMultiSelectWidget = ({
   id,
@@ -23,7 +24,9 @@ WidgetProps) => {
   const { enumOptions = [] } = options;
   const maxSelections = schema.maxSelection || enumOptions.length;
   const { t } = useTranslation();
-
+  const lowerLabel = label?.toLowerCase();
+  const isRoleField = lowerLabel === 'subroles';
+  const helperText = ' Please select a sub role.';
   const selectedValues = Array.isArray(value) ? value : [];
 
   const [isAllSelected, setIsAllSelected] = useState(
@@ -71,6 +74,8 @@ WidgetProps) => {
         id="demo-multiple-checkbox-label"
         sx={{
           fontSize: '12px',
+          display: 'flex',
+          alignItems: 'center',
           '&.Mui-focused': {
             transform: 'translate(14px, -6px) scale(0.75)',
             color: '#582E92',
@@ -82,7 +87,9 @@ WidgetProps) => {
         }}
       >
         {label}
+        {isRoleField && <span style={{ color: 'red' }}>&nbsp;*</span>}
       </InputLabel>
+
       <Select
         id={id}
         multiple
@@ -141,6 +148,17 @@ WidgetProps) => {
             </MenuItem>
           ))}
       </Select>
+      {helperText && !value && (
+        <FormHelperText
+          sx={{
+            color: 'red',
+            fontSize: '11px',
+            marginLeft: '0px',
+          }}
+        >
+          {helperText}
+        </FormHelperText>
+      )}
     </FormControl>
   );
 };
