@@ -16,9 +16,6 @@ const CustomTextFieldWidget = ({
   rawErrors = [],
   placeholder,
 }: WidgetProps) => {
-  console.log('value', value);
-  console.log('label', label);
-
   const [localError, setLocalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,7 +23,10 @@ const CustomTextFieldWidget = ({
 
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
-
+  const nameRegex = /^[a-zA-Z]+$/;
+  const contactRegex = /^[6-9]\d{9}$/;
+  const udiseRegex = /^\d{11}$/;
+  const lowerLabel = label?.toLowerCase();
   // useEffect(() => {
   //   if (label === 'First Name' || label === 'Last Name') {
   //     const fnameValue = value; // Current field value (fname or lname)
@@ -39,18 +39,40 @@ const CustomTextFieldWidget = ({
   //     }
   //   }
   // }, [value, label, onChange]);
-
+  const validateField = (field: string, val: string): string | null => {
+    switch (field.toLowerCase()) {
+      case 'first name':
+      case 'last name':
+        if (!nameRegex.test(val)) return 'Only letters are allowed.';
+        break;
+      case 'contact number':
+        if (!contactRegex.test(val))
+          return 'Enter a valid 10-digit mobile number.';
+        break;
+      case 'udise':
+        if (!udiseRegex.test(val))
+          return 'Enter a valid 11-digit UDISE number.';
+        break;
+      case 'password':
+        if (!passwordRegex.test(val))
+          return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
+        break;
+    }
+    return null;
+  };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
-    if (isPasswordField) {
-      if (!passwordRegex.test(val)) {
-        setLocalError(
-          'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.'
-        );
-      } else {
-        setLocalError(null);
-      }
-    }
+    const error = validateField(label || '', val);
+    setLocalError(error);
+    // if (isPasswordField) {
+    //   if (!passwordRegex.test(val)) {
+    //     setLocalError(
+    //       'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.'
+    //     );
+    //   } else {
+    //     setLocalError(null);
+    //   }
+    // }
     onChange(val === '' ? undefined : val);
   };
 
@@ -71,7 +93,17 @@ const CustomTextFieldWidget = ({
     <TextField
       fullWidth
       id={id}
-      label={label}
+      label={
+        ['first name', 'last name', 'username', 'contact number'].includes(
+          lowerLabel
+        ) ? (
+          <>
+            {label} <span style={{ color: 'red' }}>*</span>
+          </>
+        ) : (
+          label
+        )
+      }
       value={
         typeof value === 'object' && value !== null ? value.name : value ?? ''
       }
