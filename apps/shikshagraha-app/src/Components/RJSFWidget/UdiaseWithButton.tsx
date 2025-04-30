@@ -44,7 +44,7 @@ const UdiaseWithButton = ({
       const sampleResponse = {
         udise: udiseCode,
         school: {
-          _id: locationInfo?.metaInformation?.externalId || '',
+          _id: locationInfo?._id || '',
           name: locationInfo?.metaInformation?.name || '',
         },
         state: {
