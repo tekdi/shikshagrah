@@ -27,7 +27,10 @@ export default function Home() {
     { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
     { title: 'Survey', icon: '/shikshalokam/assets/images/ic_survey.png' },
     { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
-    { title: 'Observation', icon: '/shikshalokam/assets/images/ic_report.png' },
+    {
+      title: 'Observation',
+      icon: '/shikshalokam/assets/images/ic_observation.svg',
+    },
   ];
 
   const router = useRouter();
