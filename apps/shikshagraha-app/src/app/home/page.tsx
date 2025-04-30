@@ -22,16 +22,34 @@ import AppConst from '../../utils/AppConst/AppConst';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
-  const cardData = [
-    { title: 'Programs', icon: '/shikshalokam/assets/images/ic_program.png' },
-    { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
-    { title: 'Survey', icon: '/shikshalokam/assets/images/ic_survey.png' },
-    { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
-    {
-      title: 'Observation',
-      icon: '/shikshalokam/assets/images/ic_observation.svg',
-    },
-  ];
+const cardData = [
+  {
+    title: 'Programs',
+    icon: '/shikshalokam/assets/images/ic_program.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
+  },
+  {
+    title: 'Projects',
+    icon: '/shikshalokam/assets/images/ic_project.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
+  },
+  {
+    title: 'Survey',
+    icon: '/shikshalokam/assets/images/ic_survey.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
+  },
+  {
+    title: 'Observation',
+    icon: '/shikshalokam/assets/images/ic_observation.svg',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
+  },
+  {
+    title: 'Reports',
+    icon: '/shikshalokam/assets/images/ic_report.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
+  },
+];
+
 
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
@@ -67,9 +85,10 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-  const handleCardClick = (title) => {
-    router.push(`/program?title=${encodeURIComponent(title)}`);
-  };
+const handleCardClick = (url) => {
+  window.location.href = url;
+};
+
 
   return (
     <>
@@ -138,16 +157,14 @@ export default function Home() {
                   .filter((card) => {
                     const storedHeaders = JSON.parse(
                       localStorage.getItem('headers') ?? '{}'
-                    ); // Parse the JSON
-                    const storedOrgId = storedHeaders['org-id']; // Get org-id
+                    );
+                    const storedOrgId = storedHeaders['org-id'];
                     const isSameOrg =
                       storedOrgId === process.env.NEXT_PUBLIC_ORGID;
-                    console.log(isSameOrg);
-                    console.log(storedOrgId);
 
                     return isSameOrg
-                      ? true // Show only these if org ID matches
-                      : card.title === 'Projects' || card.title === 'Reports'; // Show all cards if org ID is different
+                      ? true
+                      : card.title === 'Projects' || card.title === 'Reports';
                   })
                   .map((card, index) => (
                     <DynamicCard
@@ -164,7 +181,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.title)}
+                      onClick={() => handleCardClick(card.link)} 
                     />
                   ))}
               </Box>
