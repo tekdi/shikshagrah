@@ -1,12 +1,12 @@
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
+// @ts-nocheck
 'use client';
-import { Suspense } from 'react';
+
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useState } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -28,9 +28,6 @@ function SearchParamsHandler() {
     Observation: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
   };
   const iframeSrc = iframeSources[title] || '';
-  // if (iframeSrc) {
-  //   window.location.href = iframeSrc; // Redirect to the URL
-  // }
   return { iframeSrc, title };
 }
 
@@ -72,13 +69,18 @@ export default function Content() {
 }
 
 function SearchParamsWrapper({
-  handleAccountClick,
   showLogoutModal,
   handleLogoutCancel,
   handleLogoutConfirm,
   backIconClick,
 }) {
   const { iframeSrc, title } = SearchParamsHandler();
+
+  useEffect(() => {
+    if (iframeSrc) {
+      window.location.href = iframeSrc; // Redirect in same tab
+    }
+  }, [iframeSrc]);
 
   return (
     <>
@@ -99,7 +101,7 @@ function SearchParamsWrapper({
         isFooter={false}
         showLogo={true}
       >
-        <iframe
+        {/* <iframe
           src={iframeSrc}
           style={{
             width: '100%',
@@ -107,7 +109,7 @@ function SearchParamsWrapper({
             border: 'none',
           }}
           title={title}
-        ></iframe>
+        ></iframe> */}
       </Layout>
 
       {/* <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>

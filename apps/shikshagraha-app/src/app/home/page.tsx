@@ -22,14 +22,34 @@ import AppConst from '../../utils/AppConst/AppConst';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
-  const cardData = [
-    { title: 'Programs', icon: '/shikshalokam/assets/images/ic_program.png' },
-    { title: 'Projects', icon: '/shikshalokam/assets/images/ic_project.png' },
-    { title: 'Survey', icon: '/shikshalokam/assets/images/ic_survey.png' },
-    { title: 'Reports', icon: '/shikshalokam/assets/images/ic_report.png' },
-    { title: 'Observation', icon: '/shikshalokam/assets/images/ic_report.png' },
-  ];
-  const isAuthenticated = !!localStorage.getItem('accToken');
+const cardData = [
+  {
+    title: 'Programs',
+    icon: '/shikshalokam/assets/images/ic_program.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
+  },
+  {
+    title: 'Projects',
+    icon: '/shikshalokam/assets/images/ic_project.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
+  },
+  {
+    title: 'Survey',
+    icon: '/shikshalokam/assets/images/ic_survey.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
+  },
+  {
+    title: 'Observation',
+    icon: '/shikshalokam/assets/images/ic_observation.svg',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
+  },
+  {
+    title: 'Reports',
+    icon: '/shikshalokam/assets/images/ic_report.png',
+    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
+  },
+];
+
 
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
@@ -65,9 +85,10 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-  const handleCardClick = (title) => {
-    router.push(`/program?title=${encodeURIComponent(title)}`);
-  };
+const handleCardClick = (url) => {
+  window.location.href = url;
+};
+
 
   if(isAuthenticated) {
     return (
@@ -98,7 +119,37 @@ export default function Home() {
                   minHeight: '50vh',
                 }}
               >
-                <CircularProgress />
+                {cardData
+                  .filter((card) => {
+                    const storedHeaders = JSON.parse(
+                      localStorage.getItem('headers') ?? '{}'
+                    );
+                    const storedOrgId = storedHeaders['org-id'];
+                    const isSameOrg =
+                      storedOrgId === process.env.NEXT_PUBLIC_ORGID;
+
+                    return isSameOrg
+                      ? true
+                      : card.title === 'Projects' || card.title === 'Reports';
+                  })
+                  .map((card, index) => (
+                    <DynamicCard
+                      key={index}
+                      title={card.title}
+                      icon={card.icon}
+                      sx={{
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: 6,
+                        },
+                        maxWidth: { xs: 280, sm: 350 },
+                      }}
+                      onClick={() => handleCardClick(card.link)}
+                    />
+                  ))}
               </Box>
             ) : error ? (
               <Typography variant="h6" color="error" textAlign="center">

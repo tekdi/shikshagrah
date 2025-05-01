@@ -5,6 +5,7 @@ import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import { useTranslation } from 'react-i18next';
+import { FormHelperText } from '@mui/material';
 
 const CustomSingleSelectWidget = ({
   id,
@@ -23,7 +24,9 @@ const CustomSingleSelectWidget = ({
 
   const isDisabled = uiSchema?.['ui:disabled'] === true;
   const isEmptyOptionIncluded = schema?.allowEmptyOption || false;
-
+  const lowerLabel = label?.toLowerCase();
+  const isRoleField = lowerLabel === 'roles';
+  const helperText = ' Please select a role.';
   const handleChange = (event: any) => {
     const selected = event.target.value;
     onChange(selected);
@@ -66,8 +69,16 @@ const CustomSingleSelectWidget = ({
             },
           }}
         >
-          {label}
+          {isRoleField ? (
+            <>
+              {label}
+              <span style={{ color: 'red' }}> *</span>
+            </>
+          ) : (
+            label
+          )}
         </InputLabel>
+
         <Select
           id={id}
           labelId={`${id}-label`}
@@ -100,6 +111,17 @@ const CustomSingleSelectWidget = ({
               </MenuItem>
             ))}
         </Select>
+        {helperText && !value && (
+          <FormHelperText
+            sx={{
+              color: 'red',
+              fontSize: '11px',
+              marginLeft: '0px',
+            }}
+          >
+            {helperText}
+          </FormHelperText>
+        )}
       </FormControl>
     </>
   );
