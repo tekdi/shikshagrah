@@ -175,3 +175,41 @@ export const verifyOtpService = async (requestData: any) => {
     }
   }
 };
+export const resetPassword = async (payload: {
+  newPassword: string;
+  token: string;
+}) => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/forgot-password`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+export const checkUserExists = async (payload: {
+  email?: string;
+  mobile?: string;
+}) => {
+  try {
+    const headers = {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      tenantid: '6c8b810a-66c2-4f0d-8c0c-c025415a4414',
+      // Add other headers as needed
+    };
+
+    const response = await axios.post(
+      'https://shiksha-dev-interface.tekdinext.com/interface/v1/user/check',
+      payload,
+      { headers }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error in checkUserExists:', error);
+    throw error;
+  }
+};
