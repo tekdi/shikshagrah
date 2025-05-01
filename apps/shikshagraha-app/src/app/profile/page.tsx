@@ -64,9 +64,6 @@ export default function Profile() {
   const [newPhone, setNewPhone] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [userDataProfile, setUserDataProfile] = useState([
-    { label: 'First Name', value: '' },
-    { label: 'Middle Name', value: '' },
-    { label: 'Last Name', value: '' },
     { label: 'Profile Type', value: '' },
   ]);
   const [userCustomFields, setUserCustomFields] = useState([]);
@@ -89,9 +86,6 @@ export default function Profile() {
             tenantResponse?.result?.userData ?? {};
 
           const mappedProfile = [
-            { label: 'First Name', value: firstName ?? '-' },
-            { label: 'Middle Name', value: middleName ?? '-' },
-            { label: 'Last Name', value: lastName ?? '-' },
             {
               label: 'Profile Type',
               value: tenantData?.[0]?.roleName ?? '-',
@@ -213,7 +207,6 @@ export default function Profile() {
       setError('Failed to send OTP');
     }
   };
-
   const handleOtpSubmit = async () => {
     try {
       if (!otp) {
@@ -407,96 +400,22 @@ export default function Profile() {
                   color="#582E92"
                   fontWeight="bold"
                 >
-                  {userData?.firstName ?? 'User'}
+                  {(userData?.firstName + ' ' + userData?.lastName) ?? 'User'}
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  textAlign="center"
+                  color="darkslategray"
+                >
+                  @{userData.username}
                 </Typography>
               </Grid>
             </Grid>
           </Box>
           {/* Profile Card */}
-          <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <Grid container spacing={2}>
-              {/* Role */}
-              <Grid item xs={12}>
-                {userDataProfile?.map((item) => {
-                  return (
-                    <Typography
-                      variant="body1"
-                      key={item.label}
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>{item.label}: </span>
-                      {displayRole === 'administrator'
-                        ? 'HT & Officials'
-                        : toCamelCase(item.value)}
-                    </Typography>
-                  );
-                })}
 
-                {displayRole === 'administrator' && (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Sub-role: </span>
-                    {displaySubRole || 'N/A'}
-                  </Typography>
-                )}
 
-                {locationDetails.map((loc, index) => (
-                  <>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>
-                        {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                      </span>{' '}
-                      {loc.name || 'N/A'}
-                    </Typography>
-                  </>
-                ))}
-              </Grid>
-            </Grid>
-          </Box>
-
-          <Box
+          {(userCustomFields.length > 0) && <Box
             sx={{
               // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
               borderRadius: '12px',
@@ -553,7 +472,7 @@ export default function Profile() {
                 })}
               </Grid>
             </Grid>
-          </Box>
+          </Box>}
           {/* Courses Card */}
 
           <Box
