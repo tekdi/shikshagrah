@@ -3,29 +3,36 @@ import React, { useEffect, useState } from 'react';
 import { TextField, IconButton, InputAdornment } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-const CustomTextFieldWidget = ({
-  id,
-  label,
-  value,
-  required,
-  disabled,
-  readonly,
-  onChange,
-  onBlur,
-  onFocus,
-  rawErrors = [],
-  placeholder,
-}: WidgetProps) => {
+const CustomTextFieldWidget = (props: WidgetProps) => {
+  const {
+    id,
+    label,
+    value,
+    required,
+    disabled,
+    readonly,
+    onChange,
+    onBlur,
+    onFocus,
+    rawErrors = [],
+    placeholder,
+    formContext,
+  } = props;
   const [localError, setLocalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-
+  const formData = formContext?.formData || {};
   const isPasswordField = label?.toLowerCase() === 'password';
+  const isEmailField = label?.toLowerCase() === 'email';
+  const isMobileField =
+    label?.toLowerCase() === 'mobile' ||
+    label?.toLowerCase() === 'contact number';
 
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
   const nameRegex = /^[a-zA-Z]+$/;
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const lowerLabel = label?.toLowerCase();
   // useEffect(() => {
   //   if (label === 'First Name' || label === 'Last Name') {
@@ -39,7 +46,18 @@ const CustomTextFieldWidget = ({
   //     }
   //   }
   // }, [value, label, onChange]);
+  const isOptional = () => {
+    if (isEmailField && formData.mobile) return true;
+    if (isMobileField && formData.email) return true;
+    return false;
+  };
+  const isActuallyRequired = () => {
+    if (isEmailField) return !formData.mobile && required;
+    if (isMobileField) return !formData.email && required;
+    return required;
+  };
   const validateField = (field: string, val: string): string | null => {
+    if (isOptional() && !val) return null;
     switch (field.toLowerCase()) {
       case 'first name':
       case 'last name':
@@ -49,9 +67,8 @@ const CustomTextFieldWidget = ({
         if (!contactRegex.test(val))
           return 'Enter a valid 10-digit mobile number.';
         break;
-      case 'udise':
-        if (!udiseRegex.test(val))
-          return 'Enter a valid 11-digit UDISE number.';
+      case 'email':
+        if (!emailRegex.test(val)) return 'Enter a valid email address.';
         break;
       case 'password':
         if (!passwordRegex.test(val))
@@ -74,10 +91,14 @@ const CustomTextFieldWidget = ({
     //   }
     // }
     onChange(val === '' ? undefined : val);
+    // if (onErrorChange) {
+    //   onErrorChange(!!error);
+    // }
   };
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) =>
-    onBlur(id, event.target.value);
+  const handleBlur = () => {
+    if (onBlur) onBlur(id, value);
+  };
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) =>
     onFocus(id, event.target.value);
@@ -89,21 +110,38 @@ const CustomTextFieldWidget = ({
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
+  const renderLabel = () => {
+    if (['first name', 'last name', 'username'].includes(lowerLabel || '')) {
+      return (
+        <>
+          {label} <span style={{ color: 'red' }}>*</span>
+        </>
+      );
+    }
+
+    if (isEmailField || isMobileField) {
+      return (
+        <>
+          {label}
+          {isActuallyRequired() && <span style={{ color: 'red' }}>*</span>}
+          {isOptional() && (
+            <span style={{ color: 'gray', fontSize: '0.8em' }}>
+              {' '}
+              (optional)
+            </span>
+          )}
+        </>
+      );
+    }
+
+    return label;
+  };
+
   return (
     <TextField
       fullWidth
       id={id}
-      label={
-        ['first name', 'last name', 'username', 'contact number'].includes(
-          lowerLabel
-        ) ? (
-          <>
-            {label} <span style={{ color: 'red' }}>*</span>
-          </>
-        ) : (
-          label
-        )
-      }
+      label={renderLabel()}
       value={
         typeof value === 'object' && value !== null ? value.name : value ?? ''
       }
