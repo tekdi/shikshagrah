@@ -6,6 +6,7 @@ import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
+import { readIndividualTenantData } from '../../services/LoginService';
 import { useEffect, useState } from 'react';
 import {
   CircularProgress,
@@ -19,36 +20,10 @@ import {
   Button,
 } from '@mui/material';
 import AppConst from '../../utils/AppConst/AppConst';
+import { headers } from 'next/headers';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
-const cardData = [
-  {
-    title: 'Programs',
-    icon: '/shikshalokam/assets/images/ic_program.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
-  },
-  {
-    title: 'Projects',
-    icon: '/shikshalokam/assets/images/ic_project.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
-  },
-  {
-    title: 'Survey',
-    icon: '/shikshalokam/assets/images/ic_survey.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
-  },
-  {
-    title: 'Observation',
-    icon: '/shikshalokam/assets/images/ic_observation.svg',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
-  },
-  {
-    title: 'Reports',
-    icon: '/shikshalokam/assets/images/ic_report.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
-  },
-];
 
 
   const router = useRouter();
@@ -56,7 +31,7 @@ const cardData = [
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
+  const [cardData,SetCardData] = useState([])
   useEffect(() => {
     const getProfileData = async () => {
       try {
@@ -68,7 +43,22 @@ const cardData = [
         setLoading(false);
       }
     };
+    
     getProfileData();
+
+    async function fetchConfig() {
+      const header = JSON.parse(localStorage.getItem('headers'));
+
+      if (!header['org-id']) return
+      try {
+        const data = await readIndividualTenantData(header['org-id']);
+        SetCardData(data.result.contentFilter);
+        localStorage.setItem('theme',JSON.stringify(data.result.contentFilter[0].theme))
+      } catch (err) {
+        setError((err as Error).message)
+      }
+    }
+    fetchConfig();
   }, []);
 
   const handleAccountClick = () => {
@@ -133,7 +123,7 @@ const handleCardClick = (url) => {
                   fontWeight="bold"
                   fontSize={{ xs: '22px', sm: '24px', md: '26px' }}
                 >
-                  Welcome, {profileData?.firstName}
+                  Welcome
                 </Typography>
                 <Typography
                   variant="body2"
@@ -153,7 +143,7 @@ const handleCardClick = (url) => {
                   justifyContent: 'center',
                 }}
               >
-                {cardData
+                {(cardData.length > 0 ) && cardData
                   .filter((card) => {
                     const storedHeaders = JSON.parse(
                       localStorage.getItem('headers') ?? '{}'
@@ -181,7 +171,7 @@ const handleCardClick = (url) => {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.link)} 
+                      onClick={() => handleCardClick(card.sameOrigin ? process.env.NEXT_PUBLIC_PROGRAM_BASE_URL + card.url : card.url)} 
                     />
                   ))}
               </Box>
