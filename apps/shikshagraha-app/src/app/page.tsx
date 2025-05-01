@@ -34,6 +34,7 @@ export default function Login() {
     userName: '',
     password: '',
   });
+  const isAuthenticated = !!localStorage.getItem('accToken');
   const [error, setError] = useState({
     userName: false,
     password: false,
@@ -164,213 +165,219 @@ export default function Login() {
     router.push(registrationUrl);
   };
 
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: 'linear-gradient(135deg, #f5f5f5, #f5f5f5)',
-        minHeight: '100vh',
-        padding: 2,
-      }}
-    >
-      {loading && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <CircularProgress size={50} color="primary" />
-        </Box>
-      )}
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+  if(!isAuthenticated) {
+    return (
+      <Box
         sx={{
-          maxWidth: { xs: '90%', sm: '400px', md: '500px' },
-          bgcolor: '#FFFFFF',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          borderRadius: '16px',
-          padding: { xs: 2, sm: 3 },
-          textAlign: 'center',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            borderRadius: 'inherit',
-            padding: '4px',
-            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
-            WebkitMask:
-              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-            WebkitMaskComposite: 'xor',
-            maskComposite: 'exclude',
-          },
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          background: 'linear-gradient(135deg, #f5f5f5, #f5f5f5)',
+          minHeight: '100vh',
+          padding: 2,
         }}
       >
-        <Box
+        {loading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <CircularProgress size={50} color="primary" />
+          </Box>
+        )}
+        <Grid
+          container
+          justifyContent="center"
+          alignItems="center"
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            mb: 2,
-            gap: 1,
+            maxWidth: { xs: '90%', sm: '400px', md: '500px' },
+            bgcolor: '#FFFFFF',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            borderRadius: '16px',
+            padding: { xs: 2, sm: 3 },
+            textAlign: 'center',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: 'inherit',
+              padding: '4px',
+              background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+              WebkitMask:
+                'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+            },
           }}
         >
           <Box
-            component="img"
-            src={`${basePath}/assets/images/SG_Logo.png`}
-            alt="logo"
             sx={{
-              width: { xs: '100%', sm: '100%' },
-              height: { xs: '100%', sm: '100%' },
-              borderRadius: '50%',
-              objectFit: 'cover',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              mb: 2,
+              gap: 1,
+            }}
+          >
+            <Box
+              component="img"
+              src={`${basePath}/assets/images/SG_Logo.png`}
+              alt="logo"
+              sx={{
+                width: { xs: '100%', sm: '100%' },
+                height: { xs: '100%', sm: '100%' },
+                borderRadius: '50%',
+                objectFit: 'cover',
+              }}
+            />
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#582E92',
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
+              Shikshalokam
+            </Typography>
+          </Box>
+          <TextField
+            fullWidth
+            label="Username/Email"
+            value={formData.userName}
+            onChange={handleChange('userName')}
+            error={error.userName}
+            helperText={error.userName ? 'Username is required' : ''}
+            sx={{
+              mb: 2,
             }}
           />
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#582E92',
-              fontWeight: 'bold',
-              textAlign: 'center',
+          <TextField
+            fullWidth
+            label="Password"
+            value={formData.password}
+            onChange={handleChange('password')}
+            type={showPassword ? 'text' : 'password'}
+            error={error.password}
+            helperText={
+              error.password
+                ? 'Password must be at least 8 characters long, include numerals, uppercase, lowercase, and special characters.'
+                : ''
+            }
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  {!showPassword ? (
+                    <VisibilityOffIcon
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  ) : (
+                    <VisibilityIcon
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  )}
+                </InputAdornment>
+              ),
             }}
-          >
-            Shikshalokam
-          </Typography>
-        </Box>
-        <TextField
-          fullWidth
-          label="Username/Email"
-          value={formData.userName}
-          onChange={handleChange('userName')}
-          error={error.userName}
-          helperText={error.userName ? 'Username is required' : ''}
-          sx={{
-            mb: 2,
-          }}
-        />
-        <TextField
-          fullWidth
-          label="Password"
-          value={formData.password}
-          onChange={handleChange('password')}
-          type={showPassword ? 'text' : 'password'}
-          error={error.password}
-          helperText={
-            error.password
-              ? 'Password must be at least 8 characters long, include numerals, uppercase, lowercase, and special characters.'
-              : ''
-          }
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                {!showPassword ? (
-                  <VisibilityOffIcon
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                ) : (
-                  <VisibilityIcon
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                )}
-              </InputAdornment>
-            ),
-          }}
-          sx={{
-            mb: 1,
-            '& .MuiInputBase-root': {
-              backgroundColor: 'inherit',
-            },
-            '& .MuiInputAdornment-root': {
-              backgroundColor: 'inherit',
-            },
-          }}
-        />
-
-        {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
-          <ButtonBase
-            onClick={handlePasswordClick}
             sx={{
-              color: '#6750A4',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontSize: '15px',
-              marginTop: '-10px',
-              textDecoration: 'underline',
-            }}
-          >
-            Forgot Password?
-          </ButtonBase>
-        </Typography> */}
-
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Button
-            onClick={handleButtonClick}
-            sx={{
-              bgcolor: '#582E92',
-              color: '#FFFFFF',
-              borderRadius: '30px',
-              textTransform: 'none',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              padding: '8px 16px',
-              '&:hover': {
-                bgcolor: '#543E98',
+              mb: 1,
+              '& .MuiInputBase-root': {
+                backgroundColor: 'inherit',
               },
-              width: { xs: '50%', sm: '50%' },
+              '& .MuiInputAdornment-root': {
+                backgroundColor: 'inherit',
+              },
             }}
-          >
-            Login
-          </Button>
-        </Box>
+          />
 
-        <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
-          Don’t have an account?{' '}
-          <ButtonBase
-            onClick={handleRegisterClick}
+          {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+            <ButtonBase
+              onClick={handlePasswordClick}
+              sx={{
+                color: '#6750A4',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '15px',
+                marginTop: '-10px',
+                textDecoration: 'underline',
+              }}
+            >
+              Forgot Password?
+            </ButtonBase>
+          </Typography> */}
+
+          <Box
             sx={{
-              color: '#6750A4',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              fontSize: '15px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
             }}
           >
-            Register
-          </ButtonBase>
-        </Typography>
-        <Grid container justifyContent="center" alignItems="center">
-          {showError && (
-            <Alert severity="error">
-              {typeof errorMessage === 'object'
-                ? JSON.stringify(errorMessage)
-                : errorMessage}
-            </Alert>
-          )}{' '}
+            <Button
+              onClick={handleButtonClick}
+              sx={{
+                bgcolor: '#582E92',
+                color: '#FFFFFF',
+                borderRadius: '30px',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                padding: '8px 16px',
+                '&:hover': {
+                  bgcolor: '#543E98',
+                },
+                width: { xs: '50%', sm: '50%' },
+              }}
+            >
+              Login
+            </Button>
+          </Box>
+
+          <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+            Don’t have an account?{' '}
+            <ButtonBase
+              onClick={handleRegisterClick}
+              sx={{
+                color: '#6750A4',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                fontSize: '15px',
+              }}
+            >
+              Register
+            </ButtonBase>
+          </Typography>
+          <Grid container justifyContent="center" alignItems="center">
+            {showError && (
+              <Alert severity="error">
+                {typeof errorMessage === 'object'
+                  ? JSON.stringify(errorMessage)
+                  : errorMessage}
+              </Alert>
+            )}{' '}
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
-  );
+      </Box>
+    );
+  }
+  else {
+    const redirectUrl = '/home';
+    router.push(redirectUrl);
+  }
 }

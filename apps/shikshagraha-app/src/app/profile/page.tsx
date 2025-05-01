@@ -43,6 +43,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
+  const isAuthenticated = !!localStorage.getItem('accToken');
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -360,138 +361,360 @@ export default function Profile() {
   //     </Typography>
   //   );
   // }
-  return (
-    <Layout
-      showTopAppBar={{
-        title: 'Profile',
-        showMenuIcon: true,
-        profileIcon: [
-          {
-            icon: <LogoutIcon />,
-            ariaLabel: 'Account',
-            onLogoutClick: handleAccountClick,
-          },
-        ],
-      }}
-      isFooter={true}
-    >
-      <Box
-        sx={{
-          // backgroundColor: '#f5f5f5',
-          minHeight: '100vh',
-          overflowY: 'auto',
-          paddingTop: '3%',
-          paddingBottom: '56px',
+  if(isAuthenticated) {
+    return (
+      <Layout
+        showTopAppBar={{
+          title: 'Profile',
+          showMenuIcon: true,
+          profileIcon: [
+            {
+              icon: <LogoutIcon />,
+              ariaLabel: 'Account',
+              onLogoutClick: handleAccountClick,
+            },
+          ],
         }}
+        isFooter={true}
       >
-        <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
-          <Box
-            sx={{
-              position: 'relative',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit',
-                padding: '1px',
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-              },
-            }}
-          >
-            <Grid
-              container
-              spacing={2}
-              alignItems="center"
-              justifyContent="center"
-              direction="column"
+        <Box
+          sx={{
+            // backgroundColor: '#f5f5f5',
+            minHeight: '100vh',
+            overflowY: 'auto',
+            paddingTop: '3%',
+            paddingBottom: '56px',
+          }}
+        >
+          <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit',
+                  padding: '1px',
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                },
+              }}
             >
-              <Grid item>
-                <Avatar
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-                  }}
-                  src={profileData?.avatar ?? ''}
-                >
-                  {(userData?.firstName?.charAt(0) ?? 'U').toUpperCase()}
-                </Avatar>
+              <Grid
+                container
+                spacing={2}
+                alignItems="center"
+                justifyContent="center"
+                direction="column"
+              >
+                <Grid item>
+                  <Avatar
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                    }}
+                    src={profileData?.avatar ?? ''}
+                  >
+                    {(userData?.firstName?.charAt(0) ?? 'U').toUpperCase()}
+                  </Avatar>
+                </Grid>
+                <Grid item>
+                  <Typography
+                    variant="h5"
+                    textAlign="center"
+                    color="#582E92"
+                    fontWeight="bold"
+                  >
+                    {userData?.firstName ?? 'User'}
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Typography
-                  variant="h5"
-                  textAlign="center"
-                  color="#582E92"
-                  fontWeight="bold"
-                >
-                  {userData?.firstName ?? 'User'}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-          {/* Profile Card */}
-          <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <Grid container spacing={2}>
-              {/* Role */}
-              <Grid item xs={12}>
-                {userDataProfile?.map((item) => {
-                  return (
+            </Box>
+            {/* Profile Card */}
+            <Box
+              sx={{
+                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                  padding: '1px', // Thickness of the border line
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude', // Ensures only the border is visible
+                },
+              }}
+            >
+              <Grid container spacing={2}>
+                {/* Role */}
+                <Grid item xs={12}>
+                  {userDataProfile?.map((item) => {
+                    return (
+                      <Typography
+                        variant="body1"
+                        key={item.label}
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          paddingBottom: '10px',
+                        }}
+                      >
+                        <span style={{ color: '#FF9911' }}>{item.label}: </span>
+                        {displayRole === 'administrator'
+                          ? 'HT & Officials'
+                          : toCamelCase(item.value)}
+                      </Typography>
+                    );
+                  })}
+
+                  {displayRole === 'administrator' && (
                     <Typography
                       variant="body1"
-                      key={item.label}
                       sx={{
                         fontWeight: 'bold',
                         color: '#333',
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FF9911' }}>{item.label}: </span>
-                      {displayRole === 'administrator'
-                        ? 'HT & Officials'
-                        : toCamelCase(item.value)}
+                      <span style={{ color: '#FF9911' }}>Sub-role: </span>
+                      {displaySubRole || 'N/A'}
                     </Typography>
-                  );
-                })}
+                  )}
 
-                {displayRole === 'administrator' && (
+                  {locationDetails.map((loc, index) => (
+                    <>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          paddingBottom: '10px',
+                        }}
+                      >
+                        <span style={{ color: '#FF9911' }}>
+                          {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
+                        </span>{' '}
+                        {loc.name || 'N/A'}
+                      </Typography>
+                    </>
+                  ))}
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Box
+              sx={{
+                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                  padding: '1px', // Thickness of the border line
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude', // Ensures only the border is visible
+                },
+              }}
+            >
+              <Grid container spacing={2}>
+                {/* Role */}
+                <Grid item xs={12}>
+                  {userCustomFields?.map((item) => {
+                    return (
+                      <Typography
+                        variant="body1"
+                        key={item.label}
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          paddingBottom: '10px',
+                        }}
+                      >
+                        <span style={{ color: '#FF9911' }}>
+                          {toCamelCase(item.label)}:{' '}
+                        </span>
+                        {Array.isArray(item.value)
+                          ? item.value
+                              .map((val) =>
+                                val.value === 'administrator'
+                                  ? 'HT & Officials'
+                                  : toCamelCase(val.value)
+                              )
+                              .join(', ') // show list values
+                          : item.value}
+                      </Typography>
+                    );
+                  })}
+                </Grid>
+              </Grid>
+            </Box>
+            {/* Courses Card */}
+
+            <Box
+              sx={{
+                p: 4,
+                borderRadius: 3,
+                boxShadow: 3,
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                  padding: '1px', // Thickness of the border line
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude', // Ensures only the border is visible
+                },
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                gutterBottom
+                color="black"
+              >
+                📘 My Courses
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              {courseDetails?.data?.length > 0 ? (
+                <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>
+                          Course ID
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {courseDetails?.data
+                        ?.filter(
+                          (course: any) => course.status === 'viewCertificate'
+                        )
+                        .map((course: any) => (
+                          <TableRow
+                            key={course.usercertificateId}
+                            hover
+                            sx={{
+                              transition: '0.3s',
+                              '&:hover': { backgroundColor: '#f9f9f9' },
+                            }}
+                          >
+                            <TableCell>{course.courseId}</TableCell>
+                            <TableCell>{course.status}</TableCell>
+                            <TableCell>
+                              <Link
+                                component="button"
+                                variant="body2"
+                                underline="hover"
+                                onClick={() =>
+                                  handleViewTest(course.certificateId)
+                                }
+                              >
+                                View Certificate
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No course data found.
+                </Typography>
+              )}
+            </Box>
+            {/* Framework Card */}
+            {/* <Box
+              sx={{
+                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                  padding: '1px', // Thickness of the border line
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude', // Ensures only the border is visible
+                },
+              }}
+            >
+              <EditIcon
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  cursor: 'pointer',
+                  color: '#582E92',
+                }}
+                onClick={handleEditClick}
+              />
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
                   <Typography
                     variant="body1"
                     sx={{
@@ -500,414 +723,197 @@ export default function Profile() {
                       paddingBottom: '10px',
                     }}
                   >
-                    <span style={{ color: '#FF9911' }}>Sub-role: </span>
-                    {displaySubRole || 'N/A'}
+                    <span style={{ color: '#FF9911' }}>Board: </span>
+                    {displayBoard}
                   </Typography>
-                )}
-
-                {locationDetails.map((loc, index) => (
-                  <>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>
-                        {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                      </span>{' '}
-                      {loc.name || 'N/A'}
-                    </Typography>
-                  </>
-                ))}
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: '#333',
+                      paddingBottom: '10px',
+                    }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Medium: </span>
+                    {displayMedium}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: '#333',
+                      paddingBottom: '10px',
+                    }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Classes: </span>
+                    {displayGradeLevel}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: '#333',
+                      paddingBottom: '10px',
+                    }}
+                  >
+                    <span style={{ color: '#FF9911' }}>Subjects: </span>
+                    {displaySubject}
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
+            </Box> */}
+            {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Button
+                onClick={handleDeleteAccountClick}
+                variant="contained"
+                sx={{
+                  bgcolor: '#582E92',
+                  color: 'white',
+                  ':hover': { bgcolor: '#461B73' },
+                }}
+              >
+                Delete Account
+              </Button>
+            </Box> */}
           </Box>
-
-          <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <Grid container spacing={2}>
-              {/* Role */}
-              <Grid item xs={12}>
-                {userCustomFields?.map((item) => {
-                  return (
-                    <Typography
-                      variant="body1"
-                      key={item.label}
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>
-                        {toCamelCase(item.label)}:{' '}
-                      </span>
-                      {Array.isArray(item.value)
-                        ? item.value
-                            .map((val) =>
-                              val.value === 'administrator'
-                                ? 'HT & Officials'
-                                : toCamelCase(val.value)
-                            )
-                            .join(', ') // show list values
-                        : item.value}
-                    </Typography>
-                  );
-                })}
-              </Grid>
-            </Grid>
-          </Box>
-          {/* Courses Card */}
-
-          <Box
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              boxShadow: 3,
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              gutterBottom
-              color="black"
-            >
-              📘 My Courses
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            {courseDetails?.data?.length > 0 ? (
-              <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>
-                        Course ID
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {courseDetails?.data
-                      ?.filter(
-                        (course: any) => course.status === 'viewCertificate'
-                      )
-                      .map((course: any) => (
-                        <TableRow
-                          key={course.usercertificateId}
-                          hover
-                          sx={{
-                            transition: '0.3s',
-                            '&:hover': { backgroundColor: '#f9f9f9' },
-                          }}
-                        >
-                          <TableCell>{course.courseId}</TableCell>
-                          <TableCell>{course.status}</TableCell>
-                          <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              underline="hover"
-                              onClick={() =>
-                                handleViewTest(course.certificateId)
-                              }
-                            >
-                              View Certificate
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No course data found.
-              </Typography>
-            )}
-          </Box>
-          {/* Framework Card */}
-          {/* <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <EditIcon
-              sx={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                cursor: 'pointer',
-                color: '#582E92',
-              }}
-              onClick={handleEditClick}
-            />
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Board: </span>
-                  {displayBoard}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Medium: </span>
-                  {displayMedium}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Classes: </span>
-                  {displayGradeLevel}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Subjects: </span>
-                  {displaySubject}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box> */}
-          {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
+        </Box>
+        {showError && (
+          <Alert severity="error" sx={{ marginTop: '15px' }}>
+            {errorMessage}
+          </Alert>
+        )}
+        {/* Delete Account Confirmation Dialog */}
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+        >
+          <DialogTitle>Confirm Account Deletion</DialogTitle>
+          <DialogActions>
             <Button
-              onClick={handleDeleteAccountClick}
-              variant="contained"
-              sx={{
-                bgcolor: '#582E92',
-                color: 'white',
-                ':hover': { bgcolor: '#461B73' },
-              }}
+              onClick={() => setOpenDeleteDialog(false)}
+              sx={{ color: '#582E92' }}
             >
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteConfirmation} color="error">
+              Proceed
+            </Button>
+          </DialogActions>
+        </Dialog>
+        {/* Email Input Dialog */}
+        <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
+          <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
+          <DialogContent>
+            <RadioGroup value={selectedOption} onChange={handleOptionChange}>
+              {profileData?.email && (
+                <>
+                  <FormControlLabel
+                    value="email"
+                    control={<Radio />}
+                    label={`Email: ${profileData.email}`}
+                  />
+                  {selectedOption === 'email' && (
+                    <TextField
+                      label="Update Email"
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      fullWidth
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </>
+              )}
+
+              {profileData?.phone && (
+                <>
+                  <FormControlLabel
+                    value="phone"
+                    control={<Radio />}
+                    label={`Mobile: ${profileData.phone}`}
+                  />
+                  {selectedOption === 'phone' && (
+                    <TextField
+                      label="Update Phone"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      fullWidth
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </>
+              )}
+            </RadioGroup>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setOpenEmailDialog(false)}
+              sx={{ color: '#582E92' }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
+              Send OTP
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* OTP Input Dialog */}
+        <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
+          <DialogTitle>Enter OTP</DialogTitle>
+          <DialogContent>
+            <TextField
+              placeholder="Enter Otp"
+              fullWidth
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setOpenOtpDialog(false)}
+              sx={{ color: '#582E92' }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleOtpSubmit} color="error">
               Delete Account
             </Button>
-          </Box> */}
-        </Box>
-      </Box>
-      {showError && (
-        <Alert severity="error" sx={{ marginTop: '15px' }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {/* Delete Account Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
-      >
-        <DialogTitle>Confirm Account Deletion</DialogTitle>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenDeleteDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirmation} color="error">
-            Proceed
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* Email Input Dialog */}
-      <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
-        <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
-        <DialogContent>
-          <RadioGroup value={selectedOption} onChange={handleOptionChange}>
-            {profileData?.email && (
-              <>
-                <FormControlLabel
-                  value="email"
-                  control={<Radio />}
-                  label={`Email: ${profileData.email}`}
-                />
-                {selectedOption === 'email' && (
-                  <TextField
-                    label="Update Email"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                  />
-                )}
-              </>
-            )}
+          </DialogActions>
+        </Dialog>
 
-            {profileData?.phone && (
-              <>
-                <FormControlLabel
-                  value="phone"
-                  control={<Radio />}
-                  label={`Mobile: ${profileData.phone}`}
-                />
-                {selectedOption === 'phone' && (
-                  <TextField
-                    label="Update Phone"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                  />
-                )}
-              </>
-            )}
-          </RadioGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenEmailDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
-            Send OTP
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* OTP Input Dialog */}
-      <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
-        <DialogTitle>Enter OTP</DialogTitle>
-        <DialogContent>
-          <TextField
-            placeholder="Enter Otp"
-            fullWidth
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenOtpDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleOtpSubmit} color="error">
-            Delete Account
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={openConfirmDeleteDialog}
-        onClose={() => setOpenConfirmDeleteDialog(false)}
-      >
-        <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
-        <DialogContent></DialogContent>
-        <DialogActions>
-          <Button onClick={confirm} sx={{ color: '#582E92' }}>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
-        <DialogTitle>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to log out?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleLogoutCancel} color="primary">
-            No
-          </Button>
-          <Button onClick={handleLogoutConfirm} color="secondary">
-            Yes, Logout
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Layout>
-  );
+        <Dialog
+          open={openConfirmDeleteDialog}
+          onClose={() => setOpenConfirmDeleteDialog(false)}
+        >
+          <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
+          <DialogContent></DialogContent>
+          <DialogActions>
+            <Button onClick={confirm} sx={{ color: '#582E92' }}>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
+          <DialogTitle>Confirm Logout</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to log out?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleLogoutCancel} color="primary">
+              No
+            </Button>
+            <Button onClick={handleLogoutConfirm} color="secondary">
+              Yes, Logout
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Layout>
+    );
+  }
+  else {
+    handleLogoutConfirm()
+  }
 }
