@@ -97,12 +97,12 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       // Limit to 10 digits
       const limitedValue = numericValue.slice(0, 10);
 
-      const error = validateField(label || '', limitedValue);
+      const error = validateField(label ?? '', limitedValue);
       setLocalError(error);
       onChange(limitedValue === '' ? undefined : limitedValue);
       return;
     }
-    const error = validateField(label || '', val);
+    const error = validateField(label ?? '', val);
     setLocalError(error);
     // if (isPasswordField) {
     //   if (!passwordRegex.test(val)) {
@@ -136,7 +136,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const renderLabel = () => {
     if (
       ['first name', 'last name', 'username', 'password'].includes(
-        lowerLabel || ''
+        lowerLabel ?? ''
       )
     ) {
       return (

@@ -216,8 +216,8 @@ export default function Profile() {
   const handleDeleteConfirmation = async () => {
     setOpenDeleteDialog(false);
     // setOpenEmailDialog(true);
-    const accToken = localStorage.getItem('accToken') || '';
-    const userId = localStorage.getItem('userId') || '';
+    const accToken = localStorage.getItem('accToken') ?? '';
+    const userId = localStorage.getItem('userId') ?? '';
     try {
       await deleteUserAccount({ token: accToken, userId: userId });
 
