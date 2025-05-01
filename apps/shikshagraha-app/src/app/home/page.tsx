@@ -28,7 +28,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [cardData,SetCardData] = useState([])
+  const [cardData,setCardData] = useState([])
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -50,7 +50,7 @@ export default function Home() {
       if (!header['org-id']) return
       try {
         const data = await readIndividualTenantData(header['org-id']);
-        SetCardData(data.result.contentFilter);
+        setCardData(data.result.contentFilter);
         localStorage.setItem('theme',JSON.stringify(data.result.contentFilter[0].theme))
       } catch (err) {
         setError((err as Error).message)
