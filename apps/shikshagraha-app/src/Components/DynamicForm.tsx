@@ -1514,6 +1514,7 @@ const DynamicForm = ({
       );
     }
   };
+
   const handleDialogClose = async () => {
     setDialogOpen(false);
     try {
@@ -1613,13 +1614,20 @@ const DynamicForm = ({
           id="dynamic-form-id"
         >
           {showEmailMobileError && (
-            <Alert
-              severity="error"
-              sx={{ mb: 2 }}
+            <Snackbar
+              open={showEmailMobileError}
+              autoHideDuration={4000}
               onClose={() => setShowEmailMobileError(false)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-              Please provide either email or mobile number
-            </Alert>
+              <Alert
+                severity="error"
+                sx={{ mb: 2 }}
+                onClose={() => setShowEmailMobileError(false)}
+              >
+                Please provide either email or mobile number
+              </Alert>
+            </Snackbar>
           )}
           <Box
             sx={{

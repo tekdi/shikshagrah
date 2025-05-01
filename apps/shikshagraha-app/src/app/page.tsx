@@ -158,14 +158,11 @@ export default function Login() {
   };
 
   const handlePasswordClick = () => {
-    console.log('Password clicked');
-    console.log(process.env.NEXT_PUBLIC_FORGOT_PASSWORD);
-
-    const registrationUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
-    router.push(registrationUrl);
+    // const registrationUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
+    router.push('/forgetpassword');
   };
 
-  if(!isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Box
         sx={{
@@ -304,7 +301,7 @@ export default function Login() {
             }}
           />
 
-          {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+          <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
             <ButtonBase
               onClick={handlePasswordClick}
               sx={{
@@ -318,7 +315,7 @@ export default function Login() {
             >
               Forgot Password?
             </ButtonBase>
-          </Typography> */}
+          </Typography>
 
           <Box
             sx={{
@@ -375,8 +372,7 @@ export default function Login() {
         </Grid>
       </Box>
     );
-  }
-  else {
+  } else {
     const redirectUrl = '/home';
     router.push(redirectUrl);
   }

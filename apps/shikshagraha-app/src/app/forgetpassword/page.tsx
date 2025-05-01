@@ -1,184 +1,283 @@
+// components/ForgotPassword.tsx
 'use client';
 import React, { useState } from 'react';
 import {
-  Button,
-  Typography,
-  TextField,
   Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  IconButton,
+  InputAdornment,
+  Snackbar,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import axios from 'axios';
-import { sendOtp } from '../../services/ProfileService';
-import { verifyOtp } from '../../services/ForgetPasswordService';
-import Link from 'next/link';
-const ForgotPassword: React.FC = () => {
-  const [step, setStep] = useState<'input' | 'otp' | 'reset-password'>('input');
-  const [contactMethod, setContactMethod] = useState<'email' | 'phone'>(
-    'email'
-  );
-  const [contactValue, setContactValue] = useState('');
+import {
+  sendOtp,
+  verifyOtpService,
+  resetPassword,
+  checkUserExists,
+} from '../../services/LoginService';
+import AppConst from '../../utils/AppConst/AppConst';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+const ForgotPassword = () => {
+  const router = useRouter();
+  const [step, setStep] = useState<'input' | 'otp' | 'reset'>('input');
+  const [formData, setFormData] = useState({
+    email: '',
+    mobile: '',
+    username: '',
+  });
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState(false);
+  const [hash, setHash] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [token, setToken] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleBack = () => {
-    if (step === 'reset-password') {
-      setStep('otp');
-    } else if (step === 'otp') {
-      setStep('input');
-    } else {
-      router.back();
-    }
+  const basePath = AppConst?.BASEPATH;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSendOtp = async () => {
-    if (!contactValue.trim()) {
-      setError(true);
+    if (!formData.email && !formData.mobile) {
+      setError('Please provide either email or mobile');
+      setShowError(true);
       return;
     }
+
     setLoading(true);
     try {
-      await sendOtp(contactValue, contactMethod);
-      setStep('otp');
+      const payload = formData.email
+        ? { email: formData.email, reason: 'forgot' }
+        : { mobile: formData.mobile, reason: 'forgot' };
+
+      const response = await sendOtp(payload);
+
+      if (response?.params?.successmessage === 'OTP sent successfully') {
+        setHash(response?.result?.data?.hash);
+        setStep('otp');
+      } else {
+        setError(response?.data?.params?.err || 'Failed to send OTP');
+        setShowError(true);
+      }
     } catch (err) {
-      setError(true);
+      setError('Failed to send OTP. Please try again.');
+      setShowError(true);
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.trim().length < 5) {
-      setError(true);
+    if (!otp) {
+      setError('Please enter OTP');
+      setShowError(true);
       return;
     }
+
     setLoading(true);
     try {
-      const success = await verifyOtp(contactValue, contactMethod, otp);
-      if (success) {
-        setStep('reset-password');
+      const payload = formData.email
+        ? {
+            email: formData.email,
+            reason: 'forgot',
+            otp,
+            hash,
+            username: formData.username,
+          }
+        : {
+            mobile: formData.mobile,
+            reason: 'forgot',
+            otp,
+            hash,
+            username: formData.username,
+          };
+
+      const response = await verifyOtpService(payload);
+
+      if (response?.params?.successmessage === 'OTP validation Sucessfully') {
+        setToken(response?.result?.token || '');
+        setStep('reset');
       } else {
-        setError(true);
+        setError(response?.data?.params?.err || 'Invalid OTP');
+        setShowError(true);
       }
     } catch (err) {
-      setError(true);
+      setError('Failed to verify OTP. Please try again.');
+      setShowError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResetPassword = () => {
-    if (newPassword !== confirmPassword || newPassword.length < 6) {
-      setError(true);
+  const handleResetPassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      setShowError(true);
       return;
     }
-    console.log('Password Reset Successful:', newPassword);
-    router.push('/login');
-  };
 
+    setLoading(true);
+    try {
+      const payload = formData.email
+        ? { email: formData.email, newPassword, token }
+        : { mobile: formData.mobile, newPassword, token };
+
+      const response = await resetPassword(payload);
+
+      if (response?.params?.status === 'successful') {
+        setShowSuccess(true);
+        setTimeout(() => router.push('/'), 2000);
+      } else {
+        setError(response?.data?.params?.err || 'Failed to reset password');
+        setShowError(true);
+      }
+    } catch (err) {
+      setError('Failed to reset password. Please try again.');
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleClickShowNewPassword = () => setShowNewPassword((show) => !show);
+  const handleClickShowConfirmPassword = () =>
+    setShowConfirmPassword((show) => !show);
   return (
     <Box
       sx={{
-        minHeight: '100vh',
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        bgcolor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #f5f5f5, #f5f5f5)',
+        minHeight: '100vh',
+        padding: 2,
       }}
     >
-      <Box
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
         sx={{
-          backgroundColor: '#FF9911',
-          p: 2,
-          borderBottom: '2px solid #FF9911',
+          maxWidth: { xs: '90%', sm: '400px', md: '500px' },
+          bgcolor: '#FFFFFF',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          borderRadius: '16px',
+          padding: { xs: 2, sm: 3 },
+          textAlign: 'center',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: 'inherit',
+            padding: '4px',
+            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+            WebkitMask:
+              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude',
+          },
         }}
       >
-        <Grid container alignItems="center">
-          <Grid item xs={2}>
-            <Button onClick={handleBack} sx={{ color: '#572E91' }}>
-              <ArrowBackIcon />
-            </Button>
-          </Grid>
-          <Grid item xs={8} textAlign="center">
-            <Typography
-              variant="h6"
-              sx={{ color: '#572E91', fontWeight: 'bold' }}
-            >
-              {step === 'input'
-                ? 'Forgot Password'
-                : step === 'otp'
-                ? 'Enter OTP'
-                : 'Reset Password'}
-            </Typography>
-          </Grid>
-        </Grid>
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexGrow: 1,
-          bgcolor: '#ffffff',
-          p: 2,
-        }}
-      >
-        <Box sx={{ width: '100%', maxWidth: 400 }}>
-          <Link
-            href={`${process.env.NEXT_PUBLIC_BASE_URL}/recover/identify/account`}
-            passHref
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            mb: 2,
+            gap: 1,
+          }}
+        >
+          <Box
+            component="img"
+            src={`${basePath}/assets/images/SG_Logo.png`}
+            alt="logo"
+            sx={{
+              width: { xs: '100%', sm: '100%' },
+              height: { xs: '100%', sm: '100%' },
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              color: '#582E92',
+              fontWeight: 'bold',
+              textAlign: 'center',
+            }}
           >
-            Password
-          </Link>
+            Shikshalokam
+          </Typography>
         </Box>
-      </Box>
-
-      {/* <Box sx={{ p: 3, maxWidth: 400, mx: 'auto', textAlign: 'center' }}>
         {step === 'input' && (
           <>
-            <Typography
-              variant="h5"
-              sx={{ color: '#572E91', fontWeight: 'bold', mb: 1 }}
-            >
-              Reset Your Password
+            <Typography variant="body1" gutterBottom>
+              <Typography variant="h5" gutterBottom>
+                Forgot Password
+              </Typography>
+              Enter your email or mobile number to receive OTP
             </Typography>
-            <Typography variant="body1" sx={{ color: '#333', mb: 3 }}>
-              Please enter your email address or phone number to receive an OTP.
-            </Typography>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Contact Method</InputLabel>
-              <Select
-                value={contactMethod}
-                onChange={(e) =>
-                  setContactMethod(e.target.value as 'email' | 'phone')
-                }
-              >
-                <MenuItem value="email">Email</MenuItem>
-                <MenuItem value="phone">Phone</MenuItem>
-              </Select>
-            </FormControl>
             <TextField
-              label={contactMethod === 'email' ? 'Email' : 'Phone'}
-              value={contactValue}
-              onChange={(e) => setContactValue(e.target.value)}
               fullWidth
-              sx={{ mb: 2 }}
+              label="Username"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              margin="normal"
             />
+            <TextField
+              fullWidth
+              label="Email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              margin="normal"
+              disabled={!!formData.mobile}
+            />
+
+            <Typography variant="body1" textAlign="center" my={1}>
+              OR
+            </Typography>
+
+            <TextField
+              fullWidth
+              label="Mobile Number"
+              name="mobile"
+              value={formData.mobile}
+              onChange={handleInputChange}
+              margin="normal"
+              disabled={!!formData.email}
+            />
+
             <Button
+              fullWidth
               variant="contained"
               onClick={handleSendOtp}
-              fullWidth
+              disabled={loading || (!formData.email && !formData.mobile)}
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#582E92',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -188,32 +287,38 @@ const ForgotPassword: React.FC = () => {
                 '&:hover': {
                   bgcolor: '#543E98',
                 },
-                width: '50%', // Ensures it spans the width of its container
+                width: { xs: '50%', sm: '50%' },
               }}
-              disabled={loading || !contactValue.trim()}
             >
-              {loading ? 'Sending OTP...' : 'Confirm'}
+              {loading ? <CircularProgress size={24} /> : 'Send OTP'}
             </Button>
           </>
         )}
+
         {step === 'otp' && (
           <>
-            <Typography variant="body1" sx={{ color: '#333', mb: 3 }}>
-              Please enter OTP received.
+            <Typography variant="h5" gutterBottom>
+              Verify OTP
             </Typography>
+            <Typography variant="body1" gutterBottom>
+              Enter the OTP sent to {formData.email || formData.mobile}
+            </Typography>
+
             <TextField
+              fullWidth
               label="OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
+              margin="normal"
             />
+
             <Button
+              fullWidth
               variant="contained"
               onClick={handleVerifyOtp}
-              fullWidth
+              disabled={loading || !otp}
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#582E92',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -223,41 +328,71 @@ const ForgotPassword: React.FC = () => {
                 '&:hover': {
                   bgcolor: '#543E98',
                 },
-                width: '50%', // Ensures it spans the width of its container
+                width: { xs: '50%', sm: '50%' },
               }}
-              disabled={otp.length < 5}
             >
-              Verify OTP
+              {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
             </Button>
           </>
         )}
-        {step === 'reset-password' && (
+
+        {step === 'reset' && (
           <>
-            <Typography variant="body1" sx={{ color: '#333', mb: 3 }}>
-              Please enter the new password for reset.
+            <Typography variant="h5" gutterBottom>
+              Reset Password
             </Typography>
+
             <TextField
+              fullWidth
+              type={showNewPassword ? 'text' : 'password'}
               label="New Password"
-              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
+              margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowNewPassword}
+                      edge="end"
+                    >
+                      {showNewPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
+
             <TextField
-              label="Confirm Password"
-              type="password"
+              fullWidth
+              type={showConfirmPassword ? 'text' : 'password'}
+              label="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
+              margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowConfirmPassword}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
+
             <Button
+              fullWidth
               variant="contained"
               onClick={handleResetPassword}
-              fullWidth
+              disabled={loading || !newPassword || !confirmPassword}
               sx={{
-                bgcolor: '#6750A4',
+                bgcolor: '#582E92',
                 color: '#FFFFFF',
                 borderRadius: '30px',
                 textTransform: 'none',
@@ -267,34 +402,58 @@ const ForgotPassword: React.FC = () => {
                 '&:hover': {
                   bgcolor: '#543E98',
                 },
-                width: '50%', // Ensures it spans the width of its container
+                width: { xs: '50%', sm: '50%' },
               }}
             >
-              Confirm
+              {loading ? <CircularProgress size={24} /> : 'Reset Password'}
             </Button>
           </>
         )}
-      </Box>  */}
 
-      <Box
-        sx={{
-          p: 2,
-          textAlign: 'center',
-          borderTop: '1px solid #FF9911',
-          backgroundColor: '#FFFFFF',
-        }}
-      >
-        <Typography variant="body2">
-          Remembered your password?{' '}
-          <Button
-            variant="text"
-            onClick={() => router.push('/login')}
-            sx={{ color: '#572E91', fontWeight: 'bold' }}
+        {showError && (
+          <Snackbar
+            open={showError}
+            autoHideDuration={4000}
+            onClose={() => setShowError(false)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           >
-            Sign In
-          </Button>
-        </Typography>
-      </Box>
+            <Alert
+              severity="error"
+              onClose={() => setShowError(false)}
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
+          </Snackbar>
+        )}
+
+        <Dialog open={showSuccess} onClose={() => setShowSuccess(false)}>
+          <DialogTitle>Password Reset Successful</DialogTitle>
+          <DialogContent>
+            <Typography>Your password has been reset successfully.</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              sx={{
+                bgcolor: '#582E92',
+                color: '#FFFFFF',
+                borderRadius: '30px',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                padding: '8px 16px',
+                '&:hover': {
+                  bgcolor: '#543E98',
+                },
+                width: { xs: '50%', sm: '50%' },
+              }}
+              onClick={() => router.push('/login')}
+            >
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Grid>
     </Box>
   );
 };
