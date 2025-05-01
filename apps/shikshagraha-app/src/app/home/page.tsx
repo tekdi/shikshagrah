@@ -77,6 +77,16 @@ export default function Home() {
     window.location.href = url;
   };
 
+  const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
+    if (sameOrigin) {
+      const base = process.env.NEXT_PUBLIC_PROGRAM_BASE_URL;
+      if (!base) {
+        throw new Error('NEXT_PUBLIC_PROGRAM_BASE_URL is not defined');
+      }
+      return `${base}${path}`;
+    }
+    return path;
+  }
 
     return (
       <>
@@ -134,7 +144,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.sameOrigin ? process.env.NEXT_PUBLIC_PROGRAM_BASE_URL + card.url : card.url)} 
+                      onClick={() => handleCardClick(buildProgramUrl(card.url,card.sameOrigin))} 
                     />
                   ))}
               </Box>
@@ -201,7 +211,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.sameOrigin ? process.env.NEXT_PUBLIC_PROGRAM_BASE_URL + card.url : card.url)} 
+                      onClick={() => handleCardClick(buildProgramUrl(card.url,card.sameOrigin))} 
                     />
                     ))}
                 </Box>
