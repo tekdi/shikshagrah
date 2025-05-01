@@ -140,3 +140,21 @@ export const fetchContentOnUdise = async (udise: string): Promise<any> => {
     throw error;
   }
 };
+export const sendOtp = async (requestData: any) => {
+  // const modifiedRequestData = requestData?.requestData || requestData;
+
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/send-otp`,
+      requestData
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error submitting registration data:', error);
+      return error.response;
+    } else {
+      // handle other types of errors
+    }
+  }
+};
