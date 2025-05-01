@@ -39,6 +39,7 @@ import {
   signin,
   registerUserService,
   sendOtp,
+  verifyOtpService,
 } from '../services/LoginService';
 import { useRouter } from 'next/navigation';
 import OTPDialog from './OTPDialog';
@@ -84,6 +85,7 @@ const DynamicForm = ({
   const [showError, setShowError] = useState(false);
   const [isOpenOTP, setIsOpenOTP] = useState(false);
   const [registerData, setRegisterData] = useState<any>({});
+  const [hashCode, setHashCode] = useState('');
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     if (formData?.dob) {
@@ -1351,20 +1353,30 @@ const DynamicForm = ({
       customFields,
     };
     setRegisterData(payload);
-    const payloadOTP = {
-      name: formData.firstName,
+    let otpPayload;
+    if (formData.email) {
+      otpPayload = {
+        email: formData.email,
+        reason: 'signup',
+        firstName: formData.firstName,
+        key: 'SendOtpOnMail',
+        replacements: {
+          '{eventName}': 'Shiksha Graha OTP',
+          '{programName}': 'Shiksha Graha',
+        },
+      };
+    } else if (formData.mobile) {
+      otpPayload = {
+        mobile: formData.mobile,
+        reason: 'signup',
+      };
+    } else {
+      setShowError(true);
+      setErrorMessage('Either email or mobile must be provided');
+      return;
+    }
 
-      email: formData.email,
-      reason: 'signup',
-      firstName: formData.firstName,  
-      key: 'SendOtpOnMail',
-      replacements: {
-        '{eventName}': 'Shiksha Graha OTP',
-        '{programName}': 'Shiksha Graha',
-      },
-    };
-
-    const registrationResponse = await sendOtp(payloadOTP);
+    const registrationResponse = await sendOtp(otpPayload);
     if (
       registrationResponse?.params?.successmessage === 'OTP sent successfully'
     ) {
@@ -1375,6 +1387,7 @@ const DynamicForm = ({
           },
         },
       });
+      setHashCode(registrationResponse?.result?.data?.hash);
       setErrorMessage(registrationResponse.message);
       setIsOpenOTP(true);
     } else {
@@ -1384,7 +1397,7 @@ const DynamicForm = ({
       );
     }
   };
-  const handleRegister = async () => {
+  const handleRegister = async (otp: string) => {
     if (!formData.email && !formData.mobile) {
       setShowEmailMobileError(
         'Please provide either an email or a mobile number.'
@@ -1452,24 +1465,52 @@ const DynamicForm = ({
       customFields,
     };
     setRegisterData(payload);
-    const registrationResponse = await registerUserService(payload);
-    if (
-      registrationResponse?.params?.successmessage ===
-      'User created successfully'
-    ) {
-      setRequestData({
-        usercreate: {
-          request: {
-            userName: registrationResponse?.result?.userData?.username,
-          },
-        },
-      });
-      setErrorMessage(registrationResponse.message);
-      setDialogOpen(true);
+    let verifyOTPpayload;
+    if (formData.email) {
+      verifyOTPpayload = {
+        email: formData.email,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
     } else {
+      verifyOTPpayload = {
+        mobile: formData.mobile,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    }
+
+    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
+    if (
+      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
+    ) {
+      const registrationResponse = await registerUserService(payload);
+      if (
+        registrationResponse?.params?.successmessage ===
+        'User created successfully'
+      ) {
+        setRequestData({
+          usercreate: {
+            request: {
+              userName: registrationResponse?.result?.userData?.username,
+            },
+          },
+        });
+        setErrorMessage(registrationResponse.message);
+        setDialogOpen(true);
+      } else {
+        setShowError(true);
+        setErrorMessage(
+          registrationResponse.data && registrationResponse.data.params.err
+        );
+      }
+    } else {
+      console.log('verifyOtpResponse', verifyOtpResponse);
       setShowError(true);
       setErrorMessage(
-        registrationResponse.data && registrationResponse.data.params.err
+        verifyOtpResponse.data && verifyOtpResponse.data.params.err
       );
     }
   };
@@ -1572,7 +1613,11 @@ const DynamicForm = ({
           id="dynamic-form-id"
         >
           {showEmailMobileError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setShowEmailMobileError(false)}
+            >
               Please provide either email or mobile number
             </Alert>
           )}
@@ -1591,7 +1636,7 @@ const DynamicForm = ({
                 !formData?.lastName ||
                 !formData?.password ||
                 !formData.roles ||
-                (formData?.roles.includes('administrator') &&
+                (formData?.roles.includes('HT & Officials') &&
                   !formData?.subRoles?.length) ||
                 !formData?.udise
               }

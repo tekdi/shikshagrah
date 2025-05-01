@@ -158,3 +158,20 @@ export const sendOtp = async (requestData: any) => {
     }
   }
 };
+
+export const verifyOtpService = async (requestData: any) => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/verify-otp`,
+      requestData
+    );
+    return response?.data; // Return response to be handled in the component
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error submitting registration data:', error);
+      return error.response;
+    } else {
+      // handle other types of errors
+    }
+  }
+};
