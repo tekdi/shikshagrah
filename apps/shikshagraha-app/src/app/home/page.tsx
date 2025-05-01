@@ -73,8 +73,9 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-  const handleCardClick = (url) => {
-    window.location.href = url;
+  const handleCardClick = (card) => {
+    window.location.href = buildProgramUrl(card.url,card.sameOrigin)
+    ;
   };
 
   const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
@@ -144,7 +145,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(buildProgramUrl(card.url,card.sameOrigin))} 
+                      onClick={() => handleCardClick(card)} 
                     />
                   ))}
               </Box>
@@ -211,7 +212,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(buildProgramUrl(card.url,card.sameOrigin))} 
+                      onClick={() => handleCardClick(card)} 
                     />
                     ))}
                 </Box>
