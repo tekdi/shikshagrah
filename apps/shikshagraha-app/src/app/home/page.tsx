@@ -20,7 +20,6 @@ import {
   Button,
 } from '@mui/material';
 import AppConst from '../../utils/AppConst/AppConst';
-import { headers } from 'next/headers';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
@@ -30,7 +29,6 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [cardData,SetCardData] = useState([])
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -59,7 +57,6 @@ export default function Home() {
       }
     }
     fetchConfig();
-    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, []);
 
   const handleAccountClick = () => {
@@ -80,7 +77,7 @@ export default function Home() {
     window.location.href = url;
   };
 
-  if(isAuthenticated) {
+
     return (
       <>
         <Layout
@@ -232,9 +229,4 @@ export default function Home() {
         </Dialog>
       </>
     );
-  }
-  else {
-    // localStorage.clear();
-    // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-  }
 }
