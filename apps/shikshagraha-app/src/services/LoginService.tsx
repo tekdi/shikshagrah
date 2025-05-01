@@ -160,7 +160,6 @@ export const sendOtp = async (requestData: any) => {
 };
 
 export const readIndividualTenantData = async (tenantId: string) => {
-
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   if (!baseUrl) {
     throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
@@ -178,5 +177,21 @@ export const readIndividualTenantData = async (tenantId: string) => {
     }
     console.error('Unexpected error:', err);
     throw err;
+  };
+    export const verifyOtpService = async (requestData: any) => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/verify-otp`,
+      requestData
+    );
+    return response?.data; // Return response to be handled in the component
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error submitting registration data:', error);
+      return error.response;
+    } else {
+      // handle other types of errors
+    }
   }
 };
+
