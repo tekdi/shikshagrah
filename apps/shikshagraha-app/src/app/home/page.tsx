@@ -6,6 +6,7 @@ import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
+import { readIndividualTenantData } from '../../services/LoginService';
 import { useEffect, useState } from 'react';
 import {
   CircularProgress,
@@ -22,41 +23,12 @@ import AppConst from '../../utils/AppConst/AppConst';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
-  const cardData = [
-    {
-      title: 'Programs',
-      icon: '/shikshalokam/assets/images/ic_program.png',
-      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
-    },
-    {
-      title: 'Projects',
-      icon: '/shikshalokam/assets/images/ic_project.png',
-      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
-    },
-    {
-      title: 'Survey',
-      icon: '/shikshalokam/assets/images/ic_survey.png',
-      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
-    },
-    {
-      title: 'Observation',
-      icon: '/shikshalokam/assets/images/ic_observation.svg',
-      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
-    },
-    {
-      title: 'Reports',
-      icon: '/shikshalokam/assets/images/ic_report.png',
-      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
-    },
-  ];
-  const isAuthenticated = !!localStorage.getItem('accToken');
-
-
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [cardData,setCardData] = useState([])
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -69,7 +41,22 @@ export default function Home() {
         setLoading(false);
       }
     };
+    
     getProfileData();
+
+    async function fetchConfig() {
+      const header = JSON.parse(localStorage.getItem('headers'));
+
+      if (!header['org-id']) return
+      try {
+        const data = await readIndividualTenantData(header['org-id']);
+        setCardData(data.result.contentFilter);
+        localStorage.setItem('theme',JSON.stringify(data.result.contentFilter[0].theme))
+      } catch (err) {
+        setError((err as Error).message)
+      }
+    }
+    fetchConfig();
   }, []);
 
   const handleAccountClick = () => {
@@ -86,11 +73,22 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-  const handleCardClick = (url) => {
-    window.location.href = url;
+  const handleCardClick = (card) => {
+    window.location.href = buildProgramUrl(card.url,card.sameOrigin)
+    ;
   };
 
-  if(isAuthenticated) {
+  const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
+    if (sameOrigin) {
+      const base = process.env.NEXT_PUBLIC_PROGRAM_BASE_URL;
+      if (!base) {
+        throw new Error('NEXT_PUBLIC_PROGRAM_BASE_URL is not defined');
+      }
+      return `${base}${path}`;
+    }
+    return path;
+  }
+
     return (
       <>
         <Layout
@@ -119,7 +117,7 @@ export default function Home() {
                   minHeight: '50vh',
                 }}
               >
-                {cardData
+                {(cardData.length > 0 ) && cardData
                   .filter((card) => {
                     const storedHeaders = JSON.parse(
                       localStorage.getItem('headers') ?? '{}'
@@ -147,7 +145,7 @@ export default function Home() {
                         },
                         maxWidth: { xs: 280, sm: 350 },
                       }}
-                      onClick={() => handleCardClick(card.link)}
+                      onClick={() => handleCardClick(card)} 
                     />
                   ))}
               </Box>
@@ -201,21 +199,21 @@ export default function Home() {
                     })
                     .map((card, index) => (
                       <DynamicCard
-                        key={index}
-                        title={card.title}
-                        icon={card.icon}
-                        sx={{
-                          borderRadius: 2,
-                          boxShadow: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                            boxShadow: 6,
-                          },
-                          maxWidth: { xs: 280, sm: 350 },
-                        }}
-                        onClick={() => handleCardClick(card.link)}
-                      />
+                      key={index}
+                      title={card.title}
+                      icon={card.icon}
+                      sx={{
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: 6,
+                        },
+                        maxWidth: { xs: 280, sm: 350 },
+                      }}
+                      onClick={() => handleCardClick(card)} 
+                    />
                     ))}
                 </Box>
               </>
@@ -242,9 +240,4 @@ export default function Home() {
         </Dialog>
       </>
     );
-  }
-  else {
-    localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-  }
 }

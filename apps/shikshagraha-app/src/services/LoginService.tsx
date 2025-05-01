@@ -159,7 +159,26 @@ export const sendOtp = async (requestData: any) => {
   }
 };
 
-export const verifyOtpService = async (requestData: any) => {
+export const readIndividualTenantData = async (tenantId: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
+  }
+
+  const apiUrl = `${baseUrl}/interface/v1/user/tenant/read/${tenantId}`;
+
+  try {
+    const { data } = await axios.get(apiUrl);
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      console.error('Error fetching tenant data:', err.response?.status, err.response?.data);
+      throw new Error(`API error: ${err.response?.status}`);
+    }
+    console.error('Unexpected error:', err);
+    throw err;
+  };
+    export const verifyOtpService = async (requestData: any) => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/verify-otp`,
@@ -175,3 +194,4 @@ export const verifyOtpService = async (requestData: any) => {
     }
   }
 };
+

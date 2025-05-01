@@ -43,6 +43,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -71,7 +72,6 @@ export default function Profile() {
   ]);
   const [userCustomFields, setUserCustomFields] = useState([]);
   const [courseDetails, setCourseDetails] = useState<any>(null);
-  const isAuthenticated = !!localStorage.getItem('accToken') || undefined;
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
@@ -169,6 +169,7 @@ export default function Profile() {
 
     getProfileData();
     handleMyCourses();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
   const handleMyCourses = async () => {
@@ -361,7 +362,7 @@ export default function Profile() {
   //     </Typography>
   //   );
   // }
-  if (isAuthenticated) {
+  if(isAuthenticated) {
     return (
       <Layout
         showTopAppBar={{
@@ -518,8 +519,7 @@ export default function Profile() {
                         }}
                       >
                         <span style={{ color: '#FF9911' }}>
-                          {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}
-                          :
+                          {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
                         </span>{' '}
                         {loc.name || 'N/A'}
                       </Typography>
@@ -634,9 +634,7 @@ export default function Profile() {
                         <TableCell sx={{ fontWeight: 'bold' }}>
                           Course ID
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>
-                          Status
-                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
                       </TableRow>
                     </TableHead>
@@ -804,10 +802,7 @@ export default function Profile() {
           </DialogActions>
         </Dialog>
         {/* Email Input Dialog */}
-        <Dialog
-          open={openEmailDialog}
-          onClose={() => setOpenEmailDialog(false)}
-        >
+        <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
           <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
           <DialogContent>
             <RadioGroup value={selectedOption} onChange={handleOptionChange}>
@@ -892,9 +887,7 @@ export default function Profile() {
           open={openConfirmDeleteDialog}
           onClose={() => setOpenConfirmDeleteDialog(false)}
         >
-          <DialogTitle>
-            Your account has been successfully deleted!!
-          </DialogTitle>
+          <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
           <DialogContent></DialogContent>
           <DialogActions>
             <Button onClick={confirm} sx={{ color: '#582E92' }}>
@@ -920,7 +913,9 @@ export default function Profile() {
         </Dialog>
       </Layout>
     );
-  } else {
-    handleLogoutConfirm();
+  }
+  else {
+    handleLogoutConfirm()
   }
 }
+
