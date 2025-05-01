@@ -33,6 +33,12 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
   const handleSubmit = () => {
     const otpString = otp.join(''); // Combine the OTP digits into a single string
     onSubmit(otpString); // Pass the OTP string to the parent component
+    setOtp(Array(6).fill(''));
+  };
+  const handleClose = () => {
+    // Clear OTP fields when dialog is closed
+    setOtp(Array(6).fill(''));
+    onClose();
   };
   return (
     <Dialog open={open} onClose={onClose}>
@@ -55,7 +61,7 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleClose}>Cancel</Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
