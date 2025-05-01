@@ -97,7 +97,8 @@ export default function Login() {
         const tenantResponse = await authenticateLoginUser({
           token: response?.result?.access_token,
         });
-        console.log('tenantResponse', tenantResponse);
+        localStorage.setItem('firstname', tenantResponse?.result?.firstName);
+
         if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
           localStorage.setItem('userId', tenantResponse?.result?.userId);
           const tenantIdToCompare =
