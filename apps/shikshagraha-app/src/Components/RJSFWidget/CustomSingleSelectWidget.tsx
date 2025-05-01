@@ -32,7 +32,7 @@ const CustomSingleSelectWidget = ({
     onChange(selected);
 
     // Check if the selected role is 'administrator' and toggle the visibility of subRoles
-    if (selected === 'administrator') {
+    if (selected === 'HT & Officials') {
       setSubRolesVisible(true);
     } else {
       setSubRolesVisible(false);
@@ -41,7 +41,7 @@ const CustomSingleSelectWidget = ({
 
   useEffect(() => {
     // Check if the current value is 'administrator' on component mount
-    if (value === 'administrator') {
+    if (value === 'HT & Officials') {
       setSubRolesVisible(true);
     }
   }, [value]);

@@ -137,7 +137,7 @@ const DynamicForm = ({
         setFormUiSchema(oldFormUiSchema);
       }
     }
-    if (formData?.roles === 'administrator') {
+    if (formData?.roles === 'HT & Officials') {
       const updatedFormSchema = {
         ...formSchema,
         required: formSchema.required?.filter((key) => key !== 'roles'),
@@ -845,12 +845,17 @@ const DynamicForm = ({
     errors: any;
   }) => {
     setFormData(formData);
-    if (formData?.firstName && formData?.lastName) {
-      formData.Username = `${formData.firstName}_${formData.lastName}`;
+
+    const firstName = (formData?.firstName || '').trim();
+    const lastName = (formData?.lastName || '').trim();
+
+    // And optionally prevent cases like "___" when names are empty strings:
+    if ((firstName || lastName) && !(firstName === '' && lastName === '')) {
+      formData.Username = `${firstName}_${lastName}`.toLowerCase();
+    } else {
+      formData.Username = undefined;
     }
-    if (formData?.Username && (formData?.firstName || formData?.lastName)) {
-      formData.Username = `${formData.firstName}_${formData.lastName}`;
-    }
+
     if (formData.email) {
       setShowEmailMobileError(
         "Contact number is optional since you've provided an email"
@@ -1351,7 +1356,7 @@ const DynamicForm = ({
 
       email: formData.email,
       reason: 'signup',
-      firstName: 'sourav',
+      firstName: formData.firstName,  
       key: 'SendOtpOnMail',
       replacements: {
         '{eventName}': 'Shiksha Graha OTP',

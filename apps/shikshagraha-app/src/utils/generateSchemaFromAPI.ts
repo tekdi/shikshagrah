@@ -7,7 +7,12 @@ const toCamelCase = (str: string) => {
     .replace(/[\-_]+/g, '');
 };
 
-export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
+export const generateRJSFSchema = (
+  fields: any[],
+  rolesValue: string
+  // emailValue: string,
+  // contactNumberValue: string
+) => {
   const schema: any = {
     type: 'object',
     properties: {},
@@ -39,18 +44,39 @@ export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
         type: isMultiSelect ? 'array' : 'string',
       };
       if (type === 'drop_down') {
-        fieldSchema.enum = options.map((option: any) => option.value); // Use options to populate the enum
-        // if (isMultiSelect) {
-        fieldSchema.items = {
-          type: 'select',
-          // };
-        };
+        const enumValues = options?.map((option: any) => option.value) || [];
+        const enumNames =
+          options?.map(
+            (option: any) =>
+              option.value.charAt(0).toUpperCase() + option.value.slice(1)
+          ) || [];
+
+        if (isMultiSelect) {
+          fieldSchema.items = {
+            type: 'string',
+            enum: enumValues,
+            enumNames: enumNames,
+          };
+          fieldSchema.uniqueItems = true;
+        } else {
+          fieldSchema.enum = enumValues;
+          fieldSchema.enumNames = enumNames;
+        }
       }
 
       if (type === 'drop_down') {
         const enumValues = options?.map((option: any) => option.value) || [];
+        const enumNames =
+          options?.map(
+            (option: any) =>
+              option.value.charAt(0).toUpperCase() + option.value.slice(1)
+          ) || [];
         if (isMultiSelect) {
-          fieldSchema.items = { type: 'string', enum: enumValues };
+          fieldSchema.items = {
+            type: 'string',
+            enum: enumValues,
+            enumNames: enumNames,
+          };
           fieldSchema.uniqueItems = true;
         } else {
           fieldSchema.enum = enumValues;
@@ -65,8 +91,21 @@ export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
       // if (isRequired) {
       //   schema.required.push(name);
       // }
+      // const emailEntered = !!emailValue;
+      // const contactEntered = !!contactNumberValue;
 
-      if (name === 'subRoles' && rolesValue !== 'administrator') {
+      // const shouldHideEmail = name === 'email' && contactEntered;
+      // const shouldHideContact = name === 'mobile' && emailEntered;
+      // console.log('name', rolesValue);
+      // if (
+      //   (name === 'email' && contactEntered) ||
+      //   (name === 'mobile' && emailEntered)
+      // ) {
+      //   uiSchema[name] = {
+      //     'ui:widget': 'hidden',
+      //   };
+      // } else
+      if (name === 'subRoles' && rolesValue !== 'HT & Officials') {
         uiSchema[name] = {
           'ui:widget': 'hidden',
         };
@@ -87,11 +126,12 @@ export const generateRJSFSchema = (fields: any[], rolesValue: string) => {
               ? 'CustomSingleSelectWidget'
               : name == 'subRoles'
               ? 'CustomMultiSelectWidget'
-              : type === 'email'
-              ? 'CustomEmailWidget'
               : type === 'password'
               ? 'password'
               : 'CustomTextFieldWidget',
+          // ...(shouldHideEmail || shouldHideContact
+          //   ? { 'ui:widget': 'hidden' }
+          //   : {}),
         };
       }
       if (fieldId) {

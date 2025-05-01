@@ -484,14 +484,14 @@ export default function Profile() {
                       }}
                     >
                       <span style={{ color: '#FF9911' }}>{item.label}: </span>
-                      {displayRole === 'administrator'
+                      {displayRole === 'HT & Officials'
                         ? 'HT & Officials'
                         : toCamelCase(item.value)}
                     </Typography>
                   );
                 })}
 
-                {displayRole === 'administrator' && (
+                {displayRole === 'HT & Officials' && (
                   <Typography
                     variant="body1"
                     sx={{
