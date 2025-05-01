@@ -95,6 +95,7 @@ export default function Profile() {
           setUserDataProfile(mappedProfile);
 
           const customFields = tenantResponse?.result?.userData?.customFields;
+          console.log('customFields', customFields);
           const desiredOrder = [
             'Roles',
             'subRoles',
@@ -105,9 +106,37 @@ export default function Profile() {
             'School',
           ];
           const cleanValue = (value: any) => {
-            if (typeof value === 'string') {
-              return value.replace(/^\{"(.*)"\}$/g, '$1');
+            if (Array.isArray(value)) {
+              return value
+                .map((v) => v.value)
+                .join(', ')
+                .replace(/\\$/, '');
             }
+
+            if (typeof value === 'string') {
+              try {
+                const firstParse = JSON.parse(value);
+                if (typeof firstParse === 'string') {
+                  const secondParse = JSON.parse(firstParse);
+                  return (
+                    secondParse?.name || JSON.stringify(secondParse)
+                  ).replace(/\\$/, '');
+                }
+                return (firstParse?.name || JSON.stringify(firstParse)).replace(
+                  /\\$/,
+                  ''
+                );
+              } catch {
+                const match = value.match(/"name":"([^"]+)"/);
+                if (match) return match[1].replace(/\\$/, '');
+
+                const fallbackMatch = value.match(/"([^"]+)"}/);
+                return fallbackMatch
+                  ? fallbackMatch[1].replace(/\\$/, '')
+                  : value.replace(/\\$/, '');
+              }
+            }
+
             return value;
           };
           const fieldMap = new Map(
@@ -122,6 +151,7 @@ export default function Profile() {
             .filter(Boolean);
 
           setUserCustomFields(sortedData);
+          console.log('sortedData', sortedData);
         }
       } catch (err) {
         setShowError(true);

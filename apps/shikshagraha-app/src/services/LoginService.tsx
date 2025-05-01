@@ -131,13 +131,30 @@ export const registerUserService = async (requestData: any) => {
 
 export const fetchContentOnUdise = async (udise: string): Promise<any> => {
   console.log(udise);
-  // const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_ENTITY}/entities/details/${udise}`;
-  const apiUrl = `https://project-qa.elevate-apis.shikshalokam.org/entity-management/v1/entities/details/${udise}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_ENTITY}/entities/details/${udise}`;
   try {
     const response = await axios.get(apiUrl);
     return response?.data;
   } catch (error) {
     console.error('error in fetching user details', error);
     throw error;
+  }
+};
+export const sendOtp = async (requestData: any) => {
+  // const modifiedRequestData = requestData?.requestData || requestData;
+
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/send-otp`,
+      requestData
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error submitting registration data:', error);
+      return error.response;
+    } else {
+      // handle other types of errors
+    }
   }
 };

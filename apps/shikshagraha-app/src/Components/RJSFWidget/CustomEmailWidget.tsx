@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import { TextField } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 
@@ -16,8 +16,15 @@ const CustomEmailWidget = ({
   rawErrors = [],
   placeholder,
 }: WidgetProps) => {
+  const [localError, setLocalError] = useState<string | null>(null);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
+    if (!emailRegex.test(val)) {
+      setLocalError('Enter a valid email address');
+    } else {
+      setLocalError(null); // ✅ Clear error when valid
+    }
     onChange(val === '' ? undefined : val);
   };
 
@@ -36,7 +43,11 @@ const CustomEmailWidget = ({
       fullWidth
       type="email"
       id={id}
-      label={label}
+      label={
+        <span>
+          {label} <span style={{ color: 'red' }}>*</span>
+        </span>
+      }
       value={value ?? ''}
       required={required}
       disabled={disabled || readonly}
@@ -45,9 +56,18 @@ const CustomEmailWidget = ({
       onFocus={handleFocus}
       placeholder={placeholder || 'Enter your email'}
       error={displayErrors.length > 0}
-      helperText={displayErrors.length > 0 ? displayErrors[0] : ''}
+      helperText={
+        localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+      }
       variant="outlined"
       size="small"
+      FormHelperTextProps={{
+        sx: {
+          color: 'red',
+          fontSize: '11px',
+          marginLeft: '0px',
+        },
+      }}
       InputProps={{
         sx: {
           '& .MuiInputBase-input': {
