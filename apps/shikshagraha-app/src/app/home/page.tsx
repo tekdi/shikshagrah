@@ -86,11 +86,9 @@ export default function Home() {
     setShowLogoutModal(false);
   };
 
-const handleCardClick = (url) => {
-  console.log(url);
-  window.open(url,'_self')
-};
-
+  const handleCardClick = (url) => {
+    window.location.href = url;
+  };
 
   if(isAuthenticated) {
     return (
