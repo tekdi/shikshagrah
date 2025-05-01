@@ -40,7 +40,7 @@ const UdiaseWithButton = ({
     try {
       const response = await fetchContentOnUdise(udiseCode);
       const locationInfo = response.result[0];
-
+console.log('locationInfo', response);
       const sampleResponse = {
         udise: udiseCode,
         school: {

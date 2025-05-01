@@ -77,6 +77,18 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return null;
   };
+  const shouldShowHelperText = () => {
+    // Always show for non-email/mobile fields
+    if (!isEmailField && !isMobileField) return true;
+
+    // For email field - only show if mobile isn't entered
+    if (isEmailField) return !formData.mobile;
+
+    // For mobile field - only show if email isn't entered
+    if (isMobileField) return !formData.email;
+
+    return true;
+  };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     const error = validateField(label || '', val);
@@ -111,7 +123,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     setShowPassword((prev) => !prev);
   };
   const renderLabel = () => {
-    if (['first name', 'last name', 'username'].includes(lowerLabel || '')) {
+    if (['first name', 'last name', 'username','password'].includes(lowerLabel || '')) {
       return (
         <>
           {label} <span style={{ color: 'red' }}>*</span>
@@ -154,7 +166,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       placeholder={placeholder}
       error={displayErrors.length > 0}
       helperText={
-        localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+        shouldShowHelperText()
+          ? localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+          : ''
       }
       variant="outlined"
       size="small"

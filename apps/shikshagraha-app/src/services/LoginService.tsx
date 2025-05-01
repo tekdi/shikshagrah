@@ -137,7 +137,7 @@ export const fetchContentOnUdise = async (udise: string): Promise<any> => {
     return response?.data;
   } catch (error) {
     console.error('error in fetching user details', error);
-    throw error;
+    return error;
   }
 };
 export const sendOtp = async (requestData: any) => {
