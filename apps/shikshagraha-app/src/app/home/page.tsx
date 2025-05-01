@@ -30,6 +30,8 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [cardData,SetCardData] = useState([])
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
     const getProfileData = async () => {
       try {
@@ -57,6 +59,7 @@ export default function Home() {
       }
     }
     fetchConfig();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, []);
 
   const handleAccountClick = () => {
@@ -188,21 +191,21 @@ export default function Home() {
                     })
                     .map((card, index) => (
                       <DynamicCard
-                        key={index}
-                        title={card.title}
-                        icon={card.icon}
-                        sx={{
-                          borderRadius: 2,
-                          boxShadow: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                            boxShadow: 6,
-                          },
-                          maxWidth: { xs: 280, sm: 350 },
-                        }}
-                        onClick={() => handleCardClick(card.link)}
-                      />
+                      key={index}
+                      title={card.title}
+                      icon={card.icon}
+                      sx={{
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: 6,
+                        },
+                        maxWidth: { xs: 280, sm: 350 },
+                      }}
+                      onClick={() => handleCardClick(card.sameOrigin ? process.env.NEXT_PUBLIC_PROGRAM_BASE_URL + card.url : card.url)} 
+                    />
                     ))}
                 </Box>
               </>
@@ -231,7 +234,7 @@ export default function Home() {
     );
   }
   else {
-    localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    // localStorage.clear();
+    // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
   }
 }
