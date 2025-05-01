@@ -49,7 +49,7 @@ export default function Home() {
       link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
     },
   ];
-  const isAuthenticated = !!localStorage.getItem('accToken');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 
   const router = useRouter();
@@ -70,6 +70,7 @@ export default function Home() {
       }
     };
     getProfileData();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, []);
 
   const handleAccountClick = () => {
@@ -246,7 +247,6 @@ const handleCardClick = (url) => {
     );
   }
   else {
-    localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    // window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE
   }
 }

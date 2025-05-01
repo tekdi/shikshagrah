@@ -34,7 +34,7 @@ export default function Login() {
     userName: '',
     password: '',
   });
-  const isAuthenticated = !!localStorage.getItem('accToken');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState({
     userName: false,
     password: false,
@@ -67,6 +67,10 @@ export default function Login() {
             : value.trim() === '', // Validate username for non-emptiness
       }));
     };
+
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
+  }, []);
 
   const handleButtonClick = async () => {
     setShowError(false);

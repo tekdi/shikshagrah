@@ -43,7 +43,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
-  const isAuthenticated = !!localStorage.getItem('accToken');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -169,6 +169,7 @@ export default function Profile() {
 
     getProfileData();
     handleMyCourses();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
   const handleMyCourses = async () => {
