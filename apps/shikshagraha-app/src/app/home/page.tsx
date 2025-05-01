@@ -22,33 +22,34 @@ import AppConst from '../../utils/AppConst/AppConst';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
-const cardData = [
-  {
-    title: 'Programs',
-    icon: '/shikshalokam/assets/images/ic_program.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
-  },
-  {
-    title: 'Projects',
-    icon: '/shikshalokam/assets/images/ic_project.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
-  },
-  {
-    title: 'Survey',
-    icon: '/shikshalokam/assets/images/ic_survey.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
-  },
-  {
-    title: 'Observation',
-    icon: '/shikshalokam/assets/images/ic_observation.svg',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
-  },
-  {
-    title: 'Reports',
-    icon: '/shikshalokam/assets/images/ic_report.png',
-    link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
-  },
-];
+  const cardData = [
+    {
+      title: 'Programs',
+      icon: '/shikshalokam/assets/images/ic_program.png',
+      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/program?type=program`,
+    },
+    {
+      title: 'Projects',
+      icon: '/shikshalokam/assets/images/ic_project.png',
+      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/project?type=project`,
+    },
+    {
+      title: 'Survey',
+      icon: '/shikshalokam/assets/images/ic_survey.png',
+      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/listing/survey?type=survey`,
+    },
+    {
+      title: 'Observation',
+      icon: '/shikshalokam/assets/images/ic_observation.svg',
+      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/observation?type=listing`,
+    },
+    {
+      title: 'Reports',
+      icon: '/shikshalokam/assets/images/ic_report.png',
+      link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
+    },
+  ];
+  const isAuthenticated = !!localStorage.getItem('accToken');
 
 
   const router = useRouter();
@@ -86,7 +87,8 @@ const cardData = [
   };
 
 const handleCardClick = (url) => {
-  window.location.href = url;
+  console.log(url);
+  window.open(url,'_self')
 };
 
 
@@ -214,7 +216,7 @@ const handleCardClick = (url) => {
                           },
                           maxWidth: { xs: 280, sm: 350 },
                         }}
-                        onClick={() => handleCardClick(card.title)}
+                        onClick={() => handleCardClick(card.link)}
                       />
                     ))}
                 </Box>
