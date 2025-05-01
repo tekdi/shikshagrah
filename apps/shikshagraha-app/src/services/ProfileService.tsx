@@ -4,6 +4,10 @@ interface MyCourseDetailsProps {
   token: string | null;
   userId: string | null;
 }
+interface AuthParams {
+  token: string;
+  userId: string;
+}
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
     const response = await fetch(
@@ -269,5 +273,29 @@ export const renderCertificate = async (
   } catch (error) {
     console.error('Error rendering certificate:', error);
     throw error;
+  }
+};
+export const deleteUserAccount = async ({
+  token,
+  userId,
+}: AuthParams): Promise<any> => {
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/user/v1/update${userId}`;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    tenantid: '3a849655-30f6-4c2b-8707-315f1ed64fbd',
+  };
+  const data = {
+    userData: {
+      status: 'deactive',
+      reason: 'Health Issue',
+    },
+  };
+  try {
+    const response = await axios.patch(apiUrl, data, { headers });
+
+    return response?.data;
+  } catch (error) {
+    console.error('Error fetching user auth info:', error);
+    return error;
   }
 };
