@@ -91,7 +91,18 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
-    const error = validateField(label || '', val);
+    if (isMobileField) {
+      // Remove any non-digit characters
+      const numericValue = val.replace(/\D/g, '');
+      // Limit to 10 digits
+      const limitedValue = numericValue.slice(0, 10);
+
+      const error = validateField(label ?? '', limitedValue);
+      setLocalError(error);
+      onChange(limitedValue === '' ? undefined : limitedValue);
+      return;
+    }
+    const error = validateField(label ?? '', val);
     setLocalError(error);
     // if (isPasswordField) {
     //   if (!passwordRegex.test(val)) {
@@ -123,7 +134,11 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     setShowPassword((prev) => !prev);
   };
   const renderLabel = () => {
-    if (['first name', 'last name', 'username','password'].includes(lowerLabel || '')) {
+    if (
+      ['first name', 'last name', 'username', 'password'].includes(
+        lowerLabel ?? ''
+      )
+    ) {
       return (
         <>
           {label} <span style={{ color: 'red' }}>*</span>
@@ -180,6 +195,8 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         },
       }}
       InputProps={{
+        inputMode: isMobileField ? 'numeric' : 'text',
+        pattern: isMobileField ? '[0-9]*' : undefined,
         sx: {
           '& .MuiInputBase-input': {
             padding: '10px 12px',

@@ -11,6 +11,7 @@ import {
   deleteUser,
   myCourseDetails,
   renderCertificate,
+  deleteUserAccount,
 } from '../../services/ProfileService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -213,9 +214,19 @@ export default function Profile() {
   const handleDeleteAccountClick = () => {
     setOpenDeleteDialog(true);
   };
-  const handleDeleteConfirmation = () => {
+  const handleDeleteConfirmation = async () => {
     setOpenDeleteDialog(false);
-    setOpenEmailDialog(true);
+    // setOpenEmailDialog(true);
+    const accToken = localStorage.getItem('accToken') ?? '';
+    const userId = localStorage.getItem('userId') ?? '';
+    try {
+      await deleteUserAccount({ token: accToken, userId: userId });
+
+      // On success, show confirmation
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      // Optional: show an error dialog
+    }
   };
   const handleOptionChange = (event) => {
     const selectedValue = event.target.value;
