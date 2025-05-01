@@ -33,6 +33,7 @@ function SearchParamsHandler() {
 
 export default function Content() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const isAuthenticated = !!localStorage.getItem('accToken');
   const router = useRouter();
 
   const handleAccountClick = () => setShowLogoutModal(true);
@@ -48,16 +49,23 @@ export default function Content() {
     router.back();
   };
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <SearchParamsWrapper
-        showLogoutModal={showLogoutModal}
-        handleLogoutCancel={handleLogoutCancel}
-        handleLogoutConfirm={handleLogoutConfirm}
-        backIconClick={backIconClick}
-      />
-    </Suspense>
-  );
+  if(isAuthenticated) {
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsWrapper
+          // handleAccountClick={handleAccountClick}
+          showLogoutModal={showLogoutModal}
+          handleLogoutCancel={handleLogoutCancel}
+          handleLogoutConfirm={handleLogoutConfirm}
+          backIconClick={backIconClick}
+        />
+      </Suspense>
+    );
+  }
+  else {
+    handleLogoutConfirm();
+  }
+
 }
 
 function SearchParamsWrapper({
