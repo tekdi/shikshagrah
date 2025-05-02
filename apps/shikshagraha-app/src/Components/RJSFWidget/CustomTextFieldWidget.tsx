@@ -37,18 +37,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const lowerLabel = label?.toLowerCase();
-  // useEffect(() => {
-  //   if (label === 'First Name' || label === 'Last Name') {
-  //     const fnameValue = value; // Current field value (fname or lname)
-  //     const lnameValue = value; // Current field value (fname or lname)
 
-  //     if (fnameValue && lnameValue) {
-  //       const Username = `${fnameValue}_${lnameValue}`;
-  //       // Triggering change for username field
-  //       onChange(Username);
-  //     }
-  //   }
-  // }, [value, label, onChange]);
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
     if (isMobileField && formData.email) return true;

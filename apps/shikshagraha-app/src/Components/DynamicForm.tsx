@@ -868,12 +868,7 @@ const DynamicForm = ({
       );
     }
 
-    // if (formData?.roles === 'administrator') {
-    //   formUiSchema.subroles['ui:hide'] = false;
-    // }
-    // else {
-    //   formUiSchema.subroles['ui:hide'] = true;
-    // }
+   
     setFormData(formData);
     setFormUiSchema(formUiSchema);
 
