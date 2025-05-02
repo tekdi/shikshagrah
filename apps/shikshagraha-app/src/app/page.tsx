@@ -158,8 +158,7 @@ export default function Login() {
   };
 
   const handlePasswordClick = () => {
-    const forgotUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
-    router.push(forgotUrl);
+    router.push('/forgetpassword');
   };
 
   return (
@@ -291,7 +290,21 @@ export default function Login() {
           }}
           sx={{ mb: 1 }}
         />
-
+        <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+          <ButtonBase
+            onClick={handlePasswordClick}
+            sx={{
+              color: '#6750A4',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '15px',
+              marginTop: '-10px',
+              textDecoration: 'underline',
+            }}
+          >
+            Forgot Password?
+          </ButtonBase>
+        </Typography>
         <Box
           sx={{
             display: 'flex',

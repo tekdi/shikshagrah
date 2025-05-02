@@ -199,3 +199,18 @@ export const verifyOtpService = async (requestData: any) => {
     }
   }
 };
+export const resetPassword = async (payload: {
+  newPassword: string;
+  token: string;
+}) => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/forgot-password`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error during resetPassword API call:', error);
+    throw error;
+  }
+};
