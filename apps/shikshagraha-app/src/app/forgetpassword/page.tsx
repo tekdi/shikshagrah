@@ -151,8 +151,8 @@ const ForgotPassword = () => {
     } catch (err: any) {
       console.error('Password reset failed:', err); // 👈 Logging the actual error
       const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
+        err?.response?.data?.message ??
+        err?.message ??
         'Failed to reset password. Please try again.';
       setError(errorMessage);
       setShowError(true);
@@ -394,7 +394,7 @@ const ForgotPassword = () => {
               fullWidth
               variant="contained"
               onClick={handleResetPassword}
-              disabled={loading ?? !newPassword ?? !confirmPassword}
+              disabled={loading || !newPassword || !confirmPassword}
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
