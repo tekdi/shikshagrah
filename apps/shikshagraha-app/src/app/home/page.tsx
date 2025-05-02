@@ -49,7 +49,7 @@ export default function Home() {
       link: `${process.env.NEXT_PUBLIC_PROGRAM_BASE_URL}/mfe_pwa/report/list?type=report`,
     },
   ];
-  const isAuthenticated = !!localStorage.getItem('accToken');
+  const isAuthenticated = true;
 
 
   const router = useRouter();

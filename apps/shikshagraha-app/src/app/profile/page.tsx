@@ -173,6 +173,7 @@ export default function Profile() {
 
     getProfileData();
     handleMyCourses();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
   const handleMyCourses = async () => {

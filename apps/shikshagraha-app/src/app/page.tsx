@@ -33,6 +33,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const basePath = AppConst?.BASEPATH;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
@@ -63,6 +64,10 @@ export default function Login() {
             : value.trim() === '',
       }));
     };
+
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
+  }, []);
 
   const handleButtonClick = async () => {
     setShowError(false);
@@ -251,7 +256,7 @@ export default function Login() {
 
         <TextField
           fullWidth
-          label="Username/Email"
+          label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
           error={error.userName}

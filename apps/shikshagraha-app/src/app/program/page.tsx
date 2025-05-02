@@ -33,7 +33,7 @@ function SearchParamsHandler() {
 
 export default function Content() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const isAuthenticated = !!localStorage.getItem('accToken');
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   const handleAccountClick = () => setShowLogoutModal(true);
@@ -80,6 +80,7 @@ function SearchParamsWrapper({
     if (iframeSrc) {
       window.location.href = iframeSrc; // Redirect in same tab
     }
+    // setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [iframeSrc]);
 
   return (
