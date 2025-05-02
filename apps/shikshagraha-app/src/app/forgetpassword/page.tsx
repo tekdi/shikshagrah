@@ -237,12 +237,14 @@ const ForgotPassword = () => {
         </Box>
         {step === 'input' && (
           <>
-            <Typography variant="body1" gutterBottom>
+            <Box sx={{ width: '100%' }}>
               <Typography variant="h5" gutterBottom>
                 Forgot Password
               </Typography>
-              Enter your email or mobile number to receive OTP
-            </Typography>
+              <Typography variant="body1" gutterBottom>
+                Enter your email or mobile number to receive OTP
+              </Typography>
+            </Box>
             <TextField
               fullWidth
               label="Username"
@@ -301,12 +303,11 @@ const ForgotPassword = () => {
 
         {step === 'otp' && (
           <>
-            <Typography variant="h5" gutterBottom>
-              Verify OTP
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              Enter the OTP sent to {formData.email ?? formData.mobile}
-            </Typography>
+            <Box sx={{ width: '100%' }}>
+              <Typography variant="body1" gutterBottom>
+                Enter the OTP sent to {formData.email ?? formData.mobile}
+              </Typography>
+            </Box>
 
             <TextField
               fullWidth
@@ -342,10 +343,11 @@ const ForgotPassword = () => {
 
         {step === 'reset' && (
           <>
-            <Typography variant="h5" gutterBottom>
-              Reset Password
-            </Typography>
-
+            <Box sx={{ width: '100%' }}>
+              <Typography variant="h5" gutterBottom>
+                Reset Password
+              </Typography>
+            </Box>
             <TextField
               fullWidth
               type={showNewPassword ? 'text' : 'password'}
