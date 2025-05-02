@@ -6,13 +6,17 @@ import { useEffect, useState } from 'react';
 import {
   fetchProfileData,
   fetchLocationDetails,
-  sendOtp,
   verifyOtp,
   deleteUser,
   myCourseDetails,
   renderCertificate,
   deactivateUser,
 } from '../../services/ProfileService';
+import {
+  sendOtp,
+  verifyOtpService,
+  authenticateUser,
+} from '../../services/LoginService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
@@ -42,7 +46,8 @@ import {
   TableCell,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { authenticateUser } from '../../services/LoginService';
+
+import OTPDialog from '../../Components/OTPDialog';
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -73,6 +78,8 @@ export default function Profile() {
   const [userCustomFields, setUserCustomFields] = useState([]);
   const [courseDetails, setCourseDetails] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hashCode, setHashCode] = useState('');
+  const [isOpenOTP, setIsOpenOTP] = useState(false);
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -92,9 +99,9 @@ export default function Profile() {
             tenantResponse?.result?.userData ?? {};
 
           const mappedProfile = [
-            { label: 'First Name', value: firstName ?? '-' },
-            // { label: 'Middle Name', value: middleName ?? '-' },
-            { label: 'Last Name', value: lastName ?? '-' },
+            // { label: 'First Name', value: firstName ?? '-' },
+            // // { label: 'Middle Name', value: middleName ?? '-' },
+            // { label: 'Last Name', value: lastName ?? '-' },
             // {
             //   label: 'Profile Type',
             //   value: tenantData?.[0]?.roleName ?? '-',
@@ -104,7 +111,6 @@ export default function Profile() {
           setUserDataProfile(mappedProfile);
 
           const customFields = tenantResponse?.result?.userData?.customFields;
-          console.log('customFields', customFields);
           const desiredOrder = [
             'Roles',
             'subRoles',
@@ -159,11 +165,38 @@ export default function Profile() {
             .map((label) => fieldMap.get(label))
             .filter(Boolean);
 
-          const combinedProfileData = [...mappedProfile, ...sortedData];
-          setUserDataProfile(combinedProfileData);
+          const combinedProfileData = [...sortedData];
+
+          const formattedProfileData = sortedData.map((item) => {
+            if (item.label === 'Roles') {
+              // Convert to Title Case (CamelCase)
+              return {
+                ...item,
+                value: item.value
+                  .toLowerCase()
+                  .replace(/(^\w|\s\w|&\s*\w)/g, (m) => m.toUpperCase()),
+              };
+            } else if (item.label.toLowerCase() === 'subroles') {
+              // Convert each comma-separated value to UPPERCASE
+              return {
+                ...item,
+                value: item.value
+                  .split(',')
+                  .map((role) => role.trim().toUpperCase())
+                  .join(', '),
+              };
+            }
+            return item;
+          });
+
+          setUserDataProfile(formattedProfileData);
 
           //  setUserCustomFields(sortedData);
-          console.log('sortedData', sortedData, mappedProfile);
+          console.log(
+            'sortedData',
+
+            combinedProfileData
+          );
         }
       } catch (err) {
         setShowError(true);
@@ -230,27 +263,69 @@ export default function Profile() {
   };
 
   const handleSendOtp = async () => {
-    console.log('selectedOption', selectedOption);
-    const contactValue = selectedOption === 'email' ? newEmail : newPhone;
-    const type = selectedOption; // 'email' or 'phone'
-    console.log('contactValue', contactValue);
-    if (!contactValue) {
-      setError(`Please enter a valid ${type}`);
+    let otpPayload;
+    if (userData.email) {
+      otpPayload = {
+        email: userData.email,
+        reason: 'signup',
+        firstName: userData.firstName,
+        key: 'SendOtpOnMail',
+        replacements: {
+          '{eventName}': 'Shiksha Graha OTP',
+          '{programName}': 'Shiksha Graha',
+        },
+      };
+    } else if (userData.mobile) {
+      console.log('userData.mobile', String(userData?.mobile ?? ''));
+      otpPayload = {
+        mobile: String(userData?.mobile ?? ''), // Ensure fallback to empty string if undefined
+        reason: 'signup',
+      };
+    } else {
+      setShowError(true);
+      setErrorMessage('Either email or mobile must be provided');
       return;
     }
 
-    try {
-      console.log('', contactValue);
-      setEmail(newEmail);
-      setNewPhone(newPhone);
-      sendOtp(contactValue, type);
-      setOpenEmailDialog(false);
-      setOpenOtpDialog(true);
-    } catch (error) {
-      setError('Failed to send OTP');
+    const registrationResponse = await sendOtp(otpPayload);
+    if (
+      registrationResponse?.params?.successmessage === 'OTP sent successfully'
+    ) {
+      setHashCode(registrationResponse?.result?.data?.hash);
+      setErrorMessage(registrationResponse.message);
+      setIsOpenOTP(true);
+    } else {
+      setShowError(true);
+      setErrorMessage(
+        registrationResponse.data && registrationResponse.data.params.err
+      );
     }
   };
+  const handleVerifyOTP = async (otp: string) => {
+    let verifyOTPpayload;
+    if (userData.email) {
+      verifyOTPpayload = {
+        email: userData.email,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    } else {
+      verifyOTPpayload = {
+        mobile: String(userData?.mobile ?? ''),
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    }
 
+    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
+    if (
+      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
+    ) {
+      handleUserDeactivation();
+    }
+  };
   const handleUserDeactivation = async () => {
     try {
       const userId = localStorage.getItem('userId');
@@ -295,7 +370,9 @@ export default function Profile() {
       ?.flatMap((org) => org.roles)
       ?.filter((role) => role !== null) || [];
   const displayRole = roleTypes.length ? roleTypes.join(', ') : 'N/A';
-  const displaySubRole = subRoles.length ? subRoles.join(', ') : 'N/A';
+  const displaySubRole = subRoles.length
+    ? toCamelCase(subRoles).join(', ')
+    : 'N/A';
   const framework = profileData?.framework || {};
   const displayBoard = framework.board?.join(', ') || 'N/A';
   const displayMedium = framework.medium?.join(', ') || 'N/A';
@@ -654,7 +731,7 @@ export default function Profile() {
                   </Typography>
                   <Typography
                     variant="body1"
-                    sx={{
+                    sx={
                       fontWeight: 'bold',
                       color: '#333',
                       paddingBottom: '10px',
@@ -681,6 +758,11 @@ export default function Profile() {
             </Box>
           </Box>
         </Box>
+        <OTPDialog
+          open={isOpenOTP}
+          onClose={() => setIsOpenOTP(false)}
+          onSubmit={handleVerifyOTP}
+        />
         {showError && (
           <Alert severity="error" sx={{ marginTop: '15px' }}>
             {errorMessage}
@@ -699,7 +781,11 @@ export default function Profile() {
             >
               Cancel
             </Button>
-            <Button onClick={handleUserDeactivation} color="error">
+            <Button
+              // onClick={handleUserDeactivation}
+              onClick={handleSendOtp}
+              color="error"
+            >
               Delete Account
             </Button>
           </DialogActions>

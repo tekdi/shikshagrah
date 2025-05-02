@@ -12,10 +12,10 @@ export default function Register() {
   const [formSchema, setFormSchema] = useState<any>();
   const [uiSchema, setUiSchema] = useState<any>();
   const [loading, setLoading] = useState(true);
-
   const router = useRouter();
-  const [formData, setFormData] = useState({ roles: '' });
-  const [udiseData, setUdiaseData] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    roles: '',
+  });
   const [fieldNameToFieldIdMapping, setFieldNameToFieldIdMapping] = useState(
     {}
   );
@@ -41,19 +41,14 @@ export default function Register() {
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [formData.roles]);
   const handleSubmit = ({ formData }: any) => {
-    console.log('Form Data:', formData);
     setFormData(formData);
-  };
-
-  const handleUdiaseData = (data: any) => {
-    setUdiaseData(data); // Store the UDISE data in state
   };
 
   const handleBack = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
   };
 
-  if(!isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Box
         sx={{
@@ -63,7 +58,7 @@ export default function Register() {
           bgcolor: '#f5f5f5',
           // Allow scrolling if content is large
           paddingBottom: '60px',
-          margin:'-1rem'
+          // margin:'-1rem'
         }}
       >
         <Box
@@ -106,7 +101,7 @@ export default function Register() {
             ></Grid>
           </Grid>
         </Box>
-        <Box sx={{ mx: 'auto', p: 2, width: '100%', maxWidth: 400 }}>
+        <Box sx={{ mx: 'auto', width: '100%', maxWidth: 400 }}>
           <Box>
             <Typography
               variant="h5"
@@ -134,8 +129,7 @@ export default function Register() {
         </Box>
       </Box>
     );
-  }
-  else {
+  } else {
     const redirectUrl = '/home';
     router.push(redirectUrl);
   }
