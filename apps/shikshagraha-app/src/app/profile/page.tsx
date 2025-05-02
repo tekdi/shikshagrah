@@ -72,7 +72,8 @@ export default function Profile() {
   ]);
   const [userCustomFields, setUserCustomFields] = useState([]);
   const [courseDetails, setCourseDetails] = useState<any>(null);
-  const isAuthenticated = true;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
