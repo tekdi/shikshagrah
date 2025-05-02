@@ -33,6 +33,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const basePath = AppConst?.BASEPATH;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
