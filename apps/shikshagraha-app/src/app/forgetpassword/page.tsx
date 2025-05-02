@@ -22,7 +22,6 @@ import {
   sendOtp,
   verifyOtpService,
   resetPassword,
-  checkUserExists,
 } from '../../services/LoginService';
 import AppConst from '../../utils/AppConst/AppConst';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -74,7 +73,7 @@ const ForgotPassword = () => {
         setHash(response?.result?.data?.hash);
         setStep('otp');
       } else {
-        setError(response?.data?.params?.err || 'Failed to send OTP');
+        setError(response?.data?.params?.err ?? 'Failed to send OTP');
         setShowError(true);
       }
     } catch (err) {
@@ -113,10 +112,10 @@ const ForgotPassword = () => {
       const response = await verifyOtpService(payload);
 
       if (response?.params?.successmessage === 'OTP validation Sucessfully') {
-        setToken(response?.result?.token || '');
+        setToken(response?.result?.token ?? '');
         setStep('reset');
       } else {
-        setError(response?.data?.params?.err || 'Invalid OTP');
+        setError(response?.data?.params?.err ?? 'Invalid OTP');
         setShowError(true);
       }
     } catch (err) {
@@ -146,11 +145,16 @@ const ForgotPassword = () => {
         setShowSuccess(true);
         setTimeout(() => router.push('/'), 2000);
       } else {
-        setError(response?.data?.params?.err || 'Failed to reset password');
+        setError(response?.data?.params?.err ?? 'Failed to reset password');
         setShowError(true);
       }
-    } catch (err) {
-      setError('Failed to reset password. Please try again.');
+    } catch (err: any) {
+      console.error('Password reset failed:', err); // 👈 Logging the actual error
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to reset password. Please try again.';
+      setError(errorMessage);
       setShowError(true);
     } finally {
       setLoading(false);
@@ -301,7 +305,7 @@ const ForgotPassword = () => {
               Verify OTP
             </Typography>
             <Typography variant="body1" gutterBottom>
-              Enter the OTP sent to {formData.email || formData.mobile}
+              Enter the OTP sent to {formData.email ?? formData.mobile}
             </Typography>
 
             <TextField
@@ -316,7 +320,7 @@ const ForgotPassword = () => {
               fullWidth
               variant="contained"
               onClick={handleVerifyOtp}
-              disabled={loading || !otp}
+              disabled={loading ?? !otp}
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
@@ -390,7 +394,7 @@ const ForgotPassword = () => {
               fullWidth
               variant="contained"
               onClick={handleResetPassword}
-              disabled={loading || !newPassword || !confirmPassword}
+              disabled={loading ?? !newPassword ?? !confirmPassword}
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',

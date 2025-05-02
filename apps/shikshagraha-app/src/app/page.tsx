@@ -158,7 +158,6 @@ export default function Login() {
   };
 
   const handlePasswordClick = () => {
-    // const registrationUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
     router.push('/forgetpassword');
   };
 
