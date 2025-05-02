@@ -12,10 +12,10 @@ export default function Register() {
   const [formSchema, setFormSchema] = useState<any>();
   const [uiSchema, setUiSchema] = useState<any>();
   const [loading, setLoading] = useState(true);
-
   const router = useRouter();
-  const [formData, setFormData] = useState({ roles: '' });
-  const [udiseData, setUdiaseData] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    roles: '',
+  });
   const [fieldNameToFieldIdMapping, setFieldNameToFieldIdMapping] = useState(
     {}
   );
@@ -41,12 +41,7 @@ export default function Register() {
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [formData.roles]);
   const handleSubmit = ({ formData }: any) => {
-    console.log('Form Data:', formData);
     setFormData(formData);
-  };
-
-  const handleUdiaseData = (data: any) => {
-    setUdiaseData(data); // Store the UDISE data in state
   };
 
   const handleBack = () => {

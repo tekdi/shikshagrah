@@ -44,6 +44,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -339,7 +340,7 @@ export default function Profile() {
   //     </Typography>
   //   );
   // }
-  if (isAuthenticated) {
+  if(isAuthenticated) {
     return (
       <Layout
         showTopAppBar={{
@@ -534,9 +535,7 @@ export default function Profile() {
                         <TableCell sx={{ fontWeight: 'bold' }}>
                           Course ID
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>
-                          Status
-                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
                       </TableRow>
                     </TableHead>
@@ -709,9 +708,7 @@ export default function Profile() {
           open={openConfirmDeleteDialog}
           onClose={() => setOpenConfirmDeleteDialog(false)}
         >
-          <DialogTitle>
-            Your account has been successfully deleted!!
-          </DialogTitle>
+          <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
           <DialogContent></DialogContent>
           <DialogActions>
             <Button onClick={confirm} sx={{ color: '#582E92' }}>
@@ -738,7 +735,9 @@ export default function Profile() {
         </Dialog>
       </Layout>
     );
-  } else {
-    handleLogoutConfirm();
+  }
+  else {
+    handleLogoutConfirm()
   }
 }
+
