@@ -419,7 +419,7 @@ export default function Profile() {
                 spacing={2}
                 alignItems="center"
                 justifyContent="center"
-                direction="column"
+                direction="row"
               >
                 <Grid item>
                   <Avatar
@@ -434,48 +434,34 @@ export default function Profile() {
                   </Avatar>
                 </Grid>
                 <Grid item>
-                  <Typography
-                    variant="h5"
-                    textAlign="center"
-                    color="#582E92"
-                    fontWeight="bold"
-                  >
-                    {userData?.firstName ?? 'User'}
-                  </Typography>
-                </Grid>
+                <Typography
+                  variant="h5"
+                  textAlign="left"
+                  color="#582E92"
+                  fontWeight="bold"
+                >
+                  {(userData?.firstName + ' ' + userData?.lastName) ?? 'User'}
+                </Typography>
+                <Typography
+                  variant="subtitle1"
+                  textAlign="left"
+                  color="gray"
+                >
+                  {userData?.role}
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  textAlign="left"
+                  color="darkslategray"
+                >
+                  @{userData.username}
+                </Typography>
               </Grid>
-            </Box>
-            {/* Profile Card */}
-            <Box
-              sx={{
-                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-                borderRadius: '12px',
-                p: 3,
-                mt: 3,
-                transform: 'translateY(-5px)',
-                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                  padding: '1px', // Thickness of the border line
-                  background:
-                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                  WebkitMask:
-                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude', // Ensures only the border is visible
-                },
-              }}
-            >
-              <Grid container spacing={2}>
+              </Grid>
+              <Grid container spacing={2} style={{marginTop:"1rem"}}>
                 {/* Role */}
                 <Grid item xs={12}>
-                  {userDataProfile?.map((item) => {
+                  {userCustomFields?.reverse().map((item) => {
                     return (
                       <Typography
                         variant="body1"
@@ -485,108 +471,29 @@ export default function Profile() {
                           color: '#333',
                           paddingBottom: '10px',
                         }}
+                        style={{ display: 'flex', width: '100%' }}
                       >
-                        <span style={{ color: '#FF9911' }}>{item.label}: </span>
-                        {displayRole === 'administrator'
-                          ? 'HT & Officials'
-                          : toCamelCase(item.value)}
-                      </Typography>
-                    );
-                  })}
-
-                  {displayRole === 'administrator' && (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>Sub-role: </span>
-                      {displaySubRole || 'N/A'}
-                    </Typography>
-                  )}
-
-                  {locationDetails.map((loc, index) => (
-                    <>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 'bold',
-                          color: '#333',
-                          paddingBottom: '10px',
-                        }}
-                      >
-                        <span style={{ color: '#FF9911' }}>
-                          {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                        </span>{' '}
-                        {loc.name || 'N/A'}
-                      </Typography>
-                    </>
-                  ))}
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Box
-              sx={{
-                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-                borderRadius: '12px',
-                p: 3,
-                mt: 3,
-                transform: 'translateY(-5px)',
-                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                  padding: '1px', // Thickness of the border line
-                  background:
-                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                  WebkitMask:
-                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude', // Ensures only the border is visible
-                },
-              }}
-            >
-              <Grid container spacing={2}>
-                {/* Role */}
-                <Grid item xs={12}>
-                  {userCustomFields?.map((item) => {
-                    return (
-                      <Typography
-                        variant="body1"
-                        key={item.label}
-                        sx={{
-                          fontWeight: 'bold',
-                          color: '#333',
-                          paddingBottom: '10px',
-                        }}
-                      >
-                        <span style={{ color: '#FF9911' }}>
-                          {toCamelCase(item.label)}:{' '}
+                        <span style={{ width: '25%', textAlign: 'left', color:'#FF9911' }}>
+                          {toCamelCase(item.label)}
                         </span>
+                        <span style={{ width: '70%' }}>
                         {Array.isArray(item.value)
-                          ? item.value
+                          ? (": "+item.value
                               .map((val) =>
                                 val.value === 'administrator'
                                   ? 'HT & Officials'
                                   : toCamelCase(val.value)
                               )
-                              .join(', ') // show list values
-                          : item.value}
+                              .join(', ')) // show list values
+                          : (': '+item.value)}
+                        </span>
                       </Typography>
                     );
                   })}
                 </Grid>
               </Grid>
             </Box>
+
             {/* Courses Card */}
 
             <Box
