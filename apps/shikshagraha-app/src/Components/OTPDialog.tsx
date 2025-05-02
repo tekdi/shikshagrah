@@ -41,7 +41,36 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
     onClose();
   };
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          maxWidth: { xs: '90%', sm: '400px', md: '500px' },
+          bgcolor: '#FFFFFF',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          borderRadius: '16px',
+          padding: { xs: 2, sm: 3 },
+          textAlign: 'center',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: 'inherit',
+            padding: '4px',
+            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+            WebkitMask:
+              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude',
+          },
+        },
+      }}
+    >
       <DialogTitle>Enter OTP</DialogTitle>
       <DialogContent>
         <Box display="flex" gap={1} justifyContent="center" mt={2}>
@@ -54,18 +83,50 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
               onKeyDown={(e) => handleKeyDown(e, index)}
               inputProps={{
                 maxLength: 1,
-                style: { textAlign: 'center', fontSize: '20px', width: '40px' },
+                sx: {
+                  textAlign: 'center',
+                  fontSize: { xs: 10, sm: 20 },
+                  width: { xs: 30, sm: 40 },
+                },
               }}
             />
           ))}
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button
+          onClick={handleClose}
+          sx={{
+            bgcolor: '#582E92',
+            color: '#FFFFFF',
+            borderRadius: '30px',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '8px 16px',
+            '&:hover': {
+              bgcolor: '#543E98',
+            },
+          }}
+        >
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={otp.some((d) => d === '')}
+          sx={{
+            bgcolor: '#582E92',
+            color: '#FFFFFF',
+            borderRadius: '30px',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            padding: '8px 16px',
+            '&:hover': {
+              bgcolor: '#543E98',
+            },
+          }}
         >
           Verify
         </Button>

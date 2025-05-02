@@ -41,7 +41,6 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     getProfileData();
 
     async function fetchConfig() {
@@ -185,7 +184,7 @@ export default function Home() {
                   justifyContent: 'center',
                 }}
               >
-                {cardData
+                {(cardData.length > 0 ) && cardData
                   .filter((card) => {
                     const storedHeaders = JSON.parse(
                       localStorage.getItem('headers') ?? '{}'

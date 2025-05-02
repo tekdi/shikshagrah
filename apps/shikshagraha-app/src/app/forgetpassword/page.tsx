@@ -23,7 +23,8 @@ import {
   verifyOtpService,
   resetPassword,
 } from '../../services/LoginService';
-import AppConst from '../../utils/AppConst/AppConst';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 const ForgotPassword = () => {
   const router = useRouter();
@@ -33,7 +34,7 @@ const ForgotPassword = () => {
     mobile: '',
     username: '',
   });
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hash, setHash] = useState('');
@@ -44,13 +45,38 @@ const ForgotPassword = () => {
   const [token, setToken] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const basePath = AppConst?.BASEPATH;
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<
+    string | null
+  >(null);
+  const [formErrors, setFormErrors] = useState({
+    username: '',
+    email: '',
+    mobile: '',
+  });
+  const usernameRegex = /^\w+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const mobileRegex = /^[6-9]\d{9}$/;
+  const passwordRegex =
+    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+    let error = '';
+    if (name === 'username' && value && !usernameRegex.test(value)) {
+      error = 'Only letters, numbers, and underscores are allowed';
+    } else if (name === 'email' && value && !emailRegex.test(value)) {
+      error = 'Enter a valid email address.';
+    } else if (name === 'mobile' && value && !mobileRegex.test(value)) {
+      error = 'Enter a valid 10-digit mobile number';
+    }
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: error,
     }));
   };
   const getAuthPayload = () =>
@@ -85,7 +111,9 @@ const ForgotPassword = () => {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
+    const otpString = otp.join('');
+
+    if (!otpString) {
       setError('Please enter OTP');
       setShowError(true);
       return;
@@ -97,14 +125,14 @@ const ForgotPassword = () => {
         ? {
             email: formData.email,
             reason: 'forgot',
-            otp,
+            otp: otpString,
             hash,
             username: formData.username,
           }
         : {
             mobile: formData.mobile,
             reason: 'forgot',
-            otp,
+            otp: otpString,
             hash,
             username: formData.username,
           };
@@ -163,6 +191,65 @@ const ForgotPassword = () => {
   const handleClickShowNewPassword = () => setShowNewPassword((show) => !show);
   const handleClickShowConfirmPassword = () =>
     setShowConfirmPassword((show) => !show);
+
+  const handleBack = () => {
+    if (step === 'input') {
+      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    } else if (step === 'otp') {
+      setStep('input');
+    } else if (step === 'reset') {
+      setStep('otp');
+    }
+  };
+  const validatePassword = (val: string, name: string) => {
+    if (name === 'password') {
+      setNewPassword(val);
+      if (!passwordRegex.test(val)) {
+        return 'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
+      }
+    } else if (name === 'confirmPassword') {
+      setConfirmPassword(val);
+      if (val !== newPassword) {
+        return 'Passwords do not match';
+      }
+    } else {
+      return null;
+    }
+  };
+  const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const val = event.target.value;
+    const name = event.target.name;
+    let errorMsg;
+    if (name === 'password') {
+      errorMsg = validatePassword(val, name);
+      setPasswordError(errorMsg ?? null);
+    } else if (name === 'confirmPassword') {
+      errorMsg = validatePassword(val, name);
+      setConfirmPasswordError(errorMsg ?? null);
+    } else {
+      setPasswordError(null);
+      setConfirmPasswordError(null);
+    }
+  };
+
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    // Auto focus to next field
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: any, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
   return (
     <Box
       sx={{
@@ -203,55 +290,72 @@ const ForgotPassword = () => {
           },
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            mb: 2,
-            gap: 1,
-          }}
-        >
-          <Box
-            component="img"
-            src={`${basePath}/assets/images/SG_Logo.png`}
-            alt="logo"
+        <Grid item xs={12} textAlign="left">
+          <Button
+            onClick={handleBack}
             sx={{
-              width: { xs: '100%', sm: '100%' },
-              height: { xs: '100%', sm: '100%' },
-              borderRadius: '50%',
-              objectFit: 'cover',
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#582E92',
+              color: '#572E91',
+              display: 'flex',
+              alignItems: 'center',
               fontWeight: 'bold',
-              textAlign: 'center',
+              textTransform: 'none',
+              justifyContent: 'flex-start',
+              '&:hover': {
+                backgroundColor: '#F5F5F5',
+              },
             }}
           >
-            Shikshalokam
-          </Typography>
-        </Box>
+            <ArrowBackIcon sx={{ marginRight: '4px' }} />
+            Back
+          </Button>
+        </Grid>
         {step === 'input' && (
           <>
             <Box sx={{ width: '100%' }}>
               <Typography variant="h5" gutterBottom>
                 Forgot Password
               </Typography>
-              <Typography variant="body1" gutterBottom>
-                Enter your email or mobile number to receive OTP
-              </Typography>
             </Box>
             <TextField
               fullWidth
-              label="Username"
+              label={
+                <>
+                  Username <span style={{ color: 'red' }}>*</span>
+                </>
+              }
               name="username"
               value={formData.username}
               onChange={handleInputChange}
+              helperText={formErrors.username}
               margin="normal"
+              FormHelperTextProps={{
+                sx: {
+                  color: 'red', // ✅ helperText color set manually
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
+              InputProps={{
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
+              }}
             />
             <TextField
               fullWidth
@@ -261,6 +365,35 @@ const ForgotPassword = () => {
               onChange={handleInputChange}
               margin="normal"
               disabled={!!formData.mobile}
+              helperText={formErrors.email}
+              FormHelperTextProps={{
+                sx: {
+                  color: 'red', // ✅ helperText color set manually
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
+              InputProps={{
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
+              }}
             />
 
             <Typography variant="body1" textAlign="center" my={1}>
@@ -272,16 +405,65 @@ const ForgotPassword = () => {
               label="Mobile Number"
               name="mobile"
               value={formData.mobile}
+              helperText={formErrors.mobile}
               onChange={handleInputChange}
               margin="normal"
               disabled={!!formData.email}
+              onKeyDown={(e) => {
+                // Allow only numbers, backspace, delete, arrows, tab
+                const allowedKeys = [
+                  'Backspace',
+                  'Delete',
+                  'ArrowLeft',
+                  'ArrowRight',
+                  'Tab',
+                ];
+                if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              FormHelperTextProps={{
+                sx: {
+                  color: 'red', // ✅ helperText color set manually
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
+              inputProps={{
+                inputMode: 'numeric',
+                pattern: '[0-9]*',
+                maxLength: 10,
+              }}
+              InputProps={{
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
+              }}
             />
 
             <Button
               fullWidth
               variant="contained"
               onClick={handleSendOtp}
-              disabled={loading || (!formData.email && !formData.mobile)}
+              disabled={
+                !formData.username || (!formData.email && !formData.mobile)
+              }
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
@@ -308,20 +490,65 @@ const ForgotPassword = () => {
                 Enter the OTP sent to {formData.email ?? formData.mobile}
               </Typography>
             </Box>
-
-            <TextField
+            <Box
+              display="flex"
+              gap={1}
+              justifyContent="center"
+              width={'95%'}
+              m={2}
+            >
+              {otp.map((digit, index) => (
+                <TextField
+                  key={`otp-${index}`}
+                  id={`otp-${index}`}
+                  value={digit}
+                  onChange={(e) => handleChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  inputProps={{
+                    maxLength: 1,
+                    sx: {
+                      textAlign: 'center',
+                      fontSize: { xs: 10, sm: 20 },
+                      width: { xs: 30, sm: 40 },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+            {/* <TextField
               fullWidth
               label="OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               margin="normal"
-            />
+              InputProps={{
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
+              }}
+            /> */}
 
             <Button
               fullWidth
               variant="contained"
               onClick={handleVerifyOtp}
-              disabled={loading ?? !otp}
+              disabled={!otp}
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
@@ -351,10 +578,19 @@ const ForgotPassword = () => {
             <TextField
               fullWidth
               type={showNewPassword ? 'text' : 'password'}
+              name="password"
               label="New Password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={handleChangePassword}
+              helperText={passwordError ?? ''}
               margin="normal"
+              FormHelperTextProps={{
+                sx: {
+                  color: 'red', // ✅ helperText color set manually
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -367,6 +603,25 @@ const ForgotPassword = () => {
                     </IconButton>
                   </InputAdornment>
                 ),
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
               }}
             />
 
@@ -375,8 +630,17 @@ const ForgotPassword = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               label="Confirm New Password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              name="confirmPassword"
+              onChange={handleChangePassword}
+              helperText={confirmPasswordError ?? ''}
               margin="normal"
+              FormHelperTextProps={{
+                sx: {
+                  color: 'red', // ✅ helperText color set manually
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -389,6 +653,25 @@ const ForgotPassword = () => {
                     </IconButton>
                   </InputAdornment>
                 ),
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px', // Label font size
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
+                    color: '#582E92', // Optional: change label color on focus
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
+                    color: '#582E92', // Optional: change label color when filled
+                  },
+                },
               }}
             />
 
@@ -453,7 +736,7 @@ const ForgotPassword = () => {
                 },
                 width: { xs: '50%', sm: '50%' },
               }}
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/')}
             >
               OK
             </Button>

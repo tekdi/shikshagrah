@@ -22,6 +22,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const formData = formContext?.formData || {};
   const isPasswordField = label?.toLowerCase() === 'password';
+  const isConfirmPasswordField = label
+    ?.toLowerCase()
+    .includes('confirm password');
   const isEmailField = label?.toLowerCase() === 'email';
   const isMobileField =
     label?.toLowerCase() === 'mobile' ||
@@ -34,18 +37,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const lowerLabel = label?.toLowerCase();
-  // useEffect(() => {
-  //   if (label === 'First Name' || label === 'Last Name') {
-  //     const fnameValue = value; // Current field value (fname or lname)
-  //     const lnameValue = value; // Current field value (fname or lname)
 
-  //     if (fnameValue && lnameValue) {
-  //       const Username = `${fnameValue}_${lnameValue}`;
-  //       // Triggering change for username field
-  //       onChange(Username);
-  //     }
-  //   }
-  // }, [value, label, onChange]);
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
     if (isMobileField && formData.email) return true;
@@ -73,6 +65,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       case 'password':
         if (!passwordRegex.test(val))
           return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
+        break;
+      case 'confirm password':
+        if (val !== formData.password) return 'Passwords do not match.';
         break;
     }
     return null;
@@ -160,7 +155,14 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         </>
       );
     }
-
+    if (isConfirmPasswordField) {
+      return (
+        <>
+          {label}
+          {formData.password && <span style={{ color: 'red' }}>*</span>}
+        </>
+      );
+    }
     return label;
   };
 
@@ -172,7 +174,11 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       value={
         typeof value === 'object' && value !== null ? value.name : value ?? ''
       }
-      type={isPasswordField && !showPassword ? 'password' : 'text'}
+      type={
+        (isPasswordField || isConfirmPasswordField) && !showPassword
+          ? 'password'
+          : 'text'
+      }
       required={required}
       disabled={disabled || readonly}
       onChange={handleChange}
@@ -203,7 +209,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
             fontSize: '12px',
           },
         },
-        endAdornment: isPasswordField && (
+        endAdornment: (isPasswordField || isConfirmPasswordField) && (
           <InputAdornment position="end">
             <IconButton onClick={toggleShowPassword} edge="end" size="small">
               {showPassword ? <Visibility /> : <VisibilityOff />}
