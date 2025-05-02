@@ -64,6 +64,10 @@ export default function Login() {
       }));
     };
 
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
+  }, []);
+
   const handleButtonClick = async () => {
     setShowError(false);
     if (!formData.userName || !formData.password) {
@@ -251,7 +255,7 @@ export default function Login() {
 
         <TextField
           fullWidth
-          label="Username/Email"
+          label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
           error={error.userName}
