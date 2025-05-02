@@ -40,7 +40,7 @@ const UdiaseWithButton = ({
     try {
       const response = await fetchContentOnUdise(udiseCode);
       const locationInfo = response.result[0];
-
+      console.log('locationInfo', response);
       const sampleResponse = {
         udise: udiseCode,
         school: {
@@ -81,7 +81,11 @@ const UdiaseWithButton = ({
       <TextField
         fullWidth
         id={id}
-        label={label}
+        label={
+          <>
+            {label} <span style={{ color: 'red' }}>*</span>
+          </>
+        }
         value={udiseCode ?? ''}
         required={required}
         disabled={disabled || readonly}

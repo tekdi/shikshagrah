@@ -39,6 +39,7 @@ import {
   signin,
   registerUserService,
   sendOtp,
+  verifyOtpService,
 } from '../services/LoginService';
 import { useRouter } from 'next/navigation';
 import OTPDialog from './OTPDialog';
@@ -84,6 +85,7 @@ const DynamicForm = ({
   const [showError, setShowError] = useState(false);
   const [isOpenOTP, setIsOpenOTP] = useState(false);
   const [registerData, setRegisterData] = useState<any>({});
+  const [hashCode, setHashCode] = useState('');
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     if (formData?.dob) {
@@ -137,7 +139,7 @@ const DynamicForm = ({
         setFormUiSchema(oldFormUiSchema);
       }
     }
-    if (formData?.roles === 'administrator') {
+    if (formData?.roles === 'HT & Officials') {
       const updatedFormSchema = {
         ...formSchema,
         required: formSchema.required?.filter((key) => key !== 'roles'),
@@ -845,12 +847,17 @@ const DynamicForm = ({
     errors: any;
   }) => {
     setFormData(formData);
-    if (formData?.firstName && formData?.lastName) {
-      formData.Username = `${formData.firstName}_${formData.lastName}`;
+
+    const firstName = (formData?.firstName || '').trim();
+    const lastName = (formData?.lastName || '').trim();
+
+    // And optionally prevent cases like "___" when names are empty strings:
+    if ((firstName || lastName) && !(firstName === '' && lastName === '')) {
+      formData.Username = `${firstName}_${lastName}`.toLowerCase();
+    } else {
+      formData.Username = undefined;
     }
-    if (formData?.Username && (formData?.firstName || formData?.lastName)) {
-      formData.Username = `${formData.firstName}_${formData.lastName}`;
-    }
+
     if (formData.email) {
       setShowEmailMobileError(
         "Contact number is optional since you've provided an email"
@@ -1346,20 +1353,30 @@ const DynamicForm = ({
       customFields,
     };
     setRegisterData(payload);
-    const payloadOTP = {
-      name: formData.firstName,
+    let otpPayload;
+    if (formData.email) {
+      otpPayload = {
+        email: formData.email,
+        reason: 'signup',
+        firstName: formData.firstName,
+        key: 'SendOtpOnMail',
+        replacements: {
+          '{eventName}': 'Shiksha Graha OTP',
+          '{programName}': 'Shiksha Graha',
+        },
+      };
+    } else if (formData.mobile) {
+      otpPayload = {
+        mobile: formData.mobile,
+        reason: 'signup',
+      };
+    } else {
+      setShowError(true);
+      setErrorMessage('Either email or mobile must be provided');
+      return;
+    }
 
-      email: formData.email,
-      reason: 'signup',
-      firstName: 'sourav',
-      key: 'SendOtpOnMail',
-      replacements: {
-        '{eventName}': 'Shiksha Graha OTP',
-        '{programName}': 'Shiksha Graha',
-      },
-    };
-
-    const registrationResponse = await sendOtp(payloadOTP);
+    const registrationResponse = await sendOtp(otpPayload);
     if (
       registrationResponse?.params?.successmessage === 'OTP sent successfully'
     ) {
@@ -1370,6 +1387,7 @@ const DynamicForm = ({
           },
         },
       });
+      setHashCode(registrationResponse?.result?.data?.hash);
       setErrorMessage(registrationResponse.message);
       setIsOpenOTP(true);
     } else {
@@ -1379,7 +1397,7 @@ const DynamicForm = ({
       );
     }
   };
-  const handleRegister = async () => {
+  const handleRegister = async (otp: string) => {
     if (!formData.email && !formData.mobile) {
       setShowEmailMobileError(
         'Please provide either an email or a mobile number.'
@@ -1447,24 +1465,52 @@ const DynamicForm = ({
       customFields,
     };
     setRegisterData(payload);
-    const registrationResponse = await registerUserService(payload);
-    if (
-      registrationResponse?.params?.successmessage ===
-      'User created successfully'
-    ) {
-      setRequestData({
-        usercreate: {
-          request: {
-            userName: registrationResponse?.result?.userData?.username,
-          },
-        },
-      });
-      setErrorMessage(registrationResponse.message);
-      setDialogOpen(true);
+    let verifyOTPpayload;
+    if (formData.email) {
+      verifyOTPpayload = {
+        email: formData.email,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
     } else {
+      verifyOTPpayload = {
+        mobile: formData.mobile,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    }
+
+    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
+    if (
+      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
+    ) {
+      const registrationResponse = await registerUserService(payload);
+      if (
+        registrationResponse?.params?.successmessage ===
+        'User created successfully'
+      ) {
+        setRequestData({
+          usercreate: {
+            request: {
+              userName: registrationResponse?.result?.userData?.username,
+            },
+          },
+        });
+        setErrorMessage(registrationResponse.message);
+        setDialogOpen(true);
+      } else {
+        setShowError(true);
+        setErrorMessage(
+          registrationResponse.data && registrationResponse.data.params.err
+        );
+      }
+    } else {
+      console.log('verifyOtpResponse', verifyOtpResponse);
       setShowError(true);
       setErrorMessage(
-        registrationResponse.data && registrationResponse.data.params.err
+        verifyOtpResponse.data && verifyOtpResponse.data.params.err
       );
     }
   };
@@ -1475,45 +1521,56 @@ const DynamicForm = ({
         username: `${formData.firstName}_${formData.lastName}`,
         password: formData.password,
       });
+
       if (response?.result?.access_token) {
         localStorage.setItem('accToken', response?.result?.access_token);
         localStorage.setItem('refToken', response?.result?.refresh_token);
         const tenantResponse = await authenticateLoginUser({
           token: response?.result?.access_token,
         });
-        if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
-          localStorage.setItem('userId', tenantResponse?.result?.userId);
-          const tenantIdToCompare =
-            tenantResponse?.result?.tenantData?.[0]?.tenantId;
-          if (tenantIdToCompare) {
-            localStorage.setItem(
-              'headers',
-              JSON.stringify({
-                'org-id': tenantIdToCompare,
-              })
-            );
-          }
+        localStorage.setItem('firstname', tenantResponse?.result?.firstName);
+        console.log('reasssss', tenantResponse);
+        console.log('User status:', tenantResponse?.result?.status);
 
-          const tenantData = await fetchTenantData({
-            token: response?.result?.access_token,
-          });
-          if (tenantIdToCompare) {
-            const matchedTenant = tenantData?.result?.find(
-              (tenant) => tenant.tenantId === tenantIdToCompare
-            );
-            localStorage.setItem('channelId', matchedTenant?.channelId);
-            localStorage.setItem(
-              'frameworkname',
-              matchedTenant?.contentFramework
-            );
-            if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
-              const redirectUrl = '/home';
-              router.push(redirectUrl);
-            } else {
-              setShowError(true);
-              setErrorMessage(
-                'The user does not belong to the same organization.'
+        if (tenantResponse?.result?.status === 'archived') {
+          setShowError(true);
+          setErrorMessage('The user is decativated please contact admin');
+          return;
+        } else {
+          if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
+            localStorage.setItem('userId', tenantResponse?.result?.userId);
+            const tenantIdToCompare =
+              tenantResponse?.result?.tenantData?.[0]?.tenantId;
+            if (tenantIdToCompare) {
+              localStorage.setItem(
+                'headers',
+                JSON.stringify({
+                  'org-id': tenantIdToCompare,
+                })
               );
+            }
+
+            const tenantData = await fetchTenantData({
+              token: response?.result?.access_token,
+            });
+            if (tenantIdToCompare) {
+              const matchedTenant = tenantData?.result?.find(
+                (tenant) => tenant.tenantId === tenantIdToCompare
+              );
+              localStorage.setItem('channelId', matchedTenant?.channelId);
+              localStorage.setItem(
+                'frameworkname',
+                matchedTenant?.contentFramework
+              );
+              if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+                const redirectUrl = '/home';
+                router.push(redirectUrl);
+              } else {
+                setShowError(true);
+                setErrorMessage(
+                  'The user does not belong to the same organization.'
+                );
+              }
             }
           }
         }
@@ -1567,7 +1624,11 @@ const DynamicForm = ({
           id="dynamic-form-id"
         >
           {showEmailMobileError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setShowEmailMobileError(false)}
+            >
               Please provide either email or mobile number
             </Alert>
           )}
@@ -1586,7 +1647,7 @@ const DynamicForm = ({
                 !formData?.lastName ||
                 !formData?.password ||
                 !formData.roles ||
-                (formData?.roles.includes('administrator') &&
+                (formData?.roles.includes('HT & Officials') &&
                   !formData?.subRoles?.length) ||
                 !formData?.udise
               }

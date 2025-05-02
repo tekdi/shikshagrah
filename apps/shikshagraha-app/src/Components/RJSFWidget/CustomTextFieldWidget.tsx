@@ -77,9 +77,32 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return null;
   };
+  const shouldShowHelperText = () => {
+    // Always show for non-email/mobile fields
+    if (!isEmailField && !isMobileField) return true;
+
+    // For email field - only show if mobile isn't entered
+    if (isEmailField) return !formData.mobile;
+
+    // For mobile field - only show if email isn't entered
+    if (isMobileField) return !formData.email;
+
+    return true;
+  };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
-    const error = validateField(label || '', val);
+    if (isMobileField) {
+      // Remove any non-digit characters
+      const numericValue = val.replace(/\D/g, '');
+      // Limit to 10 digits
+      const limitedValue = numericValue.slice(0, 10);
+
+      const error = validateField(label ?? '', limitedValue);
+      setLocalError(error);
+      onChange(limitedValue === '' ? undefined : limitedValue);
+      return;
+    }
+    const error = validateField(label ?? '', val);
     setLocalError(error);
     // if (isPasswordField) {
     //   if (!passwordRegex.test(val)) {
@@ -111,7 +134,11 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     setShowPassword((prev) => !prev);
   };
   const renderLabel = () => {
-    if (['first name', 'last name', 'username'].includes(lowerLabel || '')) {
+    if (
+      ['first name', 'last name', 'username', 'password'].includes(
+        lowerLabel ?? ''
+      )
+    ) {
       return (
         <>
           {label} <span style={{ color: 'red' }}>*</span>
@@ -154,7 +181,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       placeholder={placeholder}
       error={displayErrors.length > 0}
       helperText={
-        localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+        shouldShowHelperText()
+          ? localError || (displayErrors.length > 0 ? displayErrors[0] : '')
+          : ''
       }
       variant="outlined"
       size="small"
@@ -166,6 +195,8 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         },
       }}
       InputProps={{
+        inputMode: isMobileField ? 'numeric' : 'text',
+        pattern: isMobileField ? '[0-9]*' : undefined,
         sx: {
           '& .MuiInputBase-input': {
             padding: '10px 12px',

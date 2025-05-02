@@ -11,6 +11,7 @@ import {
   deleteUser,
   myCourseDetails,
   renderCertificate,
+  deactivateUser,
 } from '../../services/ProfileService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -43,7 +44,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { authenticateUser } from '../../services/LoginService';
 export default function Profile() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -72,6 +72,7 @@ export default function Profile() {
   ]);
   const [userCustomFields, setUserCustomFields] = useState([]);
   const [courseDetails, setCourseDetails] = useState<any>(null);
+  const isAuthenticated = true;
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
@@ -91,12 +92,12 @@ export default function Profile() {
 
           const mappedProfile = [
             { label: 'First Name', value: firstName ?? '-' },
-            { label: 'Middle Name', value: middleName ?? '-' },
+            // { label: 'Middle Name', value: middleName ?? '-' },
             { label: 'Last Name', value: lastName ?? '-' },
-            {
-              label: 'Profile Type',
-              value: tenantData?.[0]?.roleName ?? '-',
-            },
+            // {
+            //   label: 'Profile Type',
+            //   value: tenantData?.[0]?.roleName ?? '-',
+            // },
           ];
 
           setUserDataProfile(mappedProfile);
@@ -157,8 +158,11 @@ export default function Profile() {
             .map((label) => fieldMap.get(label))
             .filter(Boolean);
 
-          setUserCustomFields(sortedData);
-          console.log('sortedData', sortedData);
+          const combinedProfileData = [...mappedProfile, ...sortedData];
+          setUserDataProfile(combinedProfileData);
+
+          //  setUserCustomFields(sortedData);
+          console.log('sortedData', sortedData, mappedProfile);
         }
       } catch (err) {
         setShowError(true);
@@ -246,54 +250,27 @@ export default function Profile() {
     }
   };
 
-  const handleOtpSubmit = async () => {
+  const handleUserDeactivation = async () => {
     try {
-      if (!otp) {
-        setError('Please enter OTP');
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('accToken');
+
+      if (!userId || !token) {
+        console.error('Missing userId or token');
         return;
       }
-      const storedUserId = localStorage.getItem('userId');
-      const authToken = localStorage.getItem('accToken');
-      if (!storedUserId || !authToken) {
-        setError('User authentication failed. Please log in again.');
-        return;
-      }
-      const emailOrPhone = newEmail || newPhone; // Use the entered email/phone
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      console.log('emailOrPhone', emailOrPhone);
-      const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
-      const otpResponse = await verifyOtp(emailOrPhone, otp, type);
-      console.log('otpResponse', otpResponse);
-      const err = otpResponse?.response;
-      if (
-        otpResponse ==
-          'OTP verification failed. Remaining attempt count is 0.' ||
-        otpResponse ==
-          'OTP verification failed. Remaining attempt count is 1.' ||
-        err?.data?.params?.status === 'FAILED'
-      ) {
-        // setShowError(true);
-        setShowError(true);
-        setErrorMessage(err.data.params.errmsg);
-        setInvalidOtp(true);
-        setRemainingAttempts((prev) => prev - 1);
-        return;
-      } else if (otpResponse.params.status == 'SUCCESS') {
-        const registrationResponse = await deleteUser({});
-        console.log(registrationResponse);
-        if (registrationResponse.result.response == 'SUCCESS') {
-          setOpenOtpDialog(false);
-          setOpenConfirmDeleteDialog(true);
-          // setShowError(true);
-          // setErrorMessage('Account successfully deleted');
-        } else {
-          setShowError(true);
-          setErrorMessage(err.data.params.errmsg);
-        }
+
+      const response = await deactivateUser(userId, token);
+
+      const userStatus = response?.result?.basicDetails?.status;
+      if (userStatus === 'archived') {
+        setOpenConfirmDeleteDialog(true); // Open the dialog
+      } else {
+        console.warn('User status is not inactive:', userStatus);
       }
     } catch (error) {
-      setError('Invalid OTP');
-      console.error(error);
+      console.error('Error during OTP submission or user deactivation:', error);
+      // You can show an error dialog or snackbar here
     }
   };
 
@@ -362,7 +339,7 @@ export default function Profile() {
   //     </Typography>
   //   );
   // }
-  if(isAuthenticated) {
+  if (isAuthenticated) {
     return (
       <Layout
         showTopAppBar={{
@@ -418,7 +395,7 @@ export default function Profile() {
                 container
                 spacing={2}
                 alignItems="center"
-                justifyContent="center"
+                justifyContent="left"
                 direction="row"
               >
                 <Grid item>
@@ -434,35 +411,46 @@ export default function Profile() {
                   </Avatar>
                 </Grid>
                 <Grid item>
-                <Typography
-                  variant="h5"
-                  textAlign="left"
-                  color="#582E92"
-                  fontWeight="bold"
-                >
-                  {(userData?.firstName + ' ' + userData?.lastName) ?? 'User'}
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  textAlign="left"
-                  color="gray"
-                >
-                  {userData?.role}
-                </Typography>
-                <Typography
-                  variant="subtitle2"
-                  textAlign="left"
-                  color="darkslategray"
-                >
-                  @{userData.username}
-                </Typography>
+                  <Typography
+                    variant="h5"
+                    textAlign="left"
+                    color="#582E92"
+                    fontWeight="bold"
+                  >
+                    {userData?.firstName + ' ' + userData?.lastName ?? 'User'}
+                  </Typography>
+                  <Typography variant="subtitle1" textAlign="left" color="gray">
+                    {userData?.role}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    textAlign="left"
+                    color="darkslategray"
+                  >
+                    @{userData.username}
+                  </Typography>
+                </Grid>
               </Grid>
-              </Grid>
-              <Grid container spacing={2} style={{marginTop:"1rem"}}>
-                {/* Role */}
+              <br></br>
+              <br></br>
+              <Grid
+                container
+                spacing={2}
+                alignItems="center"
+                justifyContent="center"
+                direction="row"
+              >
                 <Grid item xs={12}>
-                  {userCustomFields?.reverse().map((item) => {
-                    return (
+                  {[
+                    ...userDataProfile,
+                    displayRole === 'HT & Officials' && {
+                      label: 'Sub-role',
+                      value: displaySubRole || 'N/A',
+                    },
+                  ]
+                    .filter(Boolean) // Remove any falsy values (like the 'Sub-role' when not applicable)
+                    .reverse()
+                    .map((item) => (
                       <Typography
                         variant="body1"
                         key={item.label}
@@ -473,29 +461,34 @@ export default function Profile() {
                         }}
                         style={{ display: 'flex', width: '100%' }}
                       >
-                        <span style={{ width: '25%', textAlign: 'left', color:'#FF9911' }}>
+                        <span
+                          style={{
+                            width: '25%',
+                            textAlign: 'left',
+                            color: '#FF9911',
+                          }}
+                        >
                           {toCamelCase(item.label)}
                         </span>
                         <span style={{ width: '70%' }}>
-                        {Array.isArray(item.value)
-                          ? (": "+item.value
-                              .map((val) =>
-                                val.value === 'administrator'
-                                  ? 'HT & Officials'
-                                  : toCamelCase(val.value)
-                              )
-                              .join(', ')) // show list values
-                          : (': '+item.value)}
+                          {Array.isArray(item.value)
+                            ? ': ' +
+                              item.value
+                                .map((val) =>
+                                  val.value === 'HT & Officials'
+                                    ? 'HT & Officials'
+                                    : toCamelCase(val.value)
+                                )
+                                .join(', ') // show list values
+                            : ': ' + item.value}
                         </span>
                       </Typography>
-                    );
-                  })}
+                    ))}
                 </Grid>
               </Grid>
             </Box>
 
             {/* Courses Card */}
-
             <Box
               sx={{
                 p: 4,
@@ -541,7 +534,9 @@ export default function Profile() {
                         <TableCell sx={{ fontWeight: 'bold' }}>
                           Course ID
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>
+                          Status
+                        </TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
                       </TableRow>
                     </TableHead>
@@ -670,7 +665,7 @@ export default function Profile() {
                 </Grid>
               </Grid>
             </Box> */}
-            {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Button
                 onClick={handleDeleteAccountClick}
                 variant="contained"
@@ -682,7 +677,7 @@ export default function Profile() {
               >
                 Delete Account
               </Button>
-            </Box> */}
+            </Box>
           </Box>
         </Box>
         {showError && (
@@ -703,98 +698,20 @@ export default function Profile() {
             >
               Cancel
             </Button>
-            <Button onClick={handleDeleteConfirmation} color="error">
-              Proceed
-            </Button>
-          </DialogActions>
-        </Dialog>
-        {/* Email Input Dialog */}
-        <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
-          <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
-          <DialogContent>
-            <RadioGroup value={selectedOption} onChange={handleOptionChange}>
-              {profileData?.email && (
-                <>
-                  <FormControlLabel
-                    value="email"
-                    control={<Radio />}
-                    label={`Email: ${profileData.email}`}
-                  />
-                  {selectedOption === 'email' && (
-                    <TextField
-                      label="Update Email"
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      fullWidth
-                      sx={{ mt: 2 }}
-                    />
-                  )}
-                </>
-              )}
-
-              {profileData?.phone && (
-                <>
-                  <FormControlLabel
-                    value="phone"
-                    control={<Radio />}
-                    label={`Mobile: ${profileData.phone}`}
-                  />
-                  {selectedOption === 'phone' && (
-                    <TextField
-                      label="Update Phone"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      fullWidth
-                      sx={{ mt: 2 }}
-                    />
-                  )}
-                </>
-              )}
-            </RadioGroup>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setOpenEmailDialog(false)}
-              sx={{ color: '#582E92' }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
-              Send OTP
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* OTP Input Dialog */}
-        <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
-          <DialogTitle>Enter OTP</DialogTitle>
-          <DialogContent>
-            <TextField
-              placeholder="Enter Otp"
-              fullWidth
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setOpenOtpDialog(false)}
-              sx={{ color: '#582E92' }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleOtpSubmit} color="error">
+            <Button onClick={handleUserDeactivation} color="error">
               Delete Account
             </Button>
           </DialogActions>
         </Dialog>
+        {/* Email Input Dialog */}
 
         <Dialog
           open={openConfirmDeleteDialog}
           onClose={() => setOpenConfirmDeleteDialog(false)}
         >
-          <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
+          <DialogTitle>
+            Your account has been successfully deleted!!
+          </DialogTitle>
           <DialogContent></DialogContent>
           <DialogActions>
             <Button onClick={confirm} sx={{ color: '#582E92' }}>
@@ -802,6 +719,7 @@ export default function Profile() {
             </Button>
           </DialogActions>
         </Dialog>
+
         <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
           <DialogTitle>Confirm Logout</DialogTitle>
           <DialogContent>
@@ -820,8 +738,7 @@ export default function Profile() {
         </Dialog>
       </Layout>
     );
-  }
-  else {
-    handleLogoutConfirm()
+  } else {
+    handleLogoutConfirm();
   }
 }

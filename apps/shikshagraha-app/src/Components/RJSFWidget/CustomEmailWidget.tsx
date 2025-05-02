@@ -45,7 +45,7 @@ const CustomEmailWidget = ({
       id={id}
       label={
         <span>
-          {label} <span style={{ color: 'red' }}>*</span>
+          {label} 
         </span>
       }
       value={value ?? ''}

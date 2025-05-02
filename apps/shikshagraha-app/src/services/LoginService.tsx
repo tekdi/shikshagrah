@@ -137,7 +137,7 @@ export const fetchContentOnUdise = async (udise: string): Promise<any> => {
     return response?.data;
   } catch (error) {
     console.error('error in fetching user details', error);
-    throw error;
+    return error;
   }
 };
 export const sendOtp = async (requestData: any) => {
@@ -149,6 +149,47 @@ export const sendOtp = async (requestData: any) => {
       requestData
     );
     return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error submitting registration data:', error);
+      return error.response;
+    } else {
+      // handle other types of errors
+    }
+  }
+};
+
+export const readIndividualTenantData = async (tenantId: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
+  }
+
+  const apiUrl = `${baseUrl}/interface/v1/user/tenant/read/${tenantId}`;
+
+  try {
+    const { data } = await axios.get(apiUrl);
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      console.error(
+        'Error fetching tenant data:',
+        err.response?.status,
+        err.response?.data
+      );
+      throw new Error(`API error: ${err.response?.status}`);
+    }
+    console.error('Unexpected error:', err);
+    throw err;
+  }
+};
+export const verifyOtpService = async (requestData: any) => {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/verify-otp`,
+      requestData
+    );
+    return response?.data; // Return response to be handled in the component
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Error submitting registration data:', error);
