@@ -249,7 +249,7 @@ export const renderCertificate = async (
   credentialId: string,
   templateId?: string
 ): Promise<string> => {
-  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/interface/v1/tracking/certificate/render`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/tracking/certificate/render`;
 
   try {
     if (typeof window === 'undefined') {
@@ -275,27 +275,33 @@ export const renderCertificate = async (
     throw error;
   }
 };
-export const deleteUserAccount = async ({
-  token,
-  userId,
-}: AuthParams): Promise<any> => {
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/user/v1/update${userId}`;
+
+export const deactivateUser = async (
+  userId: string,
+  token: string,
+  tenantId: string
+): Promise<any> => {
+  const url = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/user/update/${userId}`;
+
   const headers = {
     Authorization: `Bearer ${token}`,
-    tenantid: '3a849655-30f6-4c2b-8707-315f1ed64fbd',
+    // tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
+    'Content-Type': 'application/json',
   };
+
   const data = {
     userData: {
-      status: 'deactive',
+      status: 'archived',
       reason: 'Health Issue',
     },
   };
-  try {
-    const response = await axios.patch(apiUrl, data, { headers });
 
-    return response?.data;
+  try {
+    const response = await axios.patch(url, data, { headers });
+    return response.data;
   } catch (error) {
-    console.error('Error fetching user auth info:', error);
-    return error;
+    console.error('Error deactivating user:', error);
+    throw error;
   }
 };
+
