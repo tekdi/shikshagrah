@@ -19,11 +19,16 @@ const UdiaseWithButton = ({
   onFetchData,
 }: WidgetProps & { onFetchData: (data: string) => void }) => {
   const [udiseCode, setUdiasecode] = useState(value ?? '');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const displayErrors = rawErrors.filter(
+    (error) => !error.toLowerCase().includes('required')
+  );
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value.replace(/\s/g, '');
-
     setUdiasecode(val);
-    // onChange(val === '' ? undefined : val);
+    setErrorMessage(''); // Reset error when user types
   };
 
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) =>
@@ -33,14 +38,28 @@ const UdiaseWithButton = ({
     onFocus(id, event.target.value);
 
   const handleClick = async () => {
-    // You can place API call logic here
     if (!udiseCode) {
-      return console.log('Please enter a valid UDISE Code');
+      setErrorMessage('Please enter a valid UDISE Code.');
+      alert('Please enter a valid UDISE Code.');
+      return;
     }
+
     try {
       const response = await fetchContentOnUdise(udiseCode);
+      console.log('response', response);
+
+      if (
+        !response ||
+        response?.status === 500 ||
+        !response?.result ||
+        response?.result.length === 0
+      ) {
+        setErrorMessage('No school found. Please enter a valid UDISE Code.');
+        return;
+      }
+
       const locationInfo = response.result[0];
-      console.log('locationInfo', response);
+
       const sampleResponse = {
         udise: udiseCode,
         school: {
@@ -67,14 +86,13 @@ const UdiaseWithButton = ({
 
       onFetchData(sampleResponse);
       setUdiasecode(sampleResponse.udise);
-    } catch (e) {
-      console.log(e);
+      setErrorMessage(''); // Clear error on success
+    } catch (e: any) {
+      console.error('Fetch error:', e.message || e);
+      setErrorMessage('Something went wrong. Please try again later.');
+      alert('Something went wrong. Please try again later.');
     }
   };
-
-  const displayErrors = rawErrors.filter(
-    (error) => !error.toLowerCase().includes('required')
-  );
 
   return (
     <Box display="flex" alignItems="center" gap={1}>
@@ -93,8 +111,8 @@ const UdiaseWithButton = ({
         onBlur={handleBlur}
         onFocus={handleFocus}
         placeholder={placeholder}
-        error={displayErrors.length > 0}
-        // helperText={displayErrors.length > 0 ? displayErrors[0] : ''}
+        error={displayErrors.length > 0 || !!errorMessage}
+        helperText={displayErrors.length > 0 ? displayErrors[0] : errorMessage}
         variant="outlined"
         size="small"
         InputProps={{
@@ -146,3 +164,10 @@ const UdiaseWithButton = ({
 };
 
 export default UdiaseWithButton;
+
+
+
+
+
+
+

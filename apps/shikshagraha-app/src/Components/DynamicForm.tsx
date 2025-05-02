@@ -868,7 +868,6 @@ const DynamicForm = ({
       );
     }
 
-   
     setFormData(formData);
     setFormUiSchema(formUiSchema);
 
@@ -1535,6 +1534,11 @@ const DynamicForm = ({
         } else {
           if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
             localStorage.setItem('userId', tenantResponse?.result?.userId);
+            localStorage.setItem(
+              'firstname',
+              tenantResponse?.result?.firstName
+            );
+            localStorage.setItem('name', tenantResponse?.result?.username);
             const tenantIdToCompare =
               tenantResponse?.result?.tenantData?.[0]?.tenantId;
             if (tenantIdToCompare) {
@@ -1618,22 +1622,6 @@ const DynamicForm = ({
           widgets={widgets}
           id="dynamic-form-id"
         >
-          {showEmailMobileError && (
-            <Snackbar
-              open={showEmailMobileError}
-              autoHideDuration={4000}
-              onClose={() => setShowEmailMobileError(false)}
-              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-              <Alert
-                severity="error"
-                sx={{ mb: 2 }}
-                onClose={() => setShowEmailMobileError(false)}
-              >
-                Please provide either email or mobile number
-              </Alert>
-            </Snackbar>
-          )}
           <Box
             sx={{
               display: 'flex',

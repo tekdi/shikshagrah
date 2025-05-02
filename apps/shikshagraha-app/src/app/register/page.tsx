@@ -48,7 +48,7 @@ export default function Register() {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
   };
 
-  if(!isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Box
         sx={{
@@ -58,7 +58,7 @@ export default function Register() {
           bgcolor: '#f5f5f5',
           // Allow scrolling if content is large
           paddingBottom: '60px',
-          margin:'-1rem'
+          // margin:'-1rem'
         }}
       >
         <Box
@@ -101,7 +101,7 @@ export default function Register() {
             ></Grid>
           </Grid>
         </Box>
-        <Box sx={{ mx: 'auto', p: 2, width: '100%', maxWidth: 400 }}>
+        <Box sx={{ mx: 'auto', width: '100%', maxWidth: 400 }}>
           <Box>
             <Typography
               variant="h5"
@@ -129,8 +129,7 @@ export default function Register() {
         </Box>
       </Box>
     );
-  }
-  else {
+  } else {
     const redirectUrl = '/home';
     router.push(redirectUrl);
   }
