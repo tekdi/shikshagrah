@@ -255,7 +255,7 @@ export default function Login() {
 
         <TextField
           fullWidth
-          label="Username/Email"
+          label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
           error={error.userName}
