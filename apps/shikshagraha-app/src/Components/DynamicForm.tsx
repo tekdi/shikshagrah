@@ -1522,45 +1522,56 @@ const DynamicForm = ({
         username: `${formData.firstName}_${formData.lastName}`,
         password: formData.password,
       });
+
       if (response?.result?.access_token) {
         localStorage.setItem('accToken', response?.result?.access_token);
         localStorage.setItem('refToken', response?.result?.refresh_token);
         const tenantResponse = await authenticateLoginUser({
           token: response?.result?.access_token,
         });
-        if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
-          localStorage.setItem('userId', tenantResponse?.result?.userId);
-          const tenantIdToCompare =
-            tenantResponse?.result?.tenantData?.[0]?.tenantId;
-          if (tenantIdToCompare) {
-            localStorage.setItem(
-              'headers',
-              JSON.stringify({
-                'org-id': tenantIdToCompare,
-              })
-            );
-          }
+        localStorage.setItem('firstname', tenantResponse?.result?.firstName);
+        console.log('reasssss', tenantResponse);
+        console.log('User status:', tenantResponse?.result?.status);
 
-          const tenantData = await fetchTenantData({
-            token: response?.result?.access_token,
-          });
-          if (tenantIdToCompare) {
-            const matchedTenant = tenantData?.result?.find(
-              (tenant) => tenant.tenantId === tenantIdToCompare
-            );
-            localStorage.setItem('channelId', matchedTenant?.channelId);
-            localStorage.setItem(
-              'frameworkname',
-              matchedTenant?.contentFramework
-            );
-            if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
-              const redirectUrl = '/home';
-              router.push(redirectUrl);
-            } else {
-              setShowError(true);
-              setErrorMessage(
-                'The user does not belong to the same organization.'
+        if (tenantResponse?.result?.status === 'archived') {
+          setShowError(true);
+          setErrorMessage('The user is decativated please contact admin');
+          return;
+        } else {
+          if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
+            localStorage.setItem('userId', tenantResponse?.result?.userId);
+            const tenantIdToCompare =
+              tenantResponse?.result?.tenantData?.[0]?.tenantId;
+            if (tenantIdToCompare) {
+              localStorage.setItem(
+                'headers',
+                JSON.stringify({
+                  'org-id': tenantIdToCompare,
+                })
               );
+            }
+
+            const tenantData = await fetchTenantData({
+              token: response?.result?.access_token,
+            });
+            if (tenantIdToCompare) {
+              const matchedTenant = tenantData?.result?.find(
+                (tenant) => tenant.tenantId === tenantIdToCompare
+              );
+              localStorage.setItem('channelId', matchedTenant?.channelId);
+              localStorage.setItem(
+                'frameworkname',
+                matchedTenant?.contentFramework
+              );
+              if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+                const redirectUrl = '/home';
+                router.push(redirectUrl);
+              } else {
+                setShowError(true);
+                setErrorMessage(
+                  'The user does not belong to the same organization.'
+                );
+              }
             }
           }
         }
@@ -1579,7 +1590,6 @@ const DynamicForm = ({
     // router.push('/');
     // localStorage.clear();
   };
-
   return (
     <>
       {!isCallSubmitInHandle ? (
@@ -1643,6 +1653,8 @@ const DynamicForm = ({
                 !formData?.firstName ||
                 !formData?.lastName ||
                 !formData?.password ||
+                (!formData?.email && !formData?.mobile) ||
+                !formData?.confirm_password ||
                 !formData.roles ||
                 (formData?.roles.includes('HT & Officials') &&
                   !formData?.subRoles?.length) ||
