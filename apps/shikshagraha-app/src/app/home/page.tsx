@@ -162,7 +162,7 @@ export default function Home() {
                     fontWeight="bold"
                     fontSize={{ xs: '22px', sm: '24px', md: '26px' }}
                   >
-                    Welcome, {profileData?.firstName}
+                    Welcome, {localStorage.getItem('name')}
                   </Typography>
                   <Typography
                     variant="body2"
