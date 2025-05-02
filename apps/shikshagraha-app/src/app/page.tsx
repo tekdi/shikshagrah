@@ -158,7 +158,7 @@ export default function Login() {
   };
 
   const handlePasswordClick = () => {
-    router.push('/forgotpassword');
+    router.push('/forgetpassword');
   };
 
   return (
