@@ -54,11 +54,11 @@ const ForgotPassword = () => {
     email: '',
     mobile: '',
   });
-  const usernameRegex = /^[a-zA-Z0-9_]+$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usernameRegex = /^\w+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex =
-    /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
+    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -193,7 +193,6 @@ const ForgotPassword = () => {
     setShowConfirmPassword((show) => !show);
 
   const handleBack = () => {
-    // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     if (step === 'input') {
       router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     } else if (step === 'otp') {
@@ -419,7 +418,7 @@ const ForgotPassword = () => {
                   'ArrowRight',
                   'Tab',
                 ];
-                if (!/^[0-9]$/.test(e.key) && !allowedKeys.includes(e.key)) {
+                if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
                   e.preventDefault();
                 }
               }}
@@ -500,7 +499,7 @@ const ForgotPassword = () => {
             >
               {otp.map((digit, index) => (
                 <TextField
-                  key={index}
+                  key={`otp-${index}`}
                   id={`otp-${index}`}
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
@@ -583,7 +582,7 @@ const ForgotPassword = () => {
               label="New Password"
               value={newPassword}
               onChange={handleChangePassword}
-              helperText={passwordError || ''}
+              helperText={passwordError ?? ''}
               margin="normal"
               FormHelperTextProps={{
                 sx: {
@@ -633,7 +632,7 @@ const ForgotPassword = () => {
               value={confirmPassword}
               name="confirmPassword"
               onChange={handleChangePassword}
-              helperText={confirmPasswordError || ''}
+              helperText={confirmPasswordError ?? ''}
               margin="normal"
               FormHelperTextProps={{
                 sx: {

@@ -88,7 +88,7 @@ const UdiaseWithButton = ({
       setUdiasecode(sampleResponse.udise);
       setErrorMessage(''); // Clear error on success
     } catch (e: any) {
-      console.error('Fetch error:', e.message || e);
+      console.error('Fetch error:', e.message ?? e);
       setErrorMessage('Something went wrong. Please try again later.');
       alert('Something went wrong. Please try again later.');
     }
@@ -164,10 +164,3 @@ const UdiaseWithButton = ({
 };
 
 export default UdiaseWithButton;
-
-
-
-
-
-
-

@@ -12,7 +12,11 @@ import {
   renderCertificate,
   deactivateUser,
 } from '../../services/ProfileService';
-import { sendOtp, verifyOtpService } from '../../services/LoginService';
+import {
+  sendOtp,
+  verifyOtpService,
+  authenticateUser,
+} from '../../services/LoginService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
@@ -42,7 +46,7 @@ import {
   TableCell,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { authenticateUser } from '../../services/LoginService';
+
 import OTPDialog from '../../Components/OTPDialog';
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
@@ -519,7 +523,7 @@ export default function Profile() {
                     ...userDataProfile,
                     displayRole === 'HT & Officials' && {
                       label: 'Sub-role',
-                      // value: toCamelCase(displaySubRole) || 'N/A',
+                      value: displaySubRole || 'N/A',
                     },
                   ]
                     .filter(Boolean) // Remove any falsy values (like the 'Sub-role' when not applicable)
