@@ -33,7 +33,7 @@ function SearchParamsHandler() {
 
 export default function Content() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   const handleAccountClick = () => setShowLogoutModal(true);
@@ -49,23 +49,26 @@ export default function Content() {
     router.back();
   };
 
-  if(isAuthenticated) {
-    return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsWrapper
-          // handleAccountClick={handleAccountClick}
-          showLogoutModal={showLogoutModal}
-          handleLogoutCancel={handleLogoutCancel}
-          handleLogoutConfirm={handleLogoutConfirm}
-          backIconClick={backIconClick}
-        />
-      </Suspense>
-    );
-  }
-  else {
-    handleLogoutConfirm();
-  }
+  // useEffect(() => {
+  //   setIsAuthenticated(!!localStorage.getItem('accToken'));
+  // }, []);
 
+  // if(isAuthenticated) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchParamsWrapper
+        // handleAccountClick={handleAccountClick}
+        showLogoutModal={showLogoutModal}
+        handleLogoutCancel={handleLogoutCancel}
+        handleLogoutConfirm={handleLogoutConfirm}
+        backIconClick={backIconClick}
+      />
+    </Suspense>
+  );
+  // }
+  // else {
+  //   handleLogoutConfirm();
+  // }
 }
 
 function SearchParamsWrapper({
@@ -75,6 +78,7 @@ function SearchParamsWrapper({
   backIconClick,
 }) {
   const { iframeSrc, title } = SearchParamsHandler();
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     if (iframeSrc) {
@@ -83,6 +87,7 @@ function SearchParamsWrapper({
     // setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [iframeSrc]);
 
+  // if(isAuthenticated) {
   return (
     <>
       <Layout
@@ -103,32 +108,36 @@ function SearchParamsWrapper({
         showLogo={true}
       >
         {/* <iframe
-          src={iframeSrc}
-          style={{
-            width: '100%',
-            height: '100vh',
-            border: 'none',
-          }}
-          title={title}
-        ></iframe> */}
+            src={iframeSrc}
+            style={{
+              width: '100%',
+              height: '100vh',
+              border: 'none',
+            }}
+            title={title}
+          ></iframe> */}
       </Layout>
 
       {/* <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
-        <DialogTitle>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to log out?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleLogoutCancel} color="primary">
-            No
-          </Button>
-          <Button onClick={handleLogoutConfirm} color="secondary">
-            Yes, Logout
-          </Button>
-        </DialogActions>
-      </Dialog> */}
+          <DialogTitle>Confirm Logout</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to log out?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleLogoutCancel} color="primary">
+              No
+            </Button>
+            <Button onClick={handleLogoutConfirm} color="secondary">
+              Yes, Logout
+            </Button>
+          </DialogActions>
+        </Dialog> */}
     </>
   );
+  // }
+  // else {
+  //   router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+  // }
 }
