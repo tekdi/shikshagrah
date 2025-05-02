@@ -53,6 +53,10 @@ const ForgotPassword = () => {
       [name]: value,
     }));
   };
+  const getAuthPayload = () =>
+    formData.email
+      ? { email: formData.email, reason: 'forgot' }
+      : { mobile: formData.mobile, reason: 'forgot' };
 
   const handleSendOtp = async () => {
     if (!formData.email && !formData.mobile) {
@@ -63,11 +67,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const payload = formData.email
-        ? { email: formData.email, reason: 'forgot' }
-        : { mobile: formData.mobile, reason: 'forgot' };
-
-      const response = await sendOtp(payload);
+      const response = await sendOtp(getAuthPayload());
 
       if (response?.params?.successmessage === 'OTP sent successfully') {
         setHash(response?.result?.data?.hash);
