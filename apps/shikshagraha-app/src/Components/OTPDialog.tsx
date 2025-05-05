@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,17 +7,37 @@ import {
   TextField,
   Button,
   Box,
+  Typography,
 } from '@mui/material';
 
-const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
+const OTPDialog = ({ open, onClose, onSubmit, onResendOtp }: any) => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
+  const [timer, setTimer] = useState<number>(0);
+
+  // Start countdown timer when timer > 0
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setOtp(Array(6).fill(''));
+      setTimer(0);
+    }
+  }, [open]);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    // Auto focus to next field
     if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
@@ -30,16 +50,26 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
       prevInput?.focus();
     }
   };
+
   const handleSubmit = () => {
-    const otpString = otp.join(''); // Combine the OTP digits into a single string
-    onSubmit(otpString); // Pass the OTP string to the parent component
+    const otpString = otp.join('');
+    onSubmit(otpString);
     setOtp(Array(6).fill(''));
   };
+
   const handleClose = () => {
-    // Clear OTP fields when dialog is closed
     setOtp(Array(6).fill(''));
+    setTimer(0);
     onClose();
   };
+
+  const handleResend = () => {
+    if (onResendOtp) {
+      onResendOtp(); // Trigger resend from parent
+      setTimer(30); // Restart timer
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -72,6 +102,7 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
       }}
     >
       <DialogTitle>Enter OTP</DialogTitle>
+
       <DialogContent>
         <Box display="flex" gap={1} justifyContent="center" mt={2}>
           {otp.map((digit, index) => (
@@ -92,7 +123,28 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
             />
           ))}
         </Box>
+
+        {/* Resend OTP Section */}
+        <Box mt={2} display="flex" flexDirection="column" alignItems="center">
+          <Typography variant="body2" color="textSecondary">
+            Didn’t receive the code?
+          </Typography>
+          <Button
+            onClick={handleResend}
+            disabled={timer > 0}
+            variant="text"
+            sx={{
+              color: timer > 0 ? 'grey' : '#582E92',
+              textTransform: 'none',
+              fontWeight: 'medium',
+              fontSize: '14px',
+            }}
+          >
+            {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+          </Button>
+        </Box>
       </DialogContent>
+
       <DialogActions>
         <Button
           onClick={handleClose}

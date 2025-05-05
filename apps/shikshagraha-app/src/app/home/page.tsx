@@ -29,37 +29,47 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [cardData, setCardData] = useState([]);
+  const navigate = useRouter();
+
 
   useEffect(() => {
-    const getProfileData = async () => {
-      try {
-        const token = localStorage.getItem('accToken') || '';
-        const userId = localStorage.getItem('userId') || '';
-      } catch (err) {
-        setError('Failed to load profile data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    getProfileData();
-
-    async function fetchConfig() {
-      const header = JSON.parse(localStorage.getItem('headers'));
-
-      if (!header['org-id']) return;
-      try {
-        const data = await readIndividualTenantData(header['org-id']);
-        setCardData(data.result.contentFilter);
-        localStorage.setItem(
-          'theme',
-          JSON.stringify(data.result.contentFilter[0].theme)
-        );
-      } catch (err) {
-        setError((err as Error).message);
-      }
+    const accToken = localStorage.getItem('accToken');
+    if (!accToken) {
+      // router.replace(''); // Redirect to login page
+      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     }
-    fetchConfig();
-  }, []);
+    else {
+      const getProfileData = async () => {
+        try {
+          const token = localStorage.getItem('accToken') || '';
+          const userId = localStorage.getItem('userId') || '';
+        } catch (err) {
+          setError('Failed to load profile data');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getProfileData();
+
+      async function fetchConfig() {
+        const header = JSON.parse(localStorage.getItem('headers'));
+
+        if (!header['org-id']) return;
+        try {
+          const data = await readIndividualTenantData(header['org-id']);
+          setCardData(data.result.contentFilter);
+          localStorage.setItem(
+            'theme',
+            JSON.stringify(data.result.contentFilter[0].theme)
+          );
+        } catch (err) {
+          setError((err as Error).message);
+        }
+      }
+      fetchConfig();
+    }
+  }, [router]);
 
   const handleAccountClick = () => {
     setShowLogoutModal(true);

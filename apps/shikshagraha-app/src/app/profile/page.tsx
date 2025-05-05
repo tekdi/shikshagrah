@@ -261,7 +261,12 @@ export default function Profile() {
     setSelectedOption(selectedValue);
     setValue(selectedValue === 'email' ? profileData.email : profileData.phone);
   };
-
+ const handleResend = () => {
+   if (onResendOtp) {
+     handleSendOtp(); // Call parent resend function
+     setTimer(30); // Start 30 sec countdown
+   }
+ };
   const handleSendOtp = async () => {
     let otpPayload;
     if (userData.email) {
@@ -326,6 +331,25 @@ export default function Profile() {
       handleUserDeactivation();
     }
   };
+  const handleProfileOtpResend = async () => {
+    const resendPayload = userData.email
+      ? { email: userData.email, reason: 'signup' }
+      : { mobile: String(userData.mobile ?? ''), reason: 'signup' };
+
+    try {
+      const response = await sendOtp(resendPayload);
+      if (response?.params?.successmessage === 'OTP sent successfully') {
+        // Optionally update the hash code if returned
+        setHashCode(response.result?.hash);
+        console.log('OTP resent successfully');
+      } else {
+        console.error('Failed to resend OTP');
+      }
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+    }
+  };
+
   const handleUserDeactivation = async () => {
     try {
       const userId = localStorage.getItem('userId');
@@ -762,6 +786,8 @@ export default function Profile() {
           open={isOpenOTP}
           onClose={() => setIsOpenOTP(false)}
           onSubmit={handleVerifyOTP}
+          onResendOtp={handleProfileOtpResend}
+          type="delete"
         />
         {showError && (
           <Alert severity="error" sx={{ marginTop: '15px' }}>
