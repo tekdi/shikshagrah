@@ -1,6 +1,6 @@
 // components/ForgotPassword.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -59,6 +59,8 @@ const ForgotPassword = () => {
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex =
     /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+  const [timer, setTimer] = useState(0);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -109,7 +111,20 @@ const ForgotPassword = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
+  const handleResendOtp = () => {
+    handleSendOtp();
+    setTimer(30);
+  };
   const handleVerifyOtp = async () => {
     const otpString = otp.join('');
 
@@ -250,6 +265,7 @@ const ForgotPassword = () => {
       prevInput?.focus();
     }
   };
+  console.log('formData', formData);
   return (
     <Box
       sx={{
@@ -487,9 +503,10 @@ const ForgotPassword = () => {
           <>
             <Box sx={{ width: '100%' }}>
               <Typography variant="body1" gutterBottom>
-                Enter the OTP sent to {formData.email ?? formData.mobile}
+                Enter the OTP sent to {formData.email || formData.mobile}
               </Typography>
             </Box>
+
             <Box
               display="flex"
               gap={1}
@@ -515,56 +532,55 @@ const ForgotPassword = () => {
                 />
               ))}
             </Box>
-            {/* <TextField
-              fullWidth
-              label="OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              margin="normal"
-              InputProps={{
-                sx: {
-                  '& .MuiInputBase-input': {
-                    padding: '14px',
-                    fontSize: '12px',
-                  },
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '12px', // Label font size
-                  '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
-                  },
-                  '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
-                  },
-                },
-              }}
-            /> */}
 
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleVerifyOtp}
-              disabled={!otp}
-              sx={{
-                bgcolor: '#582E92',
-                color: '#FFFFFF',
-                borderRadius: '30px',
-                textTransform: 'none',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                padding: '8px 16px',
-                '&:hover': {
-                  bgcolor: '#543E98',
-                },
-                width: { xs: '50%', sm: '50%' },
-              }}
+            {/* Resend OTP Section */}
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              width="100%"
+              mt={1}
             >
-              {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
-            </Button>
+              <Typography variant="body2" color="textSecondary">
+                Didn’t receive the code?
+              </Typography>
+              <Button
+                onClick={handleResendOtp}
+                disabled={timer > 0}
+                variant="text"
+                sx={{
+                  color: timer > 0 ? 'grey' : '#582E92',
+                  textTransform: 'none',
+                  fontWeight: 'medium',
+                  fontSize: '14px',
+                }}
+              >
+                {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+              </Button>
+            </Box>
+
+            <Box display="flex" justifyContent="center" mt={2}>
+              <Button
+                variant="contained"
+                onClick={handleVerifyOtp}
+                disabled={!otp.join('').trim()}
+                sx={{
+                  bgcolor: '#582E92',
+                  color: '#FFFFFF',
+                  borderRadius: '30px',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  padding: '8px 32px',
+                  '&:hover': {
+                    bgcolor: '#543E98',
+                  },
+                }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
+              </Button>
+            </Box>
           </>
         )}
 
