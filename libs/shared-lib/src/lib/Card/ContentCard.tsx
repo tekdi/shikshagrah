@@ -11,6 +11,7 @@ import { Box } from '@mui/material';
 import { Progress } from '../Progress/Progress';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import { CircularProgressWithLabel } from '../Progress/CircularProgressWithLabel';
 interface ContentItem {
   name: string;
   gradeLevel: string[];
@@ -23,6 +24,11 @@ interface ContentItem {
   description: string;
   posterImage: string;
   children: [{}];
+}
+interface TrackDataItem {
+  courseId: string;
+  completed_list: any[];
+  completed: boolean;
 }
 interface CommonCardProps {
   title: string;
@@ -37,7 +43,7 @@ interface CommonCardProps {
   orientation?: 'vertical' | 'horizontal';
   minheight?: string;
 
-  TrackData?: never[];
+  TrackData?: TrackDataItem[];
   item: ContentItem[];
   type: string;
   onClick?: () => void;
@@ -53,7 +59,9 @@ export const ContentCard: React.FC<CommonCardProps> = ({
   children,
   orientation,
   minheight,
-
+  TrackData,
+  type,
+  item,
   onClick,
 }) => {
   const getLeafNodes = (node: any) => {
@@ -73,12 +81,63 @@ export const ContentCard: React.FC<CommonCardProps> = ({
 
     return result;
   };
+  const [trackCompleted, setTrackCompleted] = React.useState(0);
+  const [trackProgress, setTrackProgress] = React.useState(100);
 
+  React.useEffect(() => {
+    const init = () => {
+      try {
+        //@ts-ignore
+        if (TrackData) {
+          const result = TrackData?.find(
+            (e) => e.courseId === (item as any[])[0].identifier
+          );
+          if (type === 'Course') {
+            const leafNodes = getLeafNodes(item ?? []);
+            const completedCount = result?.completed_list?.length ?? 0;
+            const percentage =
+              leafNodes.length > 0
+                ? Math.round((completedCount / leafNodes.length) * 100)
+                : 0;
+            setTrackProgress(percentage);
+            setTrackCompleted(percentage);
+          } else {
+            setTrackCompleted(result?.completed ? 100 : 0);
+          }
+        }
+      } catch (e) {
+        console.log('error', e);
+      }
+    };
+    init();
+  }, [TrackData, item, type]);
+
+  let statusIcon;
+  let statusText;
+
+  if (type === 'Course') {
+    if (trackCompleted >= 100) {
+      statusIcon = <CheckCircleIcon sx={{ color: '#21A400' }} />;
+      statusText = 'Completed';
+    } else if (trackProgress > 0 && trackProgress < 100) {
+      statusText = 'In progress';
+    } else {
+      statusText = 'Enrolled';
+    }
+  } else {
+    if (trackCompleted >= 100) {
+      statusIcon = <CheckCircleIcon sx={{ color: '#21A400' }} />;
+      statusText = 'Completed';
+    } else {
+      statusIcon = <ErrorIcon sx={{ color: '#FFB74D' }} />;
+      statusText = 'Enrolled';
+    }
+  }
   return (
     <Card
       sx={{
         height: '100%',
-        
+
         boxShadow: 'none',
         background: 'transparent',
       }}
@@ -99,7 +158,50 @@ export const ContentCard: React.FC<CommonCardProps> = ({
           }}
         />
       </Box>
-
+      {trackProgress >= 0 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            height: '40px',
+            top: 0,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            background: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <Box
+            sx={{
+              p: '0px 5px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            {type === 'Course' && (
+              <CircularProgressWithLabel
+                value={trackProgress ?? 0}
+                _text={{
+                  sx: {
+                    color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
+                    fontSize: '10px',
+                  },
+                }}
+                sx={{
+                  color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
+                }}
+                size={35}
+                thickness={2}
+              />
+            )}
+            {statusIcon}
+            {statusText}
+          </Box>
+        </Box>
+      )}
       <CardHeader
         avatar={
           avatarLetter && (
