@@ -17,6 +17,7 @@ import { useTheme } from '@mui/material/styles';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { trackingData } from '../services/TrackingService';
+import SG_LOGO from '../../public/assests/images/SG_Logo.png';
 interface ContentItem {
   name: string;
   gradeLevel: string[];
@@ -104,14 +105,13 @@ export default function Content() {
   );
   const fetchDataTrack = async (resultData: any) => {
     if (!resultData.length) return; // Ensure contentData is available
-    console.log('trackdata---', resultData);
     try {
       const courseList = resultData.map((item: any) => item.identifier); // Extract all identifiers
-      const userId = localStorage.getItem('subId');
+      const userId = localStorage.getItem('userId');
       const userIdArray = userId?.split(',');
       if (!userId || !courseList.length) return; // Ensure required values exist
       //@ts-ignore
-
+      console.log('userIdArray', userIdArray);
       const course_track_data = await trackingData(userIdArray, courseList);
 
       if (course_track_data?.data) {
@@ -132,7 +132,7 @@ export default function Content() {
     }
   };
   useEffect(() => {
-    const type = 'Learning Resource';
+    const type = tabValue === 0 ? 'Course' : 'Learning Resource';
     // setContentData([]);
     const cookies = document.cookie.split('; ');
     const subid = cookies
@@ -151,7 +151,7 @@ export default function Content() {
 
     const currentScrollPosition = window.scrollY;
 
-    const type = 'Learning Resource';
+    const type = tabValue === 0 ? 'Course' : 'Learning Resource';
 
     fetchContent(type, searchValue, filterValues, limit, newOffset).then(() => {
       setTimeout(() => {
@@ -171,9 +171,8 @@ export default function Content() {
 
   const handleSearchClick = async () => {
     if (searchValue.trim()) {
-      const type = 'Learning Resource';
+      const type = tabValue === 0 ? 'Course' : 'Learning Resource';
 
-      console.log('searchValue', type);
       // fetchContent(type, searchValue, filterValues);
       let result =
         type &&
@@ -190,7 +189,7 @@ export default function Content() {
     } else {
       setSearchValue('');
       setContentData([]);
-      const type = 'Learning Resource';
+
       fetchContent(type, searchValue, filterValues);
     }
   };
@@ -231,7 +230,7 @@ export default function Content() {
         //@ts-ignore
         const trackable = result?.trackable;
         setSelectedContent(result);
-
+        console.log('selectedContent', result);
         router.push(`/content-details/${identifier}`);
       }
     } catch (error) {
@@ -275,11 +274,7 @@ export default function Content() {
               >
                 <ContentCard
                   title={item?.name.trim()}
-                  image={
-                    item?.posterImage && item?.posterImage !== 'undefined'
-                      ? item?.posterImage
-                      : '/assests/images/image_ver.png'
-                  }
+                  image={item?.posterImage ? item?.posterImage : SG_LOGO.src}
                   content={item?.description || '-'}
                   // subheader={item?.contentType}
                   actions={item?.contentType}
@@ -287,7 +282,7 @@ export default function Content() {
                   item={[item]}
                   TrackData={trackData}
                   // type={tabValue === 0 ? 'course' : 'content'}
-                  type={'content'}
+                  type={tabValue === 0 ? 'Course' : 'Learning Resource'}
                   onClick={() =>
                     handleCardClick(item?.identifier, item?.mimeType)
                   }
@@ -316,10 +311,10 @@ export default function Content() {
   );
 
   const tabs = [
-    // {
-    //   label: 'Courses',
-    //   content: renderTabContent(),
-    // },
+    {
+      label: 'Courses',
+      content: renderTabContent(),
+    },
     {
       label: 'Resource  ',
       content: renderTabContent(),
