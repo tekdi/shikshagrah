@@ -201,12 +201,19 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         },
       }}
       InputProps={{
+        readOnly: readonly,
         inputMode: isMobileField ? 'numeric' : 'text',
         pattern: isMobileField ? '[0-9]*' : undefined,
         sx: {
           '& .MuiInputBase-input': {
             padding: '10px 12px',
             fontSize: '12px',
+            color: readonly ? '#000000' : undefined,
+            backgroundColor: readonly ? '#f5f5f5' : undefined,
+            WebkitTextFillColor: readonly ? '#000000' : undefined,
+          },
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: readonly ? 'rgba(0, 0, 0, 0.23)' : undefined,
           },
         },
         endAdornment: (isPasswordField || isConfirmPasswordField) && (

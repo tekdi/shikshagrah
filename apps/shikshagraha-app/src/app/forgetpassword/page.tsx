@@ -60,7 +60,7 @@ const ForgotPassword = () => {
   const passwordRegex =
     /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
   const [timer, setTimer] = useState(0);
-
+  const [secondsLeft, setSecondsLeft] = useState(605);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -95,7 +95,31 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const response = await sendOtp(getAuthPayload());
+      let otpPayload;
+      if (formData.email) {
+        otpPayload = {
+          email: formData.email,
+          reason: 'forgot',
+          firstName: formData.username,
+          key: 'SendOtpOnMail',
+          replacements: {
+            '{eventName}': 'Shiksha Graha OTP',
+            '{programName}': 'Shiksha Graha',
+          },
+        };
+      } else if (formData.mobile) {
+        console.log('userData.mobile', String(formData?.mobile ?? ''));
+        otpPayload = {
+          mobile: String(formData?.mobile ?? ''), // Ensure fallback to empty string if undefined
+          reason: 'signup',
+        };
+      } else {
+        setShowError(true);
+        // setErrorMessage('Either email or mobile must be provided');
+        return;
+      }
+      console.log('otpPayload', otpPayload);
+      const response = await sendOtp(otpPayload);
 
       if (response?.params?.successmessage === 'OTP sent successfully') {
         setHash(response?.result?.data?.hash);
@@ -151,9 +175,7 @@ const ForgotPassword = () => {
             hash,
             username: formData.username,
           };
-
       const response = await verifyOtpService(payload);
-
       if (response?.params?.successmessage === 'OTP validation Sucessfully') {
         setToken(response?.result?.token ?? '');
         setStep('reset');
@@ -257,6 +279,24 @@ const ForgotPassword = () => {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
+  };
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+  const formatTime = (secs: number) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = secs % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
   const handleKeyDown = (e: any, index: number) => {
@@ -506,7 +546,6 @@ const ForgotPassword = () => {
                 Enter the OTP sent to {formData.email || formData.mobile}
               </Typography>
             </Box>
-
             <Box
               display="flex"
               gap={1}
@@ -532,7 +571,6 @@ const ForgotPassword = () => {
                 />
               ))}
             </Box>
-
             {/* Resend OTP Section */}
             <Box
               display="flex"
@@ -559,6 +597,10 @@ const ForgotPassword = () => {
                 {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
               </Button>
             </Box>
+            <Typography variant="body2" color="textSecondary">
+              Note: OTP will expire in 10 minutes ({formatTime(secondsLeft)}{' '}
+              left).
+            </Typography>
 
             <Box display="flex" justifyContent="center" mt={2}>
               <Button
@@ -640,7 +682,6 @@ const ForgotPassword = () => {
                 },
               }}
             />
-
             <TextField
               fullWidth
               type={showConfirmPassword ? 'text' : 'password'}
@@ -690,7 +731,6 @@ const ForgotPassword = () => {
                 },
               }}
             />
-
             <Button
               fullWidth
               variant="contained"
