@@ -852,11 +852,11 @@ const DynamicForm = ({
     const lastName = (formData?.lastName || '').trim();
 
     // And optionally prevent cases like "___" when names are empty strings:
-    if ((firstName || lastName) && !(firstName === '' && lastName === '')) {
-      formData.Username = `${firstName}_${lastName}`.toLowerCase();
-    } else {
-      formData.Username = undefined;
-    }
+    // if ((firstName || lastName) && !(firstName === '' && lastName === '')) {
+    //   formData.Username = `${firstName}_${lastName}`.toLowerCase();
+    // } else {
+    //   formData.Username = undefined;
+    // }
 
     if (formData.email) {
       setShowEmailMobileError(
@@ -1328,10 +1328,10 @@ const DynamicForm = ({
       }
     );
 
-    const userName = formData.firstName;
+    // const userName = formData.firstName;
     const payload = {
       name: formData.firstName,
-      username: `${formData.firstName}_${formData.lastName}`,
+      username: formData.Username,
       password: formData.password,
       gender: formData.gender ?? 'male',
       firstName: formData.firstName,
@@ -1346,6 +1346,7 @@ const DynamicForm = ({
       ],
       customFields,
     };
+    console.log('payload 1349', payload);
     setRegisterData(payload);
     let otpPayload;
     if (formData.email) {
@@ -1440,10 +1441,10 @@ const DynamicForm = ({
       }
     );
 
-    const userName = formData.firstName;
+    // const userName = formData.firstName;
     const payload = {
       name: formData.firstName,
-      username: `${formData.firstName}_${formData.lastName}`,
+      username: formData.Username,
       password: formData.password,
       gender: formData.gender ?? 'male',
       firstName: formData.firstName,
@@ -1511,9 +1512,10 @@ const DynamicForm = ({
 
   const handleDialogClose = async () => {
     setDialogOpen(false);
+    console.log('handleDialogClose', formData);
     try {
       const response = await signin({
-        username: `${formData.firstName}_${formData.lastName}`,
+        username: formData.Username,
         password: formData.password,
       });
 
@@ -1704,6 +1706,7 @@ const DynamicForm = ({
         data={registerData}
         onClose={() => setIsOpenOTP(false)}
         onSubmit={handleRegister}
+        onResendOtp={handleSendOtp}
       />
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogTitle>Registration Successful</DialogTitle>
