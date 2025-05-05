@@ -633,8 +633,24 @@ export default function Profile({ params }: { params: { id: string } }) {
                     variant="subtitle2"
                     textAlign="left"
                     color="darkslategray"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
                     @{userData.username}
+                    <Typography
+                      component="span"
+                      sx={{
+                        color: '#582E92',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        '&:hover': {
+                          color: '#461B73',
+                        },
+                      }}
+                      onClick={() => router.push('/resetpassword')}
+                    >
+                      Reset Password
+                    </Typography>
                   </Typography>
                 </Grid>
               </Grid>
