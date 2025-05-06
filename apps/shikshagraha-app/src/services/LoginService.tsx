@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useRouter } from 'next/router';
 interface LoginParams {
   username: string;
   password: string;
@@ -46,6 +47,7 @@ export const authenticateLoginUser = async ({
     });
     return response?.data;
   } catch (error) {
+    debugger;
     console.error('error in login', error);
     // throw error;
     return error;
@@ -65,8 +67,19 @@ export const authenticateUser = async ({
         tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436', // Token passed as a parameter
       },
     });
+    if(response.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
+
     return response?.data;
-  } catch (error) {
+  } catch (error:any) {
+    if(error.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
     console.error('error in login', error);
     // throw error;
     return error;
@@ -87,8 +100,19 @@ export const fetchTenantData = async ({
       params: { tenantId }, // Passing tenantId as a query parameter
     });
 
+    if(response.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
+
     return response?.data;
-  } catch (error) {
+  } catch (error:any) {
+    if(error.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
     console.error('Error fetching tenant data:', error);
     return error;
   }
@@ -102,8 +126,18 @@ export const schemaRead = async (): Promise<any> => {
         tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
       },
     });
+    if(response.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
     return response?.data;
-  } catch (error) {
+  } catch (error:any) {
+    if(error.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
     console.error('error in login', error);
     // throw error;
     return error;
