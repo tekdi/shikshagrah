@@ -838,7 +838,11 @@ const DynamicForm = ({
       }
     });
   };
-
+  useEffect(() => {
+    if (formData.email || formData.mobile) {
+      setShowEmailMobileError('');
+    }
+  }, [formData.email, formData.mobile]);
   const handleChange = async ({
     formData,
     errors,
@@ -858,14 +862,20 @@ const DynamicForm = ({
     //   formData.Username = undefined;
     // }
 
-    if (formData.email) {
+    if (formData.email && formData.mobile) {
+      // Clear message if both fields are filled
+      setShowEmailMobileError('');
+    } else if (formData.email) {
       setShowEmailMobileError(
         "Contact number is optional since you've provided an email"
       );
     } else if (formData.mobile) {
       setShowEmailMobileError(
-        "Email is optional since you've provided an Contact number"
+        "Email is optional since you've provided a Contact number"
       );
+    } else {
+      // Clear message if neither field is filled
+      setShowEmailMobileError('');
     }
 
     setFormData(formData);
@@ -1604,13 +1614,7 @@ const DynamicForm = ({
           // onChange={(data) => setFormData(data)}
           // onSubmit={handleSubmit}
 
-          onSubmit={({ formData, errors }) => {
-            if (errors.length > 0 || (!formData.email && !formData.mobile)) {
-              setShowEmailMobileError(
-                'Please provide either an email or a mobile number.'
-              );
-              return;
-            }
+          onSubmit={({ formData }) => {
             handleSubmit({ formData });
           }}
           validator={validator}
@@ -1643,7 +1647,9 @@ const DynamicForm = ({
                 !formData.roles ||
                 (formData?.roles.includes('HT & Officials') &&
                   !formData?.subRoles?.length) ||
-                !formData?.udise
+                !formData?.udise ||
+                !formData?.school ||
+                !formData?.state
               }
               sx={{
                 whiteSpace: 'nowrap',
