@@ -539,13 +539,11 @@ export default function Profile({ params }: { params: { id: string } }) {
       </Box>
     );
   }
-  // if (error) {
-  //   return (
-  //     <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
-  //       {error}
-  //     </Typography>
-  //   );
-  // }
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Good practice for links
+    router.push('/resetpassword');
+  };
+
   if (isAuthenticated) {
     return (
       <Layout
@@ -636,21 +634,31 @@ export default function Profile({ params }: { params: { id: string } }) {
                     sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
                     @{userData.username}
-                    <Typography
-                      component="span"
-                      sx={{
-                        color: '#582E92',
-                        fontSize: '0.75rem',
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                        '&:hover': {
-                          color: '#461B73',
-                        },
-                      }}
-                      onClick={() => router.push('/resetpassword')}
-                    >
-                      Reset Password
-                    </Typography>
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: '#582E92',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      '&:hover': {
+                        color: '#461B73',
+                      },
+                      // Defensive CSS:
+                      pointerEvents: 'auto',
+                      userSelect: 'text',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                    onClick={handleClick}
+                    role="button" // Improves accessibility
+                    tabIndex={0} // Makes it focusable
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleClick(e as any)
+                    }
+                  >
+                    Reset Password
                   </Typography>
                 </Grid>
               </Grid>
