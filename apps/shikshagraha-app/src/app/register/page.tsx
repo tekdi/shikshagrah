@@ -47,7 +47,58 @@ export default function Register() {
   const handleBack = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
   };
-
+  const StaticHeader = () => (
+    <Box
+      sx={{
+        p: 2,
+        borderBottom: '2px solid #FFD580',
+        boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)',
+        backgroundColor: '#FFF7E6',
+        borderRadius: '0 0 25px 25px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+      }}
+    >
+      <Grid container alignItems="center">
+        <Grid item xs={2}>
+          <Button
+            onClick={handleBack}
+            sx={{
+              color: '#572E91',
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 'bold',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: '#F5F5F5',
+              },
+            }}
+          >
+            <ArrowBackIcon sx={{ marginRight: '4px' }} />
+            Back
+          </Button>
+        </Grid>
+        <Grid
+          item
+          xs={8}
+          textAlign="center"
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ color: '#572E91', fontWeight: 'bold' }}
+          >
+            Shikshalokam
+          </Typography>
+        </Grid>
+      </Grid>
+    </Box>
+  );
   if (!isAuthenticated) {
     return (
       <Box
@@ -61,47 +112,8 @@ export default function Register() {
           // margin:'-1rem'
         }}
       >
-        <Box
-          sx={{
-            p: 2,
-            borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
-            boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-            backgroundColor: '#FFF7E6', // Light background derived from #FF9911
-            borderRadius: '0 0 25px 25px', // Rounded corners only on the bottom left and right
-          }}
-        >
-          <Grid container alignItems="center">
-            <Grid item xs={2}>
-              <Button
-                onClick={handleBack}
-                sx={{
-                  color: '#572E91',
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontWeight: 'bold',
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: '#F5F5F5',
-                  },
-                }}
-              >
-                <ArrowBackIcon sx={{ marginRight: '4px' }} />
-                Back
-              </Button>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              textAlign="center"
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            ></Grid>
-          </Grid>
-        </Box>
-        <Box sx={{ mx: 'auto', width: '100%', maxWidth: 400 }}>
+        <StaticHeader />
+        <Box sx={{ mx: 'auto', width: '100%', maxWidth: 400, mt: 4, px: 2 }}>
           <Box>
             <Typography
               variant="h5"
