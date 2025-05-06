@@ -99,6 +99,7 @@ export default function Register() {
       </Grid>
     </Box>
   );
+  //addeed
   if (!isAuthenticated) {
     return (
       <Box

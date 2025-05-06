@@ -41,7 +41,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  const usernameRegex = /^[a-zA-Z0-9_]+$/; //add
   const lowerLabel = label?.toLowerCase();
 
   const isOptional = () => {
