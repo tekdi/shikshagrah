@@ -16,9 +16,10 @@ export const trackingData = (subIds: string[], courseIds: string[]) => {
   const config: AxiosRequestConfig = {
     method: 'post',
     maxBodyLength: Infinity,
-    url: `${trackingApiUrl}/v1/tracking/content/course/status`,
+    url: `${trackingApiUrl}/v1/tracking/user_certificate/status/search`,
     headers: {
       'Content-Type': 'application/json',
+      tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
     },
     data,
   };

@@ -44,11 +44,14 @@ import {
   TableHead,
   TableRow,
   TableCell,
+  Tooltip,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-
 import OTPDialog from '../../Components/OTPDialog';
-export default function Profile() {
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+export default function Profile({ params }: { params: { id: string } }) {
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -80,6 +83,7 @@ export default function Profile() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hashCode, setHashCode] = useState('');
   const [isOpenOTP, setIsOpenOTP] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -261,7 +265,12 @@ export default function Profile() {
     setSelectedOption(selectedValue);
     setValue(selectedValue === 'email' ? profileData.email : profileData.phone);
   };
-
+  const handleResend = () => {
+    if (onResendOtp) {
+      handleSendOtp(); // Call parent resend function
+      setTimer(30); // Start 30 sec countdown
+    }
+  };
   const handleSendOtp = async () => {
     let otpPayload;
     if (userData.email) {
@@ -326,6 +335,25 @@ export default function Profile() {
       handleUserDeactivation();
     }
   };
+  const handleProfileOtpResend = async () => {
+    const resendPayload = userData.email
+      ? { email: userData.email, reason: 'signup' }
+      : { mobile: String(userData.mobile ?? ''), reason: 'signup' };
+
+    try {
+      const response = await sendOtp(resendPayload);
+      if (response?.params?.successmessage === 'OTP sent successfully') {
+        // Optionally update the hash code if returned
+        setHashCode(response.result?.hash);
+        console.log('OTP resent successfully');
+      } else {
+        console.error('Failed to resend OTP');
+      }
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+    }
+  };
+
   const handleUserDeactivation = async () => {
     try {
       const userId = localStorage.getItem('userId');
@@ -349,7 +377,108 @@ export default function Profile() {
       // You can show an error dialog or snackbar here
     }
   };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getUserById(params.id);
+        setUserData(data?.result?.user);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchData();
+  }, [params.id]);
 
+  const handleDialogOpen = () => setDialogOpen(true);
+  const handleDialogClose = () => setDialogOpen(false);
+  const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    if (name === 'password') {
+      setNewPassword(value);
+      setPasswordError('');
+    } else {
+      setConfirmPassword(value);
+      setConfirmPasswordError('');
+    }
+  };
+
+  const handleClickShowNewPassword = () => setShowNewPassword((prev) => !prev);
+  const handleClickShowConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev);
+
+  const handleResetPassword = async () => {
+    // Clear previous errors
+    setConfirmPasswordError('');
+    setPasswordError('');
+    setError('');
+    setShowError(false);
+
+    // Your password validation pattern
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+
+    // Validate password strength
+    if (!passwordRegex.test(newPassword)) {
+      setPasswordError(
+        'Password must contain at least 8 characters with: ' +
+          '1 uppercase, 1 lowercase, 1 number, and 1 special character'
+      );
+      setError('Password does not meet requirements');
+      setShowError(true);
+      return;
+    }
+
+    // Validate password match
+    if (newPassword !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      setError('Passwords do not match');
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get reset token and identifier from localStorage
+      const resetToken = localStorage.getItem('accToken');
+      const email = userData.email;
+      const mobile = userData.mobile;
+
+      if (!resetToken) {
+        throw new Error('Reset token not found or expired');
+      }
+
+      const payload = email
+        ? { email, newPassword, token: resetToken }
+        : { mobile, newPassword, token: resetToken };
+
+      const response = await resetPassword(payload);
+
+      if (response?.params?.status === 'successful') {
+        // Clear localStorage upon success
+        localStorage.clear();
+        setShowSuccess(true);
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
+      } else {
+        const errorMsg =
+          response?.data?.params?.err ?? 'Failed to reset password';
+        setError(errorMsg || 'Password reset failed. Please try again.');
+        setShowError(true);
+      }
+    } catch (err: any) {
+      console.error('Password reset failed:', err);
+      const errorMessage =
+        err?.response?.data?.message ??
+        err?.message ??
+        'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
   const confirm = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
@@ -410,13 +539,11 @@ export default function Profile() {
       </Box>
     );
   }
-  // if (error) {
-  //   return (
-  //     <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
-  //       {error}
-  //     </Typography>
-  //   );
-  // }
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Good practice for links
+    router.push('/resetpassword');
+  };
+
   if (isAuthenticated) {
     return (
       <Layout
@@ -504,8 +631,34 @@ export default function Profile() {
                     variant="subtitle2"
                     textAlign="left"
                     color="darkslategray"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
                     @{userData?.username}
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: '#582E92',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      '&:hover': {
+                        color: '#461B73',
+                      },
+                      // Defensive CSS:
+                      pointerEvents: 'auto',
+                      userSelect: 'text',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                    onClick={handleClick}
+                    role="button" // Improves accessibility
+                    tabIndex={0} // Makes it focusable
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleClick(e as any)
+                    }
+                  >
+                    Reset Password
                   </Typography>
                 </Grid>
               </Grid>
@@ -657,92 +810,7 @@ export default function Profile() {
                 </Typography>
               )}
             </Box>
-            {/* Framework Card */}
-            {/* <Box
-              sx={{
-                // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-                borderRadius: '12px',
-                p: 3,
-                mt: 3,
-                transform: 'translateY(-5px)',
-                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                  padding: '1px', // Thickness of the border line
-                  background:
-                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                  WebkitMask:
-                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude', // Ensures only the border is visible
-                },
-              }}
-            >
-              <EditIcon
-                sx={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 10,
-                  cursor: 'pointer',
-                  color: '#582E92',
-                }}
-                onClick={handleEditClick}
-              />
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Board: </span>
-                    {displayBoard}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Medium: </span>
-                    {displayMedium}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Classes: </span>
-                    {displayGradeLevel}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Subjects: </span>
-                    {displaySubject}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box> */}
+
             <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Button
                 onClick={handleDeleteAccountClick}
@@ -762,6 +830,8 @@ export default function Profile() {
           open={isOpenOTP}
           onClose={() => setIsOpenOTP(false)}
           onSubmit={handleVerifyOTP}
+          onResendOtp={handleProfileOtpResend}
+          type="delete"
         />
         {showError && (
           <Alert severity="error" sx={{ marginTop: '15px' }}>

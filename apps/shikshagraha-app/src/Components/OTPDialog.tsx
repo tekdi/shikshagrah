@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,73 +7,180 @@ import {
   TextField,
   Button,
   Box,
+  Typography,
+  IconButton,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
+import { Close, Refresh } from '@mui/icons-material';
 
-const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
+interface OTPDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (otp: string) => void;
+  onResendOtp?: () => void;
+  loading?: boolean;
+  error?: string;
+  otpLength?: number;
+  resendCooldown?: number;
+  expirationTime?: number;
+}
+
+const OTPDialog: React.FC<OTPDialogProps> = ({
+  open,
+  onClose,
+  onSubmit,
+  onResendOtp,
+  loading = false,
+  error = '',
+  otpLength = 6,
+  resendCooldown = 30,
+  expirationTime = 600, // 10 minutes in seconds
+}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [otp, setOtp] = useState<string[]>(Array(otpLength).fill(''));
+  const [resendTimer, setResendTimer] = useState<number>(0);
+  const [expirationTimer, setExpirationTimer] =
+    useState<number>(expirationTime);
+
+  // Handle resend timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  // Handle expiration timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (open && expirationTimer > 0) {
+      interval = setInterval(() => {
+        setExpirationTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [open, expirationTimer]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setOtp(Array(otpLength).fill(''));
+      setResendTimer(0);
+      setExpirationTimer(expirationTime);
+    }
+  }, [open, otpLength, expirationTime]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    // Auto focus to next field
-    if (value && index < 5) {
+
+    // Auto-focus next input
+    if (value && index < otpLength - 1) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
   };
 
-  const handleKeyDown = (e: any, index: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       prevInput?.focus();
     }
   };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text/plain').slice(0, otpLength);
+    const newOtp = [...otp];
+
+    pasteData.split('').forEach((char, i) => {
+      if (i < otpLength && /^\d?$/.test(char)) {
+        newOtp[i] = char;
+      }
+    });
+
+    setOtp(newOtp);
+  };
+
   const handleSubmit = () => {
-    const otpString = otp.join(''); // Combine the OTP digits into a single string
-    onSubmit(otpString); // Pass the OTP string to the parent component
-    setOtp(Array(6).fill(''));
+    onSubmit(otp.join(''));
   };
-  const handleClose = () => {
-    // Clear OTP fields when dialog is closed
-    setOtp(Array(6).fill(''));
-    onClose();
+
+  const handleResend = () => {
+    if (onResendOtp) {
+      onResendOtp();
+      setResendTimer(resendCooldown);
+    }
   };
+
+  const isOTPComplete =
+    otp.every((digit) => digit !== '') && otp.length === otpLength;
+  const isExpired = expirationTimer <= 0;
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
+      maxWidth="xs"
+      fullWidth
       PaperProps={{
         sx: {
-          maxWidth: { xs: '90%', sm: '400px', md: '500px' },
-          bgcolor: '#FFFFFF',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          borderRadius: '16px',
-          padding: { xs: 2, sm: 3 },
-          textAlign: 'center',
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          overflow: 'visible',
           position: 'relative',
           '&::before': {
             content: '""',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: -2,
+            left: -2,
+            right: -2,
+            bottom: -2,
             borderRadius: 'inherit',
-            padding: '4px',
-            background: 'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
-            WebkitMask:
-              'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-            WebkitMaskComposite: 'xor',
-            maskComposite: 'exclude',
+            background: 'linear-gradient(to right, #FF9911, #582E92)',
+            zIndex: -1,
           },
         },
       }}
     >
-      <DialogTitle>Enter OTP</DialogTitle>
-      <DialogContent>
-        <Box display="flex" gap={1} justifyContent="center" mt={2}>
+      <Box position="absolute" top={8} right={8}>
+        <IconButton onClick={onClose} size="small">
+          <Close fontSize="small" />
+        </IconButton>
+      </Box>
+
+      <DialogTitle sx={{ textAlign: 'center', pt: 4, pb: 2 }}>
+        <Typography variant="h6" fontWeight="bold" color="text.primary">
+          Enter Verification Code
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mt={1}>
+          We've sent a {otpLength}-digit code to your registered contact
+        </Typography>
+      </DialogTitle>
+
+      <DialogContent sx={{ py: 0 }}>
+        <Box
+          display="flex"
+          justifyContent="center"
+          gap={isMobile ? 1 : 2}
+          my={3}
+          onPaste={handlePaste}
+        >
           {otp.map((digit, index) => (
             <TextField
               key={index}
@@ -83,38 +190,71 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
               onKeyDown={(e) => handleKeyDown(e, index)}
               inputProps={{
                 maxLength: 1,
-                sx: {
+                style: {
                   textAlign: 'center',
-                  fontSize: { xs: 10, sm: 20 },
-                  width: { xs: 30, sm: 40 },
+                  fontSize: isMobile ? 20 : 24,
+                  padding: isMobile ? '8px' : '12px',
                 },
               }}
+              sx={{
+                width: isMobile ? 48 : 56,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '& fieldset': {
+                    borderColor: error ? 'error.main' : 'divider',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                    borderWidth: 2,
+                  },
+                },
+              }}
+              disabled={loading || isExpired}
             />
           ))}
         </Box>
+
+        {error && (
+          <Typography
+            color="error.main"
+            textAlign="center"
+            variant="body2"
+            mt={1}
+          >
+            {error}
+          </Typography>
+        )}
+
+        <Box mt={3} textAlign="center">
+          <Typography variant="body2" color="text.secondary">
+            Didn't receive the code?
+          </Typography>
+          <Button
+            onClick={handleResend}
+            disabled={resendTimer > 0 || loading}
+            startIcon={<Refresh fontSize="small" />}
+            sx={{
+              minWidth: 0,
+              color: resendTimer > 0 ? 'text.disabled' : 'primary.main',
+              '&:hover': {
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
+            {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+          </Button>
+        </Box>
       </DialogContent>
-      <DialogActions>
+
+      <DialogActions sx={{ p: 3, pt: 0, flexDirection: 'column' }}>
         <Button
-          onClick={handleClose}
-          sx={{
-            bgcolor: '#582E92',
-            color: '#FFFFFF',
-            borderRadius: '30px',
-            textTransform: 'none',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            padding: '8px 16px',
-            '&:hover': {
-              bgcolor: '#543E98',
-            },
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
+          fullWidth
           onClick={handleSubmit}
           variant="contained"
-          disabled={otp.some((d) => d === '')}
+          disabled={!isOTPComplete || loading || isExpired}
           sx={{
             bgcolor: '#582E92',
             color: '#FFFFFF',
@@ -126,10 +266,23 @@ const OTPDialog = ({ open, onClose, onSubmit, data }: any) => {
             '&:hover': {
               bgcolor: '#543E98',
             },
+            width: { xs: '50%', sm: '50%' },
           }}
         >
-          Verify
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : isExpired ? (
+            'OTP Expired'
+          ) : (
+            'Verify'
+          )}
         </Button>
+
+        {expirationTimer > 0 && (
+          <Typography variant="caption" color="text.secondary" mt={2}>
+            Code expires in {formatTime(expirationTimer)}
+          </Typography>
+        )}
       </DialogActions>
     </Dialog>
   );
