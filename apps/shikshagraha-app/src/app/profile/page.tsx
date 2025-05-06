@@ -47,6 +47,7 @@ import {
   Tooltip,
   IconButton,
   InputAdornment,
+  Snackbar,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import OTPDialog from '../../Components/OTPDialog';
@@ -84,6 +85,31 @@ export default function Profile({ params }: { params: { id: string } }) {
   const [hashCode, setHashCode] = useState('');
   const [isOpenOTP, setIsOpenOTP] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+
+  const [passwords, setPasswords] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error',
+  });
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -377,108 +403,25 @@ export default function Profile({ params }: { params: { id: string } }) {
       // You can show an error dialog or snackbar here
     }
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getUserById(params.id);
-        setUserData(data?.result?.user);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-    fetchData();
-  }, [params.id]);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const data = await getUserById(params.id);
+  //       setUserData(data?.result?.user);
+  //     } catch (error) {
+  //       console.error('Error fetching user data:', error);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [params.id]);
 
   const handleDialogOpen = () => setDialogOpen(true);
   const handleDialogClose = () => setDialogOpen(false);
-  const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === 'password') {
-      setNewPassword(value);
-      setPasswordError('');
-    } else {
-      setConfirmPassword(value);
-      setConfirmPasswordError('');
-    }
-  };
 
   const handleClickShowNewPassword = () => setShowNewPassword((prev) => !prev);
   const handleClickShowConfirmPassword = () =>
     setShowConfirmPassword((prev) => !prev);
 
-  const handleResetPassword = async () => {
-    // Clear previous errors
-    setConfirmPasswordError('');
-    setPasswordError('');
-    setError('');
-    setShowError(false);
-
-    // Your password validation pattern
-    const passwordRegex =
-      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
-
-    // Validate password strength
-    if (!passwordRegex.test(newPassword)) {
-      setPasswordError(
-        'Password must contain at least 8 characters with: ' +
-          '1 uppercase, 1 lowercase, 1 number, and 1 special character'
-      );
-      setError('Password does not meet requirements');
-      setShowError(true);
-      return;
-    }
-
-    // Validate password match
-    if (newPassword !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
-      setError('Passwords do not match');
-      setShowError(true);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Get reset token and identifier from localStorage
-      const resetToken = localStorage.getItem('accToken');
-      const email = userData.email;
-      const mobile = userData.mobile;
-
-      if (!resetToken) {
-        throw new Error('Reset token not found or expired');
-      }
-
-      const payload = email
-        ? { email, newPassword, token: resetToken }
-        : { mobile, newPassword, token: resetToken };
-
-      const response = await resetPassword(payload);
-
-      if (response?.params?.status === 'successful') {
-        // Clear localStorage upon success
-        localStorage.clear();
-        setShowSuccess(true);
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
-      } else {
-        const errorMsg =
-          response?.data?.params?.err ?? 'Failed to reset password';
-        setError(errorMsg || 'Password reset failed. Please try again.');
-        setShowError(true);
-      }
-    } catch (err: any) {
-      console.error('Password reset failed:', err);
-      const errorMessage =
-        err?.response?.data?.message ??
-        err?.message ??
-        'An unexpected error occurred. Please try again.';
-      setError(errorMessage);
-      setShowError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
   const confirm = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
@@ -539,9 +482,143 @@ export default function Profile({ params }: { params: { id: string } }) {
       </Box>
     );
   }
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Good practice for links
-    router.push('/resetpassword');
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    // Reset all states when closing
+    setPasswords({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setErrors({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswords({ ...passwords, [name]: value });
+
+    // Validate on change
+    if (name === 'newPassword') {
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+      if (!passwordRegex.test(value)) {
+        setErrors({
+          ...errors,
+          newPassword:
+            'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character',
+        });
+      } else {
+        setErrors({ ...errors, newPassword: '' });
+      }
+
+      // Also validate confirm password if it's not empty
+      if (passwords.confirmPassword && value !== passwords.confirmPassword) {
+        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+      } else if (
+        passwords.confirmPassword &&
+        value === passwords.confirmPassword
+      ) {
+        setErrors({ ...errors, confirmPassword: '' });
+      }
+    }
+
+    if (name === 'confirmPassword') {
+      if (value !== passwords.newPassword) {
+        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+      } else {
+        setErrors({ ...errors, confirmPassword: '' });
+      }
+    }
+  };
+  const handleSubmit = () => {
+    // Validate all fields before submission
+    let hasErrors = false;
+    const newErrors = { ...errors };
+
+    if (!passwords.oldPassword) {
+      newErrors.oldPassword = 'Old password is required';
+      hasErrors = true;
+    }
+
+    if (!passwords.newPassword) {
+      newErrors.newPassword = 'New password is required';
+      hasErrors = true;
+    } else {
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+      if (!passwordRegex.test(passwords.newPassword)) {
+        newErrors.newPassword =
+          'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
+        hasErrors = true;
+      }
+    }
+
+    if (!passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+      hasErrors = true;
+    } else if (passwords.newPassword !== passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      hasErrors = true;
+    }
+
+    setErrors(newErrors);
+
+    if (!hasErrors) {
+      // Submit the form or call your API here
+      resetPassword();
+      // handleClose();
+    }
+  };
+
+  const resetPassword = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/user/reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accToken')}`,
+            'Content-Type': 'application/json',
+            tenantId: 'ef99949b-7f3a-4a5f-806a-e67e683e38f3',
+          },
+          body: JSON.stringify({
+            newPassword: passwords.newPassword,
+          }),
+        }
+      );
+      console.log(response);
+      if (!response.status) {
+        throw new Error('Password reset failed');
+      }
+      // Success case
+      setSnackbar({
+        open: true,
+        message: 'User Password Updated Successfully',
+        severity: 'success',
+      });
+      handleClose();
+      localStorage.clear();
+      router.push('/');
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      setSnackbar({
+        open: true,
+        message:'Failed to reset password. Please try again.',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isAuthenticated) {
@@ -652,11 +729,9 @@ export default function Profile({ params }: { params: { id: string } }) {
                       zIndex: 1,
                     }}
                     onClick={handleClick}
-                    role="button" // Improves accessibility
-                    tabIndex={0} // Makes it focusable
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && handleClick(e as any)
-                    }
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleClick()}
                   >
                     Reset Password
                   </Typography>
@@ -892,6 +967,178 @@ export default function Profile({ params }: { params: { id: string } }) {
               Yes, Logout
             </Button>
           </DialogActions>
+        </Dialog>
+
+        <Dialog open={open} onClose={handleClose}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: 'auto',
+            }}
+          >
+            <Grid
+              container
+              justifyContent="center"
+              alignItems="center"
+              sx={{
+                maxWidth: { xs: '90%', sm: '400px', md: '500px' },
+                bgcolor: '#FFFFFF',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                borderRadius: '16px',
+                padding: { xs: 2, sm: 3 },
+                textAlign: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '10px',
+                  padding: '4px',
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                },
+              }}
+            >
+              <DialogTitle sx={{ width: '100%', p: 0, mb: 2 }}>
+                <Typography
+                  variant="h5"
+                  component="div"
+                  sx={{ fontWeight: 600 }}
+                >
+                  Reset Password
+                </Typography>
+              </DialogTitle>
+
+              <DialogContent sx={{ width: '100%', p: 0 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="oldPassword"
+                  label="Old Password"
+                  type={showOldPassword ? 'text' : 'password'}
+                  value={passwords.oldPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.oldPassword}
+                  helperText={errors.oldPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                          edge="end"
+                        >
+                          {showOldPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="newPassword"
+                  label="New Password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwords.newPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.newPassword}
+                  helperText={errors.newPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          edge="end"
+                        >
+                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwords.confirmPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          edge="end"
+                        >
+                          {showConfirmPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+              </DialogContent>
+
+              <DialogActions sx={{ width: '100%', p: 0, mt: 2 }}>
+                <Button
+                  onClick={handleClose}
+                  variant="outlined"
+                  sx={{
+                    mr: 2,
+                    color: '#582E92',
+                    borderRadius: '30px',
+                    borderColor: '#582E92',
+                    '&:hover': {
+                      borderColor: '#461B73',
+                    },
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  variant="contained"
+                  sx={{
+                    bgcolor: '#582E92',
+                    color: '#FFFFFF',
+                    borderRadius: '30px',
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    padding: '8px 16px',
+                    '&:hover': {
+                      bgcolor: '#543E98',
+                    },
+                    width: { xs: '50%', sm: '50%' },
+                  }}
+                >
+                  Reset Password
+                </Button>
+              </DialogActions>
+            </Grid>
+          </Box>
         </Dialog>
       </Layout>
     );

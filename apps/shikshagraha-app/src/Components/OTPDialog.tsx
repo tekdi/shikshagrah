@@ -14,7 +14,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { Close, Refresh } from '@mui/icons-material';
-
 interface OTPDialogProps {
   open: boolean;
   onClose: () => void;
@@ -26,7 +25,6 @@ interface OTPDialogProps {
   resendCooldown?: number;
   expirationTime?: number;
 }
-
 const OTPDialog: React.FC<OTPDialogProps> = ({
   open,
   onClose,
@@ -44,29 +42,26 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
   const [resendTimer, setResendTimer] = useState<number>(0);
   const [expirationTimer, setExpirationTimer] =
     useState<number>(expirationTime);
-
   // Handle resend timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resendTimer > 0) {
       interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
+        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
     return () => clearInterval(interval);
   }, [resendTimer]);
-
   // Handle expiration timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (open && expirationTimer > 0) {
       interval = setInterval(() => {
-        setExpirationTimer((prev) => prev - 1);
+        setExpirationTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
     return () => clearInterval(interval);
   }, [open, expirationTimer]);
-
   // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
@@ -75,63 +70,52 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
       setExpirationTimer(expirationTime);
     }
   }, [open, otpLength, expirationTime]);
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
-
   const handleChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
     // Auto-focus next input
     if (value && index < otpLength - 1) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
   };
-
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       prevInput?.focus();
     }
   };
-
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData('text/plain').slice(0, otpLength);
     const newOtp = [...otp];
-
     pasteData.split('').forEach((char, i) => {
       if (i < otpLength && /^\d?$/.test(char)) {
         newOtp[i] = char;
       }
     });
-
     setOtp(newOtp);
   };
-
   const handleSubmit = () => {
     onSubmit(otp.join(''));
   };
-
   const handleResend = () => {
-    if (onResendOtp) {
+    if (onResendOtp && resendTimer === 0) {
       onResendOtp();
       setResendTimer(resendCooldown);
+      setExpirationTimer(expirationTime);
     }
   };
-
   const isOTPComplete =
     otp.every((digit) => digit !== '') && otp.length === otpLength;
   const isExpired = expirationTimer <= 0;
-
   return (
     <Dialog
       open={open}
@@ -163,7 +147,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
           <Close fontSize="small" />
         </IconButton>
       </Box>
-
       <DialogTitle sx={{ textAlign: 'center', pt: 4, pb: 2 }}>
         <Typography variant="h6" fontWeight="bold" color="text.primary">
           Enter Verification Code
@@ -172,7 +155,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
           We've sent a {otpLength}-digit code to your registered contact
         </Typography>
       </DialogTitle>
-
       <DialogContent sx={{ py: 0 }}>
         <Box
           display="flex"
@@ -216,7 +198,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
             />
           ))}
         </Box>
-
         {error && (
           <Typography
             color="error.main"
@@ -227,7 +208,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
             {error}
           </Typography>
         )}
-
         <Box mt={3} textAlign="center">
           <Typography variant="body2" color="text.secondary">
             Didn't receive the code?
@@ -248,7 +228,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
           </Button>
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ p: 3, pt: 0, flexDirection: 'column' }}>
         <Button
           fullWidth
@@ -277,7 +256,6 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
             'Verify'
           )}
         </Button>
-
         {expirationTimer > 0 && (
           <Typography variant="caption" color="text.secondary" mt={2}>
             Code expires in {formatTime(expirationTimer)}
@@ -287,5 +265,4 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
     </Dialog>
   );
 };
-
 export default OTPDialog;
