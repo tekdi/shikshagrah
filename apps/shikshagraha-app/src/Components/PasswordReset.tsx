@@ -111,7 +111,7 @@ const PasswordReset = ({ name }: { name: string }) => {
         console.log('userData.mobile', String(formData?.mobile ?? ''));
         otpPayload = {
           mobile: String(formData?.mobile ?? ''), // Ensure fallback to empty string if undefined
-          reason: 'signup',
+          reason: 'forgot',
         };
       } else {
         setShowError(true);
@@ -231,7 +231,11 @@ const PasswordReset = ({ name }: { name: string }) => {
 
   const handleBack = () => {
     if (step === 'input') {
-      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+      if (name === 'Reset Password') {
+        router.push('/profile');
+      } else {
+        router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+      }
     } else if (step === 'otp') {
       setStep('input');
     } else if (step === 'reset') {
