@@ -3,16 +3,16 @@
 import React from 'react';
 
 import { useRouter } from 'next/navigation';
-import PasswordReset from '../../Components/PasswordReset';
 
-const ForgotPassword = () => {
+import PasswordReset from '../../Components/PasswordReset';
+const ResetPassword = () => {
   const router = useRouter();
 
   return (
     <>
-      <PasswordReset name={'Forgot Password'} />
+      <PasswordReset name={'Reset Password'} />
     </>
   );
 };
 
-export default ForgotPassword;
+export default ResetPassword;
