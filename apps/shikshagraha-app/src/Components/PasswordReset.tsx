@@ -148,6 +148,7 @@ const PasswordReset = ({ name }: { name: string }) => {
   const handleResendOtp = () => {
     handleSendOtp();
     setTimer(30);
+    setSecondsLeft(605);
   };
   const handleVerifyOtp = async () => {
     const otpString = otp.join('');
@@ -544,87 +545,97 @@ const PasswordReset = ({ name }: { name: string }) => {
 
         {step === 'otp' && (
           <>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="body1" gutterBottom>
-                Enter the OTP sent to {formData.email || formData.mobile}
-              </Typography>
-            </Box>
-            <Box
-              display="flex"
-              gap={1}
-              justifyContent="center"
-              width={'95%'}
-              m={2}
-            >
-              {otp.map((digit, index) => (
-                <TextField
-                  key={`otp-${index}`}
-                  id={`otp-${index}`}
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  inputProps={{
-                    maxLength: 1,
-                    sx: {
-                      textAlign: 'center',
-                      fontSize: { xs: 10, sm: 20 },
-                      width: { xs: 30, sm: 40 },
-                    },
-                  }}
-                />
-              ))}
-            </Box>
-            {/* Resend OTP Section */}
             <Box
               display="flex"
               flexDirection="column"
               alignItems="center"
-              justifyContent="center"
               width="100%"
-              mt={1}
             >
-              <Typography variant="body2" color="textSecondary">
-                Didn’t receive the code?
-              </Typography>
-              <Button
-                onClick={handleResendOtp}
-                disabled={timer > 0}
-                variant="text"
-                sx={{
-                  color: timer > 0 ? 'grey' : '#582E92',
-                  textTransform: 'none',
-                  fontWeight: 'medium',
-                  fontSize: '14px',
-                }}
-              >
-                {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
-              </Button>
-            </Box>
-            <Typography variant="body2" color="textSecondary">
-              Note: OTP will expire in 10 minutes ({formatTime(secondsLeft)}{' '}
-              left).
-            </Typography>
+              <Box sx={{ width: '100%' }}>
+                <Typography variant="body1" gutterBottom>
+                  Enter the OTP sent to {formData.email || formData.mobile}
+                </Typography>
+              </Box>
 
-            <Box display="flex" justifyContent="center" mt={2}>
-              <Button
-                variant="contained"
-                onClick={handleVerifyOtp}
-                disabled={!otp.join('').trim()}
-                sx={{
-                  bgcolor: '#582E92',
-                  color: '#FFFFFF',
-                  borderRadius: '30px',
-                  textTransform: 'none',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                  padding: '8px 32px',
-                  '&:hover': {
-                    bgcolor: '#543E98',
-                  },
-                }}
+              <Box
+                display="flex"
+                gap={1}
+                justifyContent="center"
+                width="95%"
+                m={2}
               >
-                {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
-              </Button>
+                {otp.map((digit, index) => (
+                  <TextField
+                    key={`otp-${index}`}
+                    id={`otp-${index}`}
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    inputProps={{
+                      maxLength: 1,
+                      sx: {
+                        textAlign: 'center',
+                        fontSize: { xs: 10, sm: 20 },
+                        width: { xs: 30, sm: 40 },
+                      },
+                    }}
+                  />
+                ))}
+              </Box>
+
+              <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                width="100%"
+                mt={1}
+              >
+                <Typography variant="body2" color="textSecondary">
+                  Didn’t receive the code?
+                </Typography>
+                <Button
+                  onClick={handleResendOtp}
+                  disabled={timer > 0}
+                  variant="text"
+                  sx={{
+                    color: timer > 0 ? 'grey' : '#582E92',
+                    textTransform: 'none',
+                    fontWeight: 'medium',
+                    fontSize: '14px',
+                  }}
+                >
+                  {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+                </Button>
+              </Box>
+
+              <Typography variant="body2" color="textSecondary">
+                Note: OTP will expire in 10 minutes ({formatTime(secondsLeft)}{' '}
+                left).
+              </Typography>
+
+              {/* ✅ This ensures it appears on a new line */}
+              <Box display="flex" justifyContent="center" mt={2} width="100%">
+                <Button
+                  variant="contained"
+                  onClick={handleVerifyOtp}
+                  disabled={!otp.join('').trim()}
+                  sx={{
+                    bgcolor: '#582E92',
+                    color: '#FFFFFF',
+                    borderRadius: '30px',
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    padding: '8px 32px',
+                    '&:hover': {
+                      bgcolor: '#543E98',
+                    },
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
+                </Button>
+              </Box>
             </Box>
           </>
         )}
