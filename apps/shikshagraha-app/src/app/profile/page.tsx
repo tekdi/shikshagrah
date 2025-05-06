@@ -174,7 +174,7 @@ export default function Profile() {
                 ...item,
                 value: item.value
                   .toLowerCase()
-                  .replace(/(^\w|\s\w|&\s*\w)/g, (m) => m.toUpperCase()),
+                  .replace(/(^\w|\s\w|&\s*\w)/g, (m) => m),
               };
             } else if (item.label.toLowerCase() === 'subroles') {
               // Convert each comma-separated value to UPPERCASE
@@ -505,7 +505,7 @@ export default function Profile() {
                     textAlign="left"
                     color="darkslategray"
                   >
-                    @{userData.username}
+                    @{userData?.username}
                   </Typography>
                 </Grid>
               </Grid>
