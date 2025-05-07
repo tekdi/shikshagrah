@@ -198,19 +198,6 @@ const DynamicForm = ({
   };
 
   const hasFormErrors = Object.values(fieldErrors).some(Boolean);
-  const widgets = {
-    CustomMultiSelectWidget,
-    CustomCheckboxWidget,
-    CustomDateWidget,
-    SearchTextFieldWidget,
-    CustomSingleSelectWidget,
-    CustomRadioWidget,
-    CustomTextFieldWidget,
-    UdiaseWithButton: (props) => (
-      <UdiaseWithButton {...props} onFetchData={handleFetchData} />
-    ),
-    CustomEmailWidget,
-  };
 
   useEffect(() => {
     if (isInitialCompleted === true) {
@@ -880,245 +867,6 @@ const DynamicForm = ({
 
     setFormData(formData);
     setFormUiSchema(formUiSchema);
-
-    // console.log(
-    //   'hasObjectChanged hasObjectChanged(prevFormData.current, formData)',
-    //   hasObjectChanged(prevFormData.current, formData)
-    // );
-    // console.log('hasObjectChanged changedField', changedField);
-
-    // if (hasObjectChanged(prevFormData.current, formData)) {
-    //   console.log('hasObjectChanged in 1 formData', formData);
-    //   if (changedField) {
-    //     //error set
-    //     console.log('errors', errors);
-    //     setSubmitted(false);
-    //     //find out all dependent keys
-    //     const dependentKeyArray = getDependentKeys(schema, changedField);
-    //     console.log('hasObjectChanged in 2 formData', formData);
-    //     // console.log('hasObjectChanged dependent keys:', dependentKeyArray);
-    //     dependentKeyArray.forEach((key) => {
-    //       delete formData[key]; // Remove the key from formData
-    //     });
-    //     // console.log('hasObjectChanged formData', formData);
-
-    //     setFormSchema((prevSchema) => {
-    //       const updatedProperties = { ...prevSchema.properties };
-
-    //       dependentKeyArray.forEach((key) => {
-    //         if (updatedProperties[key]) {
-    //           if (updatedProperties[key]?.isMultiSelect === true) {
-    //             updatedProperties[key] = {
-    //               ...updatedProperties[key],
-    //               items: {
-    //                 type: 'string',
-    //                 enum: ['Select'], // Clear the enum
-    //                 enumNames: ['Select'], // Clear the enumNames
-    //               },
-    //             };
-    //           } else {setUiSchema
-    //             updatedProperties[key] = {
-    //               ...updatedProperties[key],
-    //               enum: ['Select'], // Clear the enum
-    //               enumNames: ['Select'], // Clear the enumNames
-    //             };
-    //           }
-    //         }
-    //       });
-
-    //       return { ...prevSchema, properties: updatedProperties };
-    //     });
-
-    //     // // console.log(`Field changed: ${chansetUiSchemagedField}, New Value: ${formData[changedField]}`);
-    //     // // console.log('dependentSchema', dependentSchema);
-    //     const workingSchema = dependentSchema?.filter(
-    //       (item) => item.api && item.api.dependent === changedField
-    //     );
-    //     // // console.log('workingSchema', workingSchema);
-    //     if (workingSchema.length > 0) {
-    //       const changedFieldValue = formData[changedField];
-
-    //       const getNestedValue = (obj, path) => {
-    //         if (path === '') {
-    //           return obj;
-    //         } else {
-    //           return path.split('.').reduce((acc, key) => acc && acc[key], obj);
-    //         }
-    //       };
-
-    //       const fetchDependentApis = async () => {
-    //         // Filter only the dependent APIs based on the changed field
-    //         const dependentApis = workingSchema;
-    //         try {
-    //           const apiRequests = dependentApis.map((field) => {
-    //             const { api, key } = field;
-    //             let isMultiSelect = field?.isMultiSelect;
-    //             let updatedPayload = replaceControllingField(
-    //               api.payload,
-    //               changedFieldValue,
-    //               isMultiSelect
-    //             );
-    //             // console.log('updatedPayload', updatedPayload);
-
-    //             // let changedFieldValuePayload = changedFieldValue;
-    //             // if (field?.isMultiSelect == true) {
-    //             //   // changedFieldValuePayload
-    //             // }
-    //             // // console.log(
-    //             //   'field multiselect changedFieldValuePayload',
-    //             //   changedFieldValuePayload
-    //             // );
-    //             // // console.log('field multiselect api.payload', api.payload);
-
-    //             // // Replace "**" in the payload with changedFieldValue
-    //             // const updatedPayload = JSON.parse(
-    //             //   JSON.stringify(api.payload).replace(
-    //             //     /\*\*/g,
-    //             //     changedFieldValuePayload
-    //             //   )
-    //             // );
-
-    //             // If header exists, replace values with localStorage values
-    //             let customHeader = api?.header
-    //               ? {
-    //                   tenantId:
-    //                     api.header.tenantId === '**'
-    //                       ? localStorage.getItem('tenantId') || ''
-    //                       : api.header.tenantId,
-    //                   Authorization:
-    //                     api.header.Authorization === '**'
-    //                       ? `Bearer ${localStorage.getItem('token') || ''}`
-    //                       : api.header.Authorization,
-    //                   academicyearid:
-    //                     api.header.academicyearid === '**'
-    //                       ? localStorage.getItem('academicYearId') || ''
-    //                       : api.header.academicyearid,
-    //                 }
-    //               : {};
-    //             const config = {
-    //               method: api.method,
-    //               url: api.url,
-    //               headers: {
-    //                 'Content-Type': 'application/json',
-    //                 ...customHeader,
-    //               },
-    //               ...(api.method === 'POST' && { data: updatedPayload }),
-    //             };
-    //             return axios(config)
-    //               .then((response) => ({
-    //                 fieldKey: field.key,
-    //                 data: getNestedValue(response.data, api.options.optionObj),
-    //               }))
-    //               .catch((error) => ({ error: error, fieldKey: field.key }));
-    //           });
-
-    //           const responses = await Promise.all(apiRequests);
-    //           // console.log('State API Responses:', responses);
-    //           if (!responses[0]?.error) {
-    //             setFormSchema((prevSchema) => {
-    //               const updatedProperties = { ...prevSchema.properties };
-    //               responses.forEach(({ fieldKey, data }) => {
-    //                 // // console.log('Data:', data);
-    //                 // // console.log('fieldKey:', fieldKey);
-    //                 let label =
-    //                   prevSchema.properties[fieldKey].api.options.label;
-    //                 let value =
-    //                   prevSchema.properties[fieldKey].api.options.value;
-    //                 if (updatedProperties[fieldKey]?.isMultiSelect === true) {
-    //                   updatedProperties[fieldKey] = {
-    //                     ...updatedProperties[fieldKey],
-    //                     items: {
-    //                       type: 'string',
-    //                       enum: data?.map((item) => item?.[value].toString()),
-    //                       enumNames: data?.map((item) =>
-    //                         transformLabel(item?.[label].toString())
-    //                       ),
-    //                     },
-    //                   };
-    //                 } else {
-    //                   updatedProperties[fieldKey] = {
-    //                     ...updatedProperties[fieldKey],
-    //                     enum: data?.map((item) => item?.[value].toString()),
-    //                     enumNames: data?.map((item) =>
-    //                       transformLabel(item?.[label].toString())
-    //                     ),
-    //                   };
-    //                 }
-    //               });
-
-    //               return { ...prevSchema, properties: updatedProperties };
-    //             });
-    //           } else {
-    //             setFormSchema((prevSchema) => {
-    //               const updatedProperties = { ...prevSchema.properties };
-    //               let fieldKey = responses[0]?.fieldKey;
-    //               if (updatedProperties[fieldKey]?.isMultiSelect === true) {
-    //                 updatedProperties[fieldKey] = {
-    //                   ...updatedProperties[fieldKey],
-    //                   items: {
-    //                     type: 'string',
-    //                     enum: ['Select'],
-    //                     enumNames: ['Select'],
-    //                   },
-    //                 };
-    //               } else {
-    //                 updatedProperties[fieldKey] = {
-    //                   ...updatedProperties[fieldKey],
-    //                   enum: ['Select'],
-    //                   enumNames: ['Select'],
-    //                 };
-    //               }
-    //               return { ...prevSchema, properties: updatedProperties };
-    //             });
-    //           }
-    //         } catch (error) {
-    //           console.error('Error fetching dependent APIs:', error);
-    //         }
-    //       };
-
-    //       // Call the function
-    //       fetchDependentApis();
-    //     }
-    //   }
-
-    //   prevFormData.current = formData;
-    //   // console.log('Form data changed:', formData);
-    //   // live error
-    //   setFormData(formData);
-
-    //   function getSkipKeys(skipHideObject, formData) {
-    //     let skipKeys = [];
-
-    //     Object.keys(skipHideObject).forEach((key) => {
-    //       if (formData[key] && skipHideObject[key][formData[key]]) {
-    //         skipKeys = skipKeys.concat(skipHideObject[key][formData[key]]);
-    //       }
-    //     });
-
-    //     return skipKeys;
-    //   }
-
-    //   const skipKeys = getSkipKeys(hideAndSkipFields, formData);
-    //   // console.log('skipKeys', skipKeys);
-    //   let updatedUISchema = formUiSchemaOriginal;
-    //   function hideFieldsInUISchema(uiSchema, fieldsToHide) {
-    //     const updatedUISchema = { ...uiSchema };
-
-    //     fieldsToHide.forEach((field) => {
-    //       if (updatedUISchema[field]) {
-    //         updatedUISchema[field] = {
-    //           ...updatedUISchema[field],
-    //           originalWidget: updatedUISchema[field]['ui:widget'], // Store original widget type
-    //           'ui:widget': 'hidden',
-    //         };
-    //       }
-    //     });
-
-    //     return updatedUISchema;
-    //   }
-    //   const hiddenUISchema = hideFieldsInUISchema(updatedUISchema, skipKeys);
-    //   setFormUiSchema(hiddenUISchema);
-    // }
   };
   const handleSubmit = ({ formData }: { formData: any }) => {
     //step-1 : Check and remove skipped Data
@@ -1264,7 +1012,7 @@ const DynamicForm = ({
 
     return updatedError;
   };
-  const handleFetchData = (response: any) => {
+  const handleFetchData = React.useCallback((response: any) => {
     // Example: Update specific fields from API response
     setFormData((prev) => ({
       ...prev,
@@ -1290,7 +1038,26 @@ const DynamicForm = ({
       },
       udise: response?.udise || '',
     }));
-  };
+  }, []);
+  const MemoizedUdiaseWithButton = React.memo(({ onFetchData, ...props }) => (
+    <UdiaseWithButton {...props} onFetchData={onFetchData} />
+  ));
+  const widgets = React.useMemo(
+    () => ({
+      CustomMultiSelectWidget,
+      CustomCheckboxWidget,
+      CustomDateWidget,
+      SearchTextFieldWidget,
+      CustomSingleSelectWidget,
+      CustomRadioWidget,
+      CustomTextFieldWidget,
+      UdiaseWithButton: (props) => (
+        <MemoizedUdiaseWithButton {...props} onFetchData={handleFetchData} />
+      ),
+      CustomEmailWidget,
+    }),
+    [handleFetchData]
+  );
   const validateForm = () => {
     const isValid = !!(formData.email || formData.mobile);
     setShowEmailMobileError(!isValid);

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TextField, Button, Box } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { fetchContentOnUdise } from '../../services/LoginService';
@@ -17,43 +17,47 @@ const UdiaseWithButton = ({
   rawErrors = [],
   placeholder,
   onFetchData,
-}: WidgetProps & { onFetchData: (data: string) => void }) => {
-  const [udiseCode, setUdiasecode] = useState(value ?? '');
+}: WidgetProps & { onFetchData: (data: any) => void }) => {
+  const [localValue, setLocalValue] = useState(value ?? '');
   const [errorMessage, setErrorMessage] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Sync local value when prop changes
+
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
-  let udiseText = '';
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const val = event.target.value.replace(/\s/g, '');
-    setUdiasecode(val);
-    onChange(val);
-    // Clear error when user starts typing again
-    if (errorMessage) setErrorMessage('');
+    const val = event.target.value;
+    setLocalValue(val);
+    onChange(val === '' ? undefined : val);
+    if (val) {
+      setErrorMessage('');
+    }
   };
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) =>
-    onBlur(id, event.target.value);
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (onBlur) onBlur(id, value);
+  };
 
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) =>
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     onFocus(id, event.target.value);
+  };
 
   const handleClick = async () => {
-    // if (!udiseCode) {
-    //   setErrorMessage('Please enter a valid UDISE Code.');
-
-    //   return;
-    // }
-
+    if (!localValue) {
+      setErrorMessage('Please enter a UDISE Code.');
+      return;
+    }
     try {
-      const response = await fetchContentOnUdise(udiseCode);
+      const response = await fetchContentOnUdise(localValue);
+
       if (
         !response ||
         response?.status === 500 ||
         !response?.result ||
         response?.result.length === 0
       ) {
-        setUdiasecode('');
         setErrorMessage('No school found. Please enter a valid UDISE Code.');
         onFetchData({
           udise: '',
@@ -64,48 +68,40 @@ const UdiaseWithButton = ({
           cluster: { _id: '', name: '' },
         });
         return;
-      } else {
-        const locationInfo = response.result[0];
-
-        const sampleResponse = {
-          udise: udiseCode,
-          school: {
-            _id: locationInfo?._id || '',
-            name: locationInfo?.metaInformation?.name || '',
-          },
-          state: {
-            _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
-            name: locationInfo?.parentInformation?.state?.[0]?.name || '',
-          },
-          district: {
-            _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
-            name: locationInfo?.parentInformation?.district?.[0]?.name || '',
-          },
-          block: {
-            _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
-            name: locationInfo?.parentInformation?.block?.[0]?.name || '',
-          },
-          cluster: {
-            _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
-            name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
-          },
-        };
-
-        onFetchData(sampleResponse);
-        setErrorMessage(''); // Clear error on success
       }
+
+      const locationInfo = response.result[0];
+      const sampleResponse = {
+        udise: localValue,
+        school: {
+          _id: locationInfo?._id || '',
+          name: locationInfo?.metaInformation?.name || '',
+        },
+        state: {
+          _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.state?.[0]?.name || '',
+        },
+        district: {
+          _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.district?.[0]?.name || '',
+        },
+        block: {
+          _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.block?.[0]?.name || '',
+        },
+        cluster: {
+          _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
+          name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
+        },
+      };
+
+      onFetchData(sampleResponse);
+      setErrorMessage('');
     } catch (e: any) {
       setErrorMessage('Something went wrong. Please try again later.');
-      // onFetchData({
-      //   udise: '',
-      //   school: { _id: '', name: '' },
-      //   state: { _id: '', name: '' },
-      //   district: { _id: '', name: '' },
-      //   block: { _id: '', name: '' },
-      //   cluster: { _id: '', name: '' },
-      // });
     }
   };
+
   return (
     <Box display="flex" flexDirection="column" gap={1}>
       <Box display="flex" alignItems="center" gap={1}>
@@ -117,7 +113,7 @@ const UdiaseWithButton = ({
               {label} <span style={{ color: 'red' }}>*</span>
             </>
           }
-          value={udiseCode ?? ''}
+          value={localValue}
           required={required}
           disabled={disabled || readonly}
           onChange={handleChange}
@@ -125,7 +121,7 @@ const UdiaseWithButton = ({
           onFocus={handleFocus}
           placeholder={placeholder}
           error={displayErrors.length > 0 || !!errorMessage}
-          helperText={errorMessage}
+          helperText={errorMessage || displayErrors.join(', ')}
           variant="outlined"
           size="small"
           InputProps={{
@@ -155,7 +151,7 @@ const UdiaseWithButton = ({
           variant="contained"
           size="small"
           onClick={handleClick}
-          disabled={!udiseCode || errorMessage}
+          disabled={!localValue}
           sx={{
             whiteSpace: 'nowrap',
             bgcolor: '#582E92',
@@ -174,7 +170,6 @@ const UdiaseWithButton = ({
           Fetch
         </Button>
       </Box>
-      <span style={{ color: 'red', fontSize: '12px' }}>{udiseText}</span>
     </Box>
   );
 };
