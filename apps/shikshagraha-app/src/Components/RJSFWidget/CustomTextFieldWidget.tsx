@@ -140,9 +140,13 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
   const renderLabel = () => {
     if (
-      ['first name', 'last name', 'username', 'password'].includes(
-        lowerLabel ?? ''
-      )
+      [
+        'first name',
+        'last name',
+        'username',
+        'password',
+        'confirm password',
+      ].includes(lowerLabel ?? '')
     ) {
       return (
         <>
