@@ -125,6 +125,7 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
     if (onResendOtp) {
       onResendOtp();
       setResendTimer(resendCooldown);
+      setExpirationTimer(expirationTime);
     }
   };
 
