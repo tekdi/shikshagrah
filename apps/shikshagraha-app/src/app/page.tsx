@@ -89,23 +89,24 @@ export default function Login() {
 
     setLoading(true);
     try {
+      console.log('formData', formData);
       const response = await signin({
         username: formData.userName,
         password: formData.password,
       });
-
+      console.log('response login', response);
       const accessToken = response?.result?.access_token;
       const refreshToken = response?.result?.refresh_token;
 
       if (accessToken) {
-        const tenantResponse = await authenticateLoginUser({
-          token: accessToken,
-        });
-        const userStatus = tenantResponse?.result?.status?.toLowerCase();
+        // const tenantResponse = await authenticateLoginUser({
+        //   token: accessToken,
+        // });
+        const userStatus = response?.result?.user?.status;
 
         localStorage.setItem('userStatus', userStatus);
 
-        if (userStatus === 'archived') {
+        if (userStatus !== 'ACTIVE') {
           setShowError(true);
           setErrorMessage('The user is deactivated, please contact admin.');
           return;
@@ -114,38 +115,45 @@ export default function Login() {
         // Only store token if status is active
         localStorage.setItem('accToken', accessToken);
         localStorage.setItem('refToken', refreshToken);
-        localStorage.setItem('firstname', tenantResponse?.result?.firstName);
-        localStorage.setItem('userId', tenantResponse?.result?.userId);
-        localStorage.setItem('name', tenantResponse?.result?.username);
-
-        const tenantIdToCompare =
-          tenantResponse?.result?.tenantData?.[0]?.tenantId;
-        if (tenantIdToCompare) {
-          localStorage.setItem(
-            'headers',
-            JSON.stringify({ 'org-id': tenantIdToCompare })
-          );
-
-          const tenantData = await fetchTenantData({ token: accessToken });
-          const matchedTenant = tenantData?.result?.find(
-            (tenant) => tenant.tenantId === tenantIdToCompare
-          );
-
-          localStorage.setItem('channelId', matchedTenant?.channelId);
-          localStorage.setItem(
-            'frameworkname',
-            matchedTenant?.contentFramework
-          );
-
-          if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
-            router.push('/home');
-          } else {
-            setShowError(true);
-            setErrorMessage(
-              'The user does not belong to the same organization.'
-            );
-          }
+        localStorage.setItem('firstname', response?.result?.user?.name);
+        localStorage.setItem('userId', response?.result?.user?.id);
+        localStorage.setItem('name', response?.result?.user?.username);
+        router.push('/home');
+        const organizations = response?.result?.user?.organizations || [];
+        const orgId = organizations[0]?.id;
+        if (orgId) {
+          localStorage.setItem('headers', JSON.stringify({ 'org-id': orgId }));
         }
+
+        // const tenantIdToCompare =
+        //   tenantResponse?.result?.tenantData?.[0]?.tenantId;
+        // if (tenantIdToCompare) {
+        //   localStorage.setItem(
+        //     'headers',
+        //     JSON.stringify({ 'org-id': tenantIdToCompare })
+        //   );
+
+        //   const tenantData = await fetchTenantData({ token: accessToken });
+        //   const matchedTenant = tenantData?.result?.find(
+        //     (tenant) => tenant.tenantId === tenantIdToCompare
+        //   );
+
+        //   localStorage.setItem('channelId', matchedTenant?.channelId);
+        //   localStorage.setItem(
+        //     'frameworkname',
+        //     matchedTenant?.contentFramework
+        //   );
+
+        // if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+
+        // }
+        // else {
+        //   setShowError(true);
+        //   setErrorMessage(
+        //     'The user does not belong to the same organization.'
+        //   );
+        // }
+        // }
       } else {
         setShowError(true);
         setErrorMessage('Login failed. Invalid Username or Password.');

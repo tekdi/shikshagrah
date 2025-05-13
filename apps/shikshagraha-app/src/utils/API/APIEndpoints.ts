@@ -1,4 +1,4 @@
-const baseurl = process.env.NEXT_PUBLIC_MIDDLEWARE_URL;
+const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const API_ENDPOINTS = {
   contentRead: (doId: string) => `${baseurl}/api/content/v1/read/${doId}?fields=artifactUrl`,
@@ -7,7 +7,7 @@ export const API_ENDPOINTS = {
   accountCreate: `${baseurl}/account/create`, 
   userUpdate: (userId: string) => `${baseurl}/user/update/${userId}`,
   myCohorts: (userId: string | string[]) => `${baseurl}/cohort/mycohorts/${userId}`,
-  accountLogin: `${baseurl}/account/login`,
+  accountLogin: `${baseurl}/user/v1/account/login`,
   authRefresh: `${baseurl}/account/auth/refresh`,
   authLogout: `${baseurl}/account/auth/logout`,
   userAuth: `${baseurl}/user/auth`,
