@@ -1106,25 +1106,7 @@ const DynamicForm = ({
     );
 
     // const userName = formData.firstName;
-    const payload = {
-      name: formData.firstName,
-      username: formData.Username,
-      password: formData.password,
-      gender: formData.gender ?? 'male',
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      mobile: formData.mobile,
-      email: formData.email,
-      tenantCohortRoleMapping: [
-        {
-          tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
-          roleId: 'ac21322c-9c7c-4a39-8c56-4b5722f14c04',
-        },
-      ],
-      customFields,
-    };
-    console.log('payload 1349', payload);
-    setRegisterData(payload);
+
     let otpPayload;
     if (formData.email) {
       otpPayload = {
@@ -1149,6 +1131,7 @@ const DynamicForm = ({
     }
 
     const registrationResponse = await sendOtp(otpPayload);
+    console.log('registrationResponse', registrationResponse);
     if (
       registrationResponse?.params?.successmessage === 'OTP sent successfully'
     ) {
@@ -1236,6 +1219,9 @@ const DynamicForm = ({
       ],
       customFields,
     };
+
+    console.log('payload', payload);
+
     setRegisterData(payload);
     let verifyOTPpayload;
     if (formData.email) {

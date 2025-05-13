@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import { API_ENDPOINTS } from '../utils/API/APIEndpoints';
+
 interface LoginParams {
   username: string;
   password: string;
@@ -16,21 +18,25 @@ interface AuthParamsProfile {
   userId: string;
   tenantId: string;
 }
-export const signin = async ({
-  username,
-  password,
-}: LoginParams): Promise<any> => {
-  const apiUrl: string = `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/account/login`;
-
+export const signin = async ({ username, password }: LoginParams): Promise<any> => {
+  const apiUrl: string = `${API_ENDPOINTS.accountLogin}`;
+console.log(username);
   try {
-    const response = await axios.post(apiUrl, {
-      username: username,
-      password: password,
-    });
+    const response = await axios.post(
+      apiUrl,
+      {
+       identifier:username,
+        password,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
     return response?.data;
   } catch (error) {
-    console.error('error in login', error);
-    // throw error;
+    console.error('Login error:', error);
     return error;
   }
 };
@@ -47,7 +53,6 @@ export const authenticateLoginUser = async ({
     });
     return response?.data;
   } catch (error) {
-    debugger;
     console.error('error in login', error);
     // throw error;
     return error;
