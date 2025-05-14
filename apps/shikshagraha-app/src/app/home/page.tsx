@@ -6,7 +6,7 @@ import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
-import { readIndividualTenantData } from '../../services/LoginService';
+import { readHomeListForm } from '../../services/LoginService';
 import { useEffect, useState } from 'react';
 import {
   CircularProgress,
@@ -54,14 +54,15 @@ export default function Home() {
 
       async function fetchConfig() {
         const header = JSON.parse(localStorage.getItem('headers'));
+        const token = localStorage.getItem('accToken')
 
         if (!header['org-id']) return;
         try {
-          const data = await readIndividualTenantData(header['org-id']);
-          setCardData(data.result.contentFilter);
+          const data = await readHomeListForm(token);
+          setCardData(data.result.data.fields.data);
           localStorage.setItem(
             'theme',
-            JSON.stringify(data.result.contentFilter[0].theme)
+            JSON.stringify(data.result.data.fields.data[0].theme)
           );
         } catch (err) {
           setError((err as Error).message);
@@ -201,7 +202,7 @@ export default function Home() {
                     ); // Parse the JSON
                     const storedOrgId = storedHeaders['org-id']; // Get org-id
                     const isSameOrg =
-                      storedOrgId === process.env.NEXT_PUBLIC_ORGID;
+                      storedOrgId == process.env.NEXT_PUBLIC_ORGID;
                     console.log(isSameOrg);
                     console.log(storedOrgId);
 
