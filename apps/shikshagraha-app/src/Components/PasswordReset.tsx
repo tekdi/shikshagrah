@@ -28,11 +28,11 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 const PasswordReset = ({ name }: { name: string }) => {
   const router = useRouter();
-  const [step, setStep] = useState<'input' | 'otp' | 'reset'>('input');
+  const [step, setStep] = useState<'reset' | 'otp' | 'input'>('reset');
   const [formData, setFormData] = useState({
-    email: '',
-    mobile: '',
-    username: '',
+    identifier: '',
+    password: '',
+    confirmPassword: '',
   });
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [newPassword, setNewPassword] = useState('');
@@ -50,9 +50,9 @@ const PasswordReset = ({ name }: { name: string }) => {
     string | null
   >(null);
   const [formErrors, setFormErrors] = useState({
-    username: '',
-    email: '',
-    mobile: '',
+    identifier: '',
+    password: '',
+    confirmPassword: '',
   });
   const usernameRegex = /^[a-zA-Z0-9_]+$/; //add
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -63,69 +63,45 @@ const PasswordReset = ({ name }: { name: string }) => {
   const [secondsLeft, setSecondsLeft] = useState(605);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log(name, value);
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
     let error = '';
-    if (name === 'username' && value && !usernameRegex.test(value)) {
-      error = 'Only letters, numbers, and underscores are allowed';
-    } else if (name === 'email' && value && !emailRegex.test(value)) {
-      error = 'Enter a valid email address.';
-    } else if (name === 'mobile' && value && !mobileRegex.test(value)) {
-      error = 'Enter a valid 10-digit mobile number';
-    }
-
     setFormErrors((prev) => ({
       ...prev,
       [name]: error,
     }));
   };
-  const getAuthPayload = () =>
-    formData.email
-      ? { email: formData.email, reason: 'forgot' }
-      : { mobile: formData.mobile, reason: 'forgot' };
+  // const getAuthPayload = () =>
+  //   formData.email
+  //     ? { email: formData.email, reason: 'forgot' }
+  //     : { mobile: formData.mobile, reason: 'forgot' };
 
   const handleSendOtp = async () => {
-    if (!formData.email && !formData.mobile) {
-      setError('Please provide either email or mobile');
+    if (!formData?.identifier || !formData?.password) {
+      setError('Please provide both email and password');
       setShowError(true);
       return;
     }
 
     setLoading(true);
     try {
-      let otpPayload;
-      if (formData.email) {
-        otpPayload = {
-          email: formData.email,
-          reason: 'forgot',
-          firstName: formData.username,
-          key: 'SendOtpOnMail',
-          replacements: {
-            '{eventName}': 'Shiksha Graha OTP',
-            '{programName}': 'Shiksha Graha',
-          },
-        };
-      } else if (formData.mobile) {
-        console.log('userData.mobile', String(formData?.mobile ?? ''));
-        otpPayload = {
-          mobile: String(formData?.mobile ?? ''), // Ensure fallback to empty string if undefined
-          reason: 'forgot',
-        };
-      } else {
-        setShowError(true);
-        // setErrorMessage('Either email or mobile must be provided');
-        return;
-      }
-      console.log('otpPayload', otpPayload);
+      const otpPayload = {
+        identifier: formData.identifier,
+        password: formData.password,
+      };
+
       const response = await sendOtp(otpPayload);
 
-      if (response?.params?.successmessage === 'OTP sent successfully') {
+      console.log(response);
+
+      if (response?.params?.status === 'SUCCESS') {
         setHash(response?.result?.data?.hash);
         setStep('otp');
       } else {
-        setError(response?.data?.params?.err ?? 'Failed to send OTP');
+        setError(response?.params?.errmsg || 'Failed to send OTP');
         setShowError(true);
       }
     } catch (err) {
@@ -135,6 +111,7 @@ const PasswordReset = ({ name }: { name: string }) => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     let interval: any;
     if (timer > 0) {
@@ -161,21 +138,7 @@ const PasswordReset = ({ name }: { name: string }) => {
 
     setLoading(true);
     try {
-      const payload = formData.email
-        ? {
-            email: formData.email,
-            reason: 'forgot',
-            otp: otpString,
-            hash,
-            username: formData.username,
-          }
-        : {
-            mobile: formData.mobile,
-            reason: 'forgot',
-            otp: otpString,
-            hash,
-            username: formData.username,
-          };
+      const payload = formData.identifier;
       const response = await verifyOtpService(payload);
       if (response?.params?.successmessage === 'OTP validation Sucessfully') {
         setToken(response?.result?.token ?? '');
@@ -201,19 +164,17 @@ const PasswordReset = ({ name }: { name: string }) => {
 
     setLoading(true);
     try {
-      const payload = formData.email
-        ? { email: formData.email, newPassword, token }
-        : { mobile: formData.mobile, newPassword, token };
+      const payload = formData.identifier;
 
-      const response = await resetPassword(payload);
+      // const response = await resetPassword(payload);
 
-      if (response?.params?.status === 'successful') {
-        setShowSuccess(true);
-        setTimeout(() => router.push('/'), 2000);
-      } else {
-        setError(response?.data?.params?.err ?? 'Failed to reset password');
-        setShowError(true);
-      }
+      // if (response?.params?.status === 'successful') {
+      //   setShowSuccess(true);
+      //   setTimeout(() => router.push('/'), 2000);
+      // } else {
+      //   setError(response?.data?.params?.err ?? 'Failed to reset password');
+      //   setShowError(true);
+      // }
     } catch (err: any) {
       console.error('Password reset failed:', err); // 👈 Logging the actual error
       const errorMessage =
@@ -227,20 +188,15 @@ const PasswordReset = ({ name }: { name: string }) => {
     }
   };
   const handleClickShowNewPassword = () => setShowNewPassword((show) => !show);
+
   const handleClickShowConfirmPassword = () =>
     setShowConfirmPassword((show) => !show);
 
   const handleBack = () => {
-    if (step === 'input') {
-      if (name === 'Reset Password') {
-        router.push('/profile');
-      } else {
-        router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-      }
-    } else if (step === 'otp') {
-      setStep('input');
+    if (step === 'otp') {
+      setStep('reset');
     } else if (step === 'reset') {
-      setStep('otp');
+      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     }
   };
   const validatePassword = (val: string, name: string) => {
@@ -261,17 +217,28 @@ const PasswordReset = ({ name }: { name: string }) => {
   const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     const name = event.target.name;
-    let errorMsg;
+
+    let errorMsg: string | null | undefined;
+
     if (name === 'password') {
       errorMsg = validatePassword(val, name);
-      setPasswordError(errorMsg ?? null);
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: errorMsg ?? '',
+      }));
     } else if (name === 'confirmPassword') {
       errorMsg = validatePassword(val, name);
-      setConfirmPasswordError(errorMsg ?? null);
-    } else {
-      setPasswordError(null);
-      setConfirmPasswordError(null);
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: errorMsg ?? '',
+      }));
     }
+
+    // Always assign string to form data
+    setFormData((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
   };
 
   const handleChange = (index: number, value: string) => {
@@ -369,180 +336,6 @@ const PasswordReset = ({ name }: { name: string }) => {
             Back
           </Button>
         </Grid>
-        {step === 'input' && (
-          <>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="h5" gutterBottom>
-                {name}
-              </Typography>
-            </Box>
-            <TextField
-              fullWidth
-              label={
-                <>
-                  Username <span style={{ color: 'red' }}>*</span>
-                </>
-              }
-              name="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              helperText={formErrors.username}
-              margin="normal"
-              FormHelperTextProps={{
-                sx: {
-                  color: 'red', // ✅ helperText color set manually
-                  fontSize: '11px',
-                  marginLeft: '0px',
-                },
-              }}
-              InputProps={{
-                sx: {
-                  '& .MuiInputBase-input': {
-                    padding: '14px',
-                    fontSize: '12px',
-                  },
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '12px', // Label font size
-                  '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
-                  },
-                  '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
-                  },
-                },
-              }}
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              margin="normal"
-              disabled={!!formData.mobile}
-              helperText={formErrors.email}
-              FormHelperTextProps={{
-                sx: {
-                  color: 'red', // ✅ helperText color set manually
-                  fontSize: '11px',
-                  marginLeft: '0px',
-                },
-              }}
-              InputProps={{
-                sx: {
-                  '& .MuiInputBase-input': {
-                    padding: '14px',
-                    fontSize: '12px',
-                  },
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '12px', // Label font size
-                  '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
-                  },
-                  '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
-                  },
-                },
-              }}
-            />
-
-            <Typography variant="body1" textAlign="center" my={1}>
-              OR
-            </Typography>
-
-            <TextField
-              fullWidth
-              label="Mobile Number"
-              name="mobile"
-              value={formData.mobile}
-              helperText={formErrors.mobile}
-              onChange={handleInputChange}
-              margin="normal"
-              disabled={!!formData.email}
-              onKeyDown={(e) => {
-                // Allow only numbers, backspace, delete, arrows, tab
-                const allowedKeys = [
-                  'Backspace',
-                  'Delete',
-                  'ArrowLeft',
-                  'ArrowRight',
-                  'Tab',
-                ];
-                if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
-                  e.preventDefault();
-                }
-              }}
-              FormHelperTextProps={{
-                sx: {
-                  color: 'red', // ✅ helperText color set manually
-                  fontSize: '11px',
-                  marginLeft: '0px',
-                },
-              }}
-              inputProps={{
-                inputMode: 'numeric',
-                pattern: '[0-9]*',
-                maxLength: 10,
-              }}
-              InputProps={{
-                sx: {
-                  '& .MuiInputBase-input': {
-                    padding: '14px',
-                    fontSize: '12px',
-                  },
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '12px', // Label font size
-                  '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
-                  },
-                  '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
-                  },
-                },
-              }}
-            />
-
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleSendOtp}
-              disabled={
-                !formData.username || (!formData.email && !formData.mobile)
-              }
-              sx={{
-                bgcolor: '#582E92',
-                color: '#FFFFFF',
-                borderRadius: '30px',
-                textTransform: 'none',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                padding: '8px 16px',
-                '&:hover': {
-                  bgcolor: '#543E98',
-                },
-                width: { xs: '50%', sm: '50%' },
-              }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Send OTP'}
-            </Button>
-          </>
-        )}
-
         {step === 'otp' && (
           <>
             <Box
@@ -553,7 +346,7 @@ const PasswordReset = ({ name }: { name: string }) => {
             >
               <Box sx={{ width: '100%' }}>
                 <Typography variant="body1" gutterBottom>
-                  Enter the OTP sent to {formData.email || formData.mobile}
+                  Enter the OTP sent to {formData.identifier}
                 </Typography>
               </Box>
 
@@ -649,13 +442,12 @@ const PasswordReset = ({ name }: { name: string }) => {
             </Box>
             <TextField
               fullWidth
-              type={showNewPassword ? 'text' : 'password'}
-              name="password"
-              label="New Password"
-              value={newPassword}
-              onChange={handleChangePassword}
-              helperText={passwordError ?? ''}
+              label="Email/Mobile"
+              name="identifier"
+              value={formData.identifier}
+              onChange={handleInputChange}
               margin="normal"
+              helperText={formErrors.identifier}
               FormHelperTextProps={{
                 sx: {
                   color: 'red', // ✅ helperText color set manually
@@ -664,17 +456,6 @@ const PasswordReset = ({ name }: { name: string }) => {
                 },
               }}
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowNewPassword}
-                      edge="end"
-                    >
-                      {showNewPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
                 sx: {
                   '& .MuiInputBase-input': {
                     padding: '14px',
@@ -698,16 +479,16 @@ const PasswordReset = ({ name }: { name: string }) => {
             />
             <TextField
               fullWidth
-              type={showConfirmPassword ? 'text' : 'password'}
-              label="Confirm New Password"
-              value={confirmPassword}
-              name="confirmPassword"
+              type={showNewPassword ? 'text' : 'password'} // ✅ toggle based on state
+              name="password"
+              label="New Password"
+              value={formData.password}
               onChange={handleChangePassword}
-              helperText={confirmPasswordError ?? ''}
+              helperText={formErrors.password ?? ''}
               margin="normal"
               FormHelperTextProps={{
                 sx: {
-                  color: 'red', // ✅ helperText color set manually
+                  color: formErrors.password ? 'red' : 'inherit',
                   fontSize: '11px',
                   marginLeft: '0px',
                 },
@@ -717,10 +498,10 @@ const PasswordReset = ({ name }: { name: string }) => {
                   <InputAdornment position="end">
                     <IconButton
                       aria-label="toggle password visibility"
-                      onClick={handleClickShowConfirmPassword}
+                      onClick={handleClickShowNewPassword}
                       edge="end"
                     >
-                      {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                      {showNewPassword ? <Visibility /> : <VisibilityOff />}{' '}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -733,23 +514,82 @@ const PasswordReset = ({ name }: { name: string }) => {
               }}
               InputLabelProps={{
                 sx: {
-                  fontSize: '12px', // Label font size
+                  fontSize: '12px',
                   '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
                   },
                   '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
                   },
                 },
               }}
             />
+            <TextField
+              fullWidth
+              type={showConfirmPassword ? 'text' : 'password'}
+              label="Confirm New Password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChangePassword}
+              helperText={formErrors.confirmPassword ?? ''}
+              margin="normal"
+              FormHelperTextProps={{
+                sx: {
+                  color: formErrors.confirmPassword ? 'red' : 'inherit',
+                  fontSize: '11px',
+                  marginLeft: '0px',
+                },
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={handleClickShowConfirmPassword}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <Visibility /> : <VisibilityOff />}{' '}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                sx: {
+                  '& .MuiInputBase-input': {
+                    padding: '14px',
+                    fontSize: '12px',
+                  },
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: '12px',
+                  '&.Mui-focused': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
+                  },
+                },
+              }}
+            />
+
             <Button
               fullWidth
               variant="contained"
-              onClick={handleResetPassword}
-              disabled={loading || !newPassword || !confirmPassword}
+              onClick={handleSendOtp}
+              // onClick={handleResetPassword}
+              disabled={
+                loading ||
+                !formData.password ||
+                !formData.confirmPassword ||
+                !formData.identifier ||
+                !!formErrors.identifier ||
+                !!formErrors.password ||
+                !!formErrors.confirmPassword
+              }
               sx={{
                 bgcolor: '#582E92',
                 color: '#FFFFFF',
@@ -764,7 +604,7 @@ const PasswordReset = ({ name }: { name: string }) => {
                 width: { xs: '50%', sm: '50%' },
               }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Reset Password'}
+              {loading ? <CircularProgress size={24} /> : 'Send OTP'}
             </Button>
           </>
         )}
