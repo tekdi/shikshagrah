@@ -1,4 +1,5 @@
 // src/services/profileService.ts
+import { API_ENDPOINTS } from '../utils/API/APIEndpoints';
 import axios from 'axios';
 interface MyCourseDetailsProps {
   token: string | null;
@@ -8,37 +9,27 @@ interface AuthParams {
   token: string;
   userId: string;
 }
+
+
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_READ_USER}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `${process.env.NEXT_PUBLIC_AUTH}`,
-          'x-authenticated-user-token': token,
-        },
-        body: JSON.stringify({
-          request: {
-            filters: {
-              userId,
-            },
-            limit: 5000,
-          },
-        }),
-      }
-    );
+    const response = await fetch(API_ENDPOINTS.userProfileRead, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-auth-token': `${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch profile data');
     }
 
     const data = await response.json();
-    return data.result.response;
+    return data.result?.response || data.result;
   } catch (error) {
     console.error('Error fetching profile data:', error);
-    return error;
+    return null;
   }
 };
 
@@ -79,65 +70,6 @@ export const fetchLocationDetails = async (locations: any[]) => {
   }
 };
 
-export const sendOtp = async (key: string, type: 'email' | 'phone') => {
-  const headers = {
-    Authorization: `${process.env.NEXT_PUBLIC_AUTH}`,
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  };
-
-  // Construct request object conditionally
-  const req = {
-    request: {
-      key,
-      type,
-      ...(type === 'phone' && { templateId: 'otpContactUpdateTemplate' }),
-    },
-  };
-
-  try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_GENRATE_OTP}`,
-      req,
-      { headers }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-    return error;
-  }
-};
-
-// Delete Account
-export const verifyOtp = async (
-  email: string,
-  otp: string,
-  contactType: string
-) => {
-  console.log('contactType', contactType);
-  const headers = {
-    Authorization: process.env.NEXT_PUBLIC_AUTH,
-    'Content-Type': 'application/json',
-  };
-  const req = {
-    request: {
-      key: email,
-      type: contactType,
-      otp: String(otp),
-    },
-  };
-
-  try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_VERIFT_OTP}`,
-      req,
-      { headers }
-    );
-    return response.data; // Return response to be handled in the component
-  } catch (error) {
-    return error || 'Error verifying OTP';
-  }
-};
 
 export const updateProfile = async (
   userId: string | null,
@@ -304,4 +236,40 @@ export const deactivateUser = async (
     throw error;
   }
 };
+export const resetUserPassword = async (
+  oldPassword: string,
+  newPassword: string,
+  token: string
+) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.resetPassword, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-auth-token': token,
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword,
+      }),
+    });
+
+    const data = await response.json();
+console.log(data)
+    if (!response.ok) {
+      const message =
+        data?.error?.[0]?.msg || data?.message || 'Failed to reset password';
+      return { success: false, errorMessage: message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return {
+      success: false,
+      errorMessage: 'Something went wrong. Please try again.',
+    };
+  }
+};
+
 
