@@ -90,6 +90,8 @@ export default function Profile({ params }: { params: { id: string } }) {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [mappedProfile, setMappedProfile] = useState([]);
+
   const [showPassword, setShowPassword] = useState({
     oldPassword: false,
     newPassword: false,
@@ -119,7 +121,27 @@ export default function Profile({ params }: { params: { id: string } }) {
           const profileData = await fetchProfileData(userId, acc_token);
           console.log('Profile data:', profileData);
           if (profileData) {
-            setUserData(profileData); // Assuming you have a `setProfile` state
+            setUserData(profileData);
+            const mappedProfileArray = [
+              { label: 'State', value: profileData?.state?.label || '' },
+              { label: 'District', value: profileData?.district?.label || '' },
+              { label: 'Block', value: profileData?.block?.label || '' },
+              { label: 'Cluster', value: profileData?.cluster?.label || '' },
+              { label: 'School', value: profileData?.school?.label || '' },
+              {
+                label: 'Professional Role',
+                value: profileData?.professional_role?.label || '',
+              },
+              {
+                label: 'Professional Subrole',
+                value:
+                  profileData?.professional_subroles
+                    ?.map((sub) => sub.label)
+                    .join(', ') || '',
+              },
+            ];
+            console.log('Mapped profile array:', mappedProfileArray);
+            setMappedProfile(mappedProfileArray); // Assuming you have a `setProfile` state
           }
         }
       } catch (err) {
@@ -322,39 +344,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
-  const roleTypes =
-    [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
-  const subRoles =
-    [
-      ...new Set(
-        profileData?.profileUserTypes
-          ?.filter((role) => role.subType)
-          .map((role) => role.subType)
-      ),
-    ] || [];
-  const organisationRoles =
-    profileData?.organisations
-      ?.flatMap((org) => org.roles)
-      ?.filter((role) => role !== null) || [];
-  const displayRole = roleTypes.length ? roleTypes.join(', ') : 'N/A';
-  const displaySubRole = subRoles.length
-    ? toCamelCase(subRoles).join(', ')
-    : 'N/A';
-  const framework = profileData?.framework || {};
-  const displayBoard = framework.board?.join(', ') || 'N/A';
-  const displayMedium = framework.medium?.join(', ') || 'N/A';
-  const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
-  const displaySubject = framework.subject?.join(', ') || 'N/A';
-  // localStorage.setItem('frameworkname', framework?.id);
 
-  const [value, setValue] = useState(profileData?.email || '');
-  const handleEditClick = () => {
-    router.push('/profile-edit');
-    localStorage.setItem('selectedBoard', displayBoard);
-    localStorage.setItem('selectedMedium', displayMedium);
-    localStorage.setItem('selectedGradeLevel', displayGradeLevel);
-    localStorage.setItem('selectedSubject', displaySubject);
-  };
   const toCamelCase = (str) => {
     return str
       .toLowerCase()
@@ -636,55 +626,62 @@ export default function Profile({ params }: { params: { id: string } }) {
               <br></br>
               <Grid
                 container
-                spacing={2}
+                spacing={5}
                 alignItems="center"
                 justifyContent="center"
                 direction="row"
               >
                 <Grid item xs={12}>
-                  {[
-                    ...userDataProfile,
-                    displayRole === 'HT & Officials' && {
-                      label: 'Sub-role',
-                      value: displaySubRole || 'N/A',
-                    },
-                  ]
-                    .filter(Boolean) // Remove any falsy values (like the 'Sub-role' when not applicable)
-                    .reverse()
-                    .map((item) => (
+                  {mappedProfile.map((item) => (
+                    <Box
+                      key={item.label}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: {
+                          xs: 'column',
+                          sm: 'row',
+                        },
+                        justifyContent: 'space-between',
+                        alignItems: {
+                          xs: 'flex-start',
+                          sm: 'center',
+                        },
+                        paddingBottom: '16px',
+                        width: '100%',
+                      }}
+                    >
                       <Typography
                         variant="body1"
-                        key={item.label}
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#FF9911',
+                          minWidth: {
+                            xs: '100%',
+                            sm: '30%',
+                          },
+                          marginBottom: {
+                            xs: '4px',
+                            sm: 0,
+                          },
+                        }}
+                      >
+                        {item.label}:
+                      </Typography>
+                      <Typography
+                        variant="body1"
                         sx={{
                           fontWeight: 'bold',
                           color: '#333',
-                          paddingBottom: '10px',
+                          width: {
+                            xs: '100%',
+                            sm: '65%',
+                          },
                         }}
-                        style={{ display: 'flex', width: '100%' }}
                       >
-                        <span
-                          style={{
-                            width: '25%',
-                            textAlign: 'left',
-                            color: '#FF9911',
-                          }}
-                        >
-                          {toCamelCase(item.label)}
-                        </span>
-                        <span style={{ width: '70%' }}>
-                          {Array.isArray(item.value)
-                            ? ': ' +
-                              item.value
-                                .map((val) =>
-                                  val.value === 'HT & Officials'
-                                    ? 'HT & Officials'
-                                    : toCamelCase(val.value)
-                                )
-                                .join(', ') // show list values
-                            : ': ' + item.value}
-                        </span>
+                        {item.value || 'N/A'}
                       </Typography>
-                    ))}
+                    </Box>
+                  ))}
                 </Grid>
               </Grid>
             </Box>

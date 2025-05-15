@@ -1,3 +1,5 @@
+import ForgotPassword from "../../app/forgetpassword/page";
+
 const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const API_ENDPOINTS = {
@@ -17,6 +19,7 @@ export const API_ENDPOINTS = {
   userProfileRead: `${baseurl}/user/v1/user/read`,
   resetPassword: `${baseurl}/user/v1/account/changePassword`,
   formRead: `${baseurl}/user/v1/form/read`,
+  ForgotPassword: `${baseurl}/user/v1/account/resetPassword`,
 
   fieldOptionsRead: `${baseurl}/fields/options/read`,
   cohortSearch: `${baseurl}/cohort/search`,

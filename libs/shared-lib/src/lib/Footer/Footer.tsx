@@ -26,11 +26,11 @@ export const Footer: React.FC = () => {
     if (value !== newValue) {
       setValue(newValue);
       if (newValue === 0) {
-        window.location.href = '/shikshalokam/home';
+        window.location.href = '/home';
       } else if (newValue === 1) {
         router.replace(`${process.env.NEXT_PUBLIC_CONTENT}/content`);
       } else {
-        window.location.href = '/shikshalokam/profile';
+        window.location.href = '/profile';
       }
     }
   };
