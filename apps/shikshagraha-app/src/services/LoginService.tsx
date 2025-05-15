@@ -263,16 +263,24 @@ export const verifyOtpService = async (requestData: any) => {
   }
 };
 
-export const readIndividualTenantData = async (tenantId: string) => {
+export const readHomeListForm = async (token: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   if (!baseUrl) {
     throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
   }
 
-  const apiUrl = `${baseUrl}/interface/v1/user/tenant/read/${tenantId}`;
+  const apiUrl = `${baseUrl}/user/v1/form/read`;
+  const payloadData = {
+    "type": "solutionList",
+	  "sub_type": "home"
+  }
 
   try {
-    const { data } = await axios.get(apiUrl);
+    const { data } = await axios.post(apiUrl,payloadData,{
+      headers: {
+        "X-Auth-Token": token,
+      },
+    });
     return data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
