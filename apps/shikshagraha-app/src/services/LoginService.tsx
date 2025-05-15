@@ -18,22 +18,25 @@ interface AuthParamsProfile {
   userId: string;
   tenantId: string;
 }
-export const signin = async ({ username, password }: LoginParams): Promise<any> => {
+export const signin = async ({
+  username,
+  password,
+}: LoginParams): Promise<any> => {
   const apiUrl: string = `${API_ENDPOINTS.accountLogin}`;
-  console.log(username);
+  console.log('username:', username);
+  const isMobile = /^[6-9]\d{9}$/.test(username);
+  const requestBody: any = {
+    identifier: username,
+    password,
+    ...(isMobile ? { phone_code: '+91' } : {}),
+  };
+
   try {
-    const response = await axios.post(
-      apiUrl,
-      {
-       identifier:username,
-        password,
+    const response = await axios.post(apiUrl, requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    });
     return response?.data;
   } catch (error) {
     console.error('Login error:', error);
@@ -103,15 +106,15 @@ export const authenticateUser = async ({
         tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436', // Token passed as a parameter
       },
     });
-    if(response.status == 401) {
+    if (response.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
       window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
     }
 
     return response?.data;
-  } catch (error:any) {
-    if(error.status == 401) {
+  } catch (error: any) {
+    if (error.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
       window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
@@ -136,15 +139,15 @@ export const fetchTenantData = async ({
       params: { tenantId }, // Passing tenantId as a query parameter
     });
 
-    if(response.status == 401) {
+    if (response.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
       window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
     }
 
     return response?.data;
-  } catch (error:any) {
-    if(error.status == 401) {
+  } catch (error: any) {
+    if (error.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
       window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
@@ -166,7 +169,6 @@ export const schemaRead = async (): Promise<any> => {
       {
         headers: {
           'Content-Type': 'application/json',
-          tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
         },
       }
     );
@@ -238,7 +240,28 @@ export const sendOtp = async (requestData: any) => {
     }
   }
 };
-
+export const verifyOtpService = async (requestData: any) => {
+  try {
+    const response = await axios.post(
+      `${API_ENDPOINTS.ForgotPassword}`,
+      requestData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          // Origin: 'localhost',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error resetting password:', error.response?.data);
+      return error.response?.data;
+    } else {
+      console.error('Unexpected error:', error);
+    }
+  }
+};
 
 export const readIndividualTenantData = async (tenantId: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -264,22 +287,7 @@ export const readIndividualTenantData = async (tenantId: string) => {
     throw err;
   }
 };
-export const verifyOtpService = async (requestData: any) => {
-  try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/interface/v1/user/verify-otp`,
-      requestData
-    );
-    return response?.data; // Return response to be handled in the component
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error submitting registration data:', error);
-      return error.response;
-    } else {
-      // handle other types of errors
-    }
-  }
-};
+
 export const resetPassword = async (payload: {
   newPassword: string;
   token: string;

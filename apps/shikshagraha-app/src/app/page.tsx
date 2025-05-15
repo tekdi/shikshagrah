@@ -90,10 +90,19 @@ export default function Login() {
     setLoading(true);
     try {
       console.log('formData', formData);
-      const response = await signin({
-        username: formData.userName,
-        password: formData.password,
-      });
+
+      const { userName, password } = formData;
+      const isMobile = /^[6-9]\d{9}$/.test(userName);
+
+      const payload = {
+        username: userName,
+        password,
+        ...(isMobile ? { phone_code: '+91' } : {}),
+      };
+
+      console.log('Signin payload:', payload);
+
+      const response = await signin(payload);
       console.log('response login', response);
       const accessToken = response?.result?.access_token;
       const refreshToken = response?.result?.refresh_token;
@@ -156,7 +165,8 @@ export default function Login() {
         // }
       } else {
         setShowError(true);
-        setErrorMessage('Login failed. Invalid Username or Password.');
+        console.log('response', response);
+        setErrorMessage(response?.response?.data?.message);
       }
     } catch (error) {
       setShowError(true);
@@ -241,25 +251,15 @@ export default function Login() {
         >
           <Box
             component="img"
-            src={`${basePath}/assets/images/SG_Logo.png`}
+            src={`/assets/images/SG_Logo.jpg`}
             alt="logo"
             sx={{
-              width: '100%',
-              height: '100%',
+              width: '70%',
+              height: '70%',
               borderRadius: '50%',
               objectFit: 'cover',
             }}
           />
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#582E92',
-              fontWeight: 'bold',
-              textAlign: 'center',
-            }}
-          >
-            Shikshalokam
-          </Typography>
         </Box>
 
         <TextField

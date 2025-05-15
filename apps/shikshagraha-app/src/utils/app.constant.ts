@@ -16,7 +16,7 @@ import bgyoutube from '../assets/images/bgYouTube.svg';
 
 export const limit: number = 200;
 export const metaTags = {
-  title: 'Shikshalokam',
+  title: 'Shikshagraha',
 };
 
 // export enum Role {

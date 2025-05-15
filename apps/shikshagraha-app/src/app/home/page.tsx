@@ -182,20 +182,7 @@ export default function Home() {
               >
                 {cardData.length > 0 &&
                   cardData
-                    .filter((card) => {
-                      const storedHeaders = JSON.parse(
-                        localStorage.getItem('headers') ?? '{}'
-                      ); // Parse the JSON
-                      const storedOrgId = storedHeaders['org-id']; // Get org-id
-                      const isSameOrg =
-                        storedOrgId == process.env.NEXT_PUBLIC_ORGID;
-                      console.log(isSameOrg);
-                      console.log(storedOrgId);
-
-                      return isSameOrg
-                        ? true // Show only these if org ID matches
-                        : card.title === 'Projects' || card.title === 'Reports'; // Show all cards if org ID is different
-                    })
+                    .filter(() => {})
                     .map((card, index) => (
                       <DynamicCard
                         key={index}

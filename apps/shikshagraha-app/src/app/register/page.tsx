@@ -93,7 +93,7 @@ export default function Register() {
             variant="h6"
             sx={{ color: '#572E91', fontWeight: 'bold' }}
           >
-            Shikshalokam
+            Shikshagraha
           </Typography>
         </Grid>
       </Grid>
@@ -125,7 +125,7 @@ export default function Register() {
                 textAlign: 'center',
               }}
             >
-              Welcome to Shikshalokam
+              Welcome to Shikshagraha
             </Typography>
 
             {formSchema && (

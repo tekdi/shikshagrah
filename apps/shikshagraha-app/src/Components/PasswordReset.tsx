@@ -61,6 +61,12 @@ const PasswordReset = ({ name }: { name: string }) => {
     /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
   const [timer, setTimer] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(605);
+  const [lastResendTime, setLastResendTime] = useState<number | null>(null);
+  // Calculate remaining time
+  const remainingResendTime = lastResendTime
+    ? Math.max(0, 30 - Math.floor((Date.now() - lastResendTime) / 1000))
+    : 0;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     console.log(name, value);
@@ -88,18 +94,21 @@ const PasswordReset = ({ name }: { name: string }) => {
 
     setLoading(true);
     try {
+      const isMobile = /^[6-9]\d{9}$/.test(formData.identifier);
+
       const otpPayload = {
         identifier: formData.identifier,
         password: formData.password,
+        ...(isMobile && { phone_code: '+91' }),
       };
 
+      console.log(otpPayload);
       const response = await sendOtp(otpPayload);
 
       console.log(response);
-
-      if (response?.params?.status === 'SUCCESS') {
-        setHash(response?.result?.data?.hash);
+      if (response?.responseCode === 'OK') {
         setStep('otp');
+        setSecondsLeft(605);
       } else {
         setError(response?.params?.errmsg || 'Failed to send OTP');
         setShowError(true);
@@ -113,19 +122,38 @@ const PasswordReset = ({ name }: { name: string }) => {
   };
 
   useEffect(() => {
-    let interval: any;
-    if (timer > 0) {
+    let interval: NodeJS.Timeout;
+
+    if (step === 'otp' && (secondsLeft > 0 || timer > 0)) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+        setTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [timer]);
 
-  const handleResendOtp = () => {
-    handleSendOtp();
-    setTimer(30);
-    setSecondsLeft(605);
+    return () => clearInterval(interval);
+  }, [step, secondsLeft, timer]);
+
+  const handleResendOtp = async () => {
+    if (remainingResendTime > 0) return; // Prevent multiple clicks
+
+    setLastResendTime(Date.now());
+
+    try {
+      const isMobile = /^[6-9]\d{9}$/.test(formData.identifier);
+      const otpPayload = {
+        identifier: formData.identifier,
+        password: formData.password,
+        ...(isMobile && { phone_code: '+91' }),
+      };
+
+      await sendOtp(otpPayload);
+      setSecondsLeft(600); // Reset expiration timer
+    } catch (err) {
+      setError('Failed to resend OTP');
+      setShowError(true);
+      setLastResendTime(null); // Reset on failure
+    }
   };
   const handleVerifyOtp = async () => {
     const otpString = otp.join('');
@@ -137,16 +165,25 @@ const PasswordReset = ({ name }: { name: string }) => {
     }
 
     setLoading(true);
+
     try {
-      const payload = formData.identifier;
+      const isMobile = /^[6-9]\d{9}$/.test(formData.identifier);
+      const payload = {
+        identifier: formData.identifier,
+        ...(isMobile && { phone_code: '+91' }),
+        password: formData.password,
+        otp: parseInt(otpString),
+      };
+      console.log(payload, 'verify otp');
       const response = await verifyOtpService(payload);
-      if (response?.params?.successmessage === 'OTP validation Sucessfully') {
-        setToken(response?.result?.token ?? '');
-        setStep('reset');
-      } else {
-        setError(response?.data?.params?.err ?? 'Invalid OTP');
-        setShowError(true);
-      }
+
+       if (response?.responseCode === 'OK') {
+         setShowSuccess(true);
+        //  setTimeout(() => router.push('/'));
+       } else {
+         setError(response?.message || 'Invalid OTP');
+         setShowError(true);
+       }
     } catch (err) {
       setError('Failed to verify OTP. Please try again.');
       setShowError(true);
@@ -389,16 +426,18 @@ const PasswordReset = ({ name }: { name: string }) => {
                 </Typography>
                 <Button
                   onClick={handleResendOtp}
-                  disabled={timer > 0}
+                  disabled={remainingResendTime > 0}
                   variant="text"
                   sx={{
-                    color: timer > 0 ? 'grey' : '#582E92',
+                    color: remainingResendTime > 0 ? 'grey' : '#582E92',
                     textTransform: 'none',
                     fontWeight: 'medium',
                     fontSize: '14px',
                   }}
                 >
-                  {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+                  {remainingResendTime > 0
+                    ? `Resend OTP in ${remainingResendTime}s`
+                    : 'Resend OTP'}
                 </Button>
               </Box>
 
@@ -442,7 +481,7 @@ const PasswordReset = ({ name }: { name: string }) => {
             </Box>
             <TextField
               fullWidth
-              label="Email/Mobile"
+              label="Email/Mobile/Username"
               name="identifier"
               value={formData.identifier}
               onChange={handleInputChange}
