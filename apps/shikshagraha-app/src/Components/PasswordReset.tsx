@@ -233,7 +233,7 @@ const PasswordReset = ({ name }: { name: string }) => {
     if (step === 'otp') {
       setStep('reset');
     } else if (step === 'reset') {
-      router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+       router.push('/');
     }
   };
   const validatePassword = (val: string, name: string) => {
