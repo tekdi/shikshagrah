@@ -263,39 +263,6 @@ export const verifyOtpService = async (requestData: any) => {
   }
 };
 
-export const readHomeListForm = async (token: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  if (!baseUrl) {
-    throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
-  }
-
-  const apiUrl = `${baseUrl}/user/v1/form/read`;
-  const payloadData = {
-    "type": "solutionList",
-	  "sub_type": "home"
-  }
-
-  try {
-    const { data } = await axios.post(apiUrl,payloadData,{
-      headers: {
-        "X-Auth-Token": token,
-      },
-    });
-    return data;
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      console.error(
-        'Error fetching tenant data:',
-        err.response?.status,
-        err.response?.data
-      );
-      throw new Error(`API error: ${err.response?.status}`);
-    }
-    console.error('Unexpected error:', err);
-    throw err;
-  }
-};
-
 export const resetPassword = async (payload: {
   newPassword: string;
   token: string;
