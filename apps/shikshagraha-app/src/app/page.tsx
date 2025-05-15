@@ -131,7 +131,7 @@ export default function Login() {
         const organizations = response?.result?.user?.organizations || [];
         const orgId = organizations[0]?.id;
         if (orgId) {
-          localStorage.setItem('headers', JSON.stringify({ 'org-id': orgId }));
+          localStorage.setItem('headers', JSON.stringify({ 'org-id': orgId.toString() }));
         }
 
         // const tenantIdToCompare =
