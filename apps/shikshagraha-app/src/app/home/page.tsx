@@ -182,7 +182,6 @@ export default function Home() {
               >
                 {cardData.length > 0 &&
                   cardData
-                    .filter(() => {})
                     .map((card, index) => (
                       <DynamicCard
                         key={index}
