@@ -189,7 +189,7 @@ export default function Profile({ params }: { params: { id: string } }) {
   const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    router.push('/');
   };
 
   const handleLogoutCancel = () => {
