@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Welcome to Shikshalokam',
-  description: 'Welcome to Shikshalokam',
+  title: 'Welcome to Shikshagraha',
+  description: 'Welcome to Shikshagraha',
 };
 
 export default function RootLayout({

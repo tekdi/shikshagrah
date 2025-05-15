@@ -11,6 +11,7 @@ import {
   myCourseDetails,
   renderCertificate,
   deactivateUser,
+  resetUserPassword,
 } from '../../services/ProfileService';
 import {
   sendOtp,
@@ -89,6 +90,8 @@ export default function Profile({ params }: { params: { id: string } }) {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [mappedProfile, setMappedProfile] = useState([]);
+
   const [showPassword, setShowPassword] = useState({
     oldPassword: false,
     newPassword: false,
@@ -105,11 +108,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     newPassword: '',
     confirmPassword: '',
   });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error',
-  });
+  const [severity, setSeverity] = useState('');
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -117,118 +116,36 @@ export default function Profile({ params }: { params: { id: string } }) {
       try {
         const acc_token = localStorage.getItem('accToken');
         const userId = localStorage.getItem('userId');
-        const tenantResponse = await authenticateUser({
-          token: acc_token,
-          userId: userId,
-        });
-        if (tenantResponse?.result) {
-          // No .result.userData → directly tenantResponse
-          setUserData(tenantResponse?.result?.userData);
 
-          const { firstName, middleName, lastName, tenantData } =
-            tenantResponse?.result?.userData ?? {};
-
-          const mappedProfile = [
-            // { label: 'First Name', value: firstName ?? '-' },
-            // // { label: 'Middle Name', value: middleName ?? '-' },
-            // { label: 'Last Name', value: lastName ?? '-' },
-            // {
-            //   label: 'Profile Type',
-            //   value: tenantData?.[0]?.roleName ?? '-',
-            // },
-          ];
-
-          setUserDataProfile(mappedProfile);
-
-          const customFields = tenantResponse?.result?.userData?.customFields;
-          const desiredOrder = [
-            'Roles',
-            'subRoles',
-            'State',
-            'District',
-            'Block',
-            'Cluster',
-            'School',
-          ];
-          const cleanValue = (value: any) => {
-            if (Array.isArray(value)) {
-              return value
-                .map((v) => v.value)
-                .join(', ')
-                .replace(/\\$/, '');
-            }
-
-            if (typeof value === 'string') {
-              try {
-                const firstParse = JSON.parse(value);
-                if (typeof firstParse === 'string') {
-                  const secondParse = JSON.parse(firstParse);
-                  return (
-                    secondParse?.name || JSON.stringify(secondParse)
-                  ).replace(/\\$/, '');
-                }
-                return (firstParse?.name || JSON.stringify(firstParse)).replace(
-                  /\\$/,
-                  ''
-                );
-              } catch {
-                const match = value.match(/"name":"([^"]+)"/);
-                if (match) return match[1].replace(/\\$/, '');
-
-                const fallbackMatch = value.match(/"([^"]+)"}/);
-                return fallbackMatch
-                  ? fallbackMatch[1].replace(/\\$/, '')
-                  : value.replace(/\\$/, '');
-              }
-            }
-
-            return value;
-          };
-          const fieldMap = new Map(
-            customFields.map((field: any) => [
-              field?.label,
-              { label: field?.label, value: cleanValue(field?.selectedValues) },
-            ])
-          );
-
-          const sortedData = desiredOrder
-            .map((label) => fieldMap.get(label))
-            .filter(Boolean);
-
-          const combinedProfileData = [...sortedData];
-
-          const formattedProfileData = sortedData.map((item) => {
-            if (item.label === 'Roles') {
-              // Convert to Title Case (CamelCase)
-              return {
-                ...item,
-                value: item.value
-                  .toLowerCase()
-                  .replace(/(^\w|\s\w|&\s*\w)/g, (m) => m),
-              };
-            } else if (item.label.toLowerCase() === 'subroles') {
-              // Convert each comma-separated value to UPPERCASE
-              return {
-                ...item,
-                value: item.value
-                  .split(',')
-                  .map((role) => role.trim().toUpperCase())
-                  .join(', '),
-              };
-            }
-            return item;
-          });
-
-          setUserDataProfile(formattedProfileData);
-
-          //  setUserCustomFields(sortedData);
-          console.log(
-            'sortedData',
-
-            combinedProfileData
-          );
+        if (acc_token && userId) {
+          const profileData = await fetchProfileData(userId, acc_token);
+          console.log('Profile data:', profileData);
+          if (profileData) {
+            setUserData(profileData);
+            const mappedProfileArray = [
+              { label: 'State', value: profileData?.state?.label || '' },
+              { label: 'District', value: profileData?.district?.label || '' },
+              { label: 'Block', value: profileData?.block?.label || '' },
+              { label: 'Cluster', value: profileData?.cluster?.label || '' },
+              { label: 'School', value: profileData?.school?.label || '' },
+              {
+                label: 'Professional Role',
+                value: profileData?.professional_role?.label || '',
+              },
+              {
+                label: 'Professional Subrole',
+                value:
+                  profileData?.professional_subroles
+                    ?.map((sub) => sub.label)
+                    .join(', ') || '',
+              },
+            ];
+            console.log('Mapped profile array:', mappedProfileArray);
+            setMappedProfile(mappedProfileArray); // Assuming you have a `setProfile` state
+          }
         }
       } catch (err) {
+        console.error('Profile fetch error:', err);
         setShowError(true);
       } finally {
         setLoading(false);
@@ -236,7 +153,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     };
 
     getProfileData();
-    handleMyCourses();
+    // handleMyCourses();
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
@@ -427,39 +344,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
-  const roleTypes =
-    [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
-  const subRoles =
-    [
-      ...new Set(
-        profileData?.profileUserTypes
-          ?.filter((role) => role.subType)
-          .map((role) => role.subType)
-      ),
-    ] || [];
-  const organisationRoles =
-    profileData?.organisations
-      ?.flatMap((org) => org.roles)
-      ?.filter((role) => role !== null) || [];
-  const displayRole = roleTypes.length ? roleTypes.join(', ') : 'N/A';
-  const displaySubRole = subRoles.length
-    ? toCamelCase(subRoles).join(', ')
-    : 'N/A';
-  const framework = profileData?.framework || {};
-  const displayBoard = framework.board?.join(', ') || 'N/A';
-  const displayMedium = framework.medium?.join(', ') || 'N/A';
-  const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
-  const displaySubject = framework.subject?.join(', ') || 'N/A';
-  // localStorage.setItem('frameworkname', framework?.id);
 
-  const [value, setValue] = useState(profileData?.email || '');
-  const handleEditClick = () => {
-    router.push('/profile-edit');
-    localStorage.setItem('selectedBoard', displayBoard);
-    localStorage.setItem('selectedMedium', displayMedium);
-    localStorage.setItem('selectedGradeLevel', displayGradeLevel);
-    localStorage.setItem('selectedSubject', displaySubject);
-  };
   const toCamelCase = (str) => {
     return str
       .toLowerCase()
@@ -578,44 +463,44 @@ export default function Profile({ params }: { params: { id: string } }) {
       // handleClose();
     }
   };
+  const handleCloseSnackbar = () => {
+    setShowError(false);
+    setErrorMessage('');
+    if (severity === 'success') {
+      router.push('/');
+    }
+    // router.push('/');
+  };
 
   const resetPassword = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/user/reset-password`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accToken')}`,
-            'Content-Type': 'application/json',
-            tenantId: 'ef99949b-7f3a-4a5f-806a-e67e683e38f3',
-          },
-          body: JSON.stringify({
-            newPassword: passwords.newPassword,
-          }),
-        }
+      const token = localStorage.getItem('accToken') || '';
+      console.log('Token:', token);
+      const result = await resetUserPassword(
+        passwords.oldPassword,
+        passwords.newPassword,
+        token
       );
-      console.log(response);
-      if (!response.status) {
-        throw new Error('Password reset failed');
+      if (!result.success) {
+        console.error('Reset password failed:', result.errorMessage);
+        setShowError(true);
+        setErrorMessage(result.errorMessage);
+        setSeverity('error');
+      } else {
+        setShowError(true);
+        setErrorMessage('User Password Updated Successfully');
+        setSeverity('success');
       }
-      // Success case
-      setSnackbar({
-        open: true,
-        message: 'User Password Updated Successfully',
-        severity: 'success',
-      });
-      handleClose();
+
+      // handleClose();
       localStorage.clear();
-      router.push('/');
+      // router.push('/');
     } catch (error) {
-      console.error('Error resetting password:', error);
-      setSnackbar({
-        open: true,
-        message:'Failed to reset password. Please try again.',
-        severity: 'error',
-      });
+      console.error('Reset password failed:', error);
+      setShowError(true);
+      setErrorMessage(error);
+      setSeverity('error');
     } finally {
       setLoading(false);
     }
@@ -689,7 +574,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                     }}
                     src={profileData?.avatar ?? ''}
                   >
-                    {(userData?.firstName?.charAt(0) ?? 'U').toUpperCase()}
+                    {(userData?.name?.charAt(0) ?? 'U').toUpperCase()}
                   </Avatar>
                 </Grid>
                 <Grid item>
@@ -699,7 +584,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                     color="#582E92"
                     fontWeight="bold"
                   >
-                    {userData?.firstName + ' ' + userData?.lastName ?? 'User'}
+                    {userData?.name}
                   </Typography>
                   <Typography variant="subtitle1" textAlign="left" color="gray">
                     {userData?.role}
@@ -741,55 +626,62 @@ export default function Profile({ params }: { params: { id: string } }) {
               <br></br>
               <Grid
                 container
-                spacing={2}
+                spacing={5}
                 alignItems="center"
                 justifyContent="center"
                 direction="row"
               >
                 <Grid item xs={12}>
-                  {[
-                    ...userDataProfile,
-                    displayRole === 'HT & Officials' && {
-                      label: 'Sub-role',
-                      value: displaySubRole || 'N/A',
-                    },
-                  ]
-                    .filter(Boolean) // Remove any falsy values (like the 'Sub-role' when not applicable)
-                    .reverse()
-                    .map((item) => (
+                  {mappedProfile.map((item) => (
+                    <Box
+                      key={item.label}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: {
+                          xs: 'column',
+                          sm: 'row',
+                        },
+                        justifyContent: 'space-between',
+                        alignItems: {
+                          xs: 'flex-start',
+                          sm: 'center',
+                        },
+                        paddingBottom: '16px',
+                        width: '100%',
+                      }}
+                    >
                       <Typography
                         variant="body1"
-                        key={item.label}
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#FF9911',
+                          minWidth: {
+                            xs: '100%',
+                            sm: '30%',
+                          },
+                          marginBottom: {
+                            xs: '4px',
+                            sm: 0,
+                          },
+                        }}
+                      >
+                        {item.label}:
+                      </Typography>
+                      <Typography
+                        variant="body1"
                         sx={{
                           fontWeight: 'bold',
                           color: '#333',
-                          paddingBottom: '10px',
+                          width: {
+                            xs: '100%',
+                            sm: '65%',
+                          },
                         }}
-                        style={{ display: 'flex', width: '100%' }}
                       >
-                        <span
-                          style={{
-                            width: '25%',
-                            textAlign: 'left',
-                            color: '#FF9911',
-                          }}
-                        >
-                          {toCamelCase(item.label)}
-                        </span>
-                        <span style={{ width: '70%' }}>
-                          {Array.isArray(item.value)
-                            ? ': ' +
-                              item.value
-                                .map((val) =>
-                                  val.value === 'HT & Officials'
-                                    ? 'HT & Officials'
-                                    : toCamelCase(val.value)
-                                )
-                                .join(', ') // show list values
-                            : ': ' + item.value}
-                        </span>
+                        {item.value || 'N/A'}
                       </Typography>
-                    ))}
+                    </Box>
+                  ))}
                 </Grid>
               </Grid>
             </Box>
@@ -908,11 +800,14 @@ export default function Profile({ params }: { params: { id: string } }) {
           onResendOtp={handleProfileOtpResend}
           type="delete"
         />
-        {showError && (
-          <Alert severity="error" sx={{ marginTop: '15px' }}>
-            {errorMessage}
-          </Alert>
+        {showError && errorMessage && (
+          <Box sx={{ my: 2 }}>
+            <Alert severity="error" onClose={() => setShowError(false)}>
+              {errorMessage}
+            </Alert>
+          </Box>
         )}
+
         {/* Delete Account Confirmation Dialog */}
         <Dialog
           open={openDeleteDialog}
@@ -1140,6 +1035,20 @@ export default function Profile({ params }: { params: { id: string } }) {
             </Grid>
           </Box>
         </Dialog>
+        <Snackbar
+          open={showError}
+          autoHideDuration={severity === 'success' ? 1000 : 6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={severity}
+            sx={{ width: '100%' }}
+          >
+            {errorMessage}
+          </Alert>
+        </Snackbar>
       </Layout>
     );
   } else {

@@ -31,14 +31,12 @@ export default function Home() {
   const [cardData, setCardData] = useState([]);
   const navigate = useRouter();
 
-
   useEffect(() => {
     const accToken = localStorage.getItem('accToken');
     if (!accToken) {
       // router.replace(''); // Redirect to login page
       router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-    }
-    else {
+    } else {
       const getProfileData = async () => {
         try {
           const token = localStorage.getItem('accToken') || '';
@@ -54,7 +52,7 @@ export default function Home() {
 
       async function fetchConfig() {
         const header = JSON.parse(localStorage.getItem('headers'));
-        const token = localStorage.getItem('accToken')
+        const token = localStorage.getItem('accToken');
 
         if (!header['org-id']) return;
         try {
@@ -130,37 +128,24 @@ export default function Home() {
               }}
             >
               {cardData.length > 0 &&
-                cardData
-                  .filter((card) => {
-                    const storedHeaders = JSON.parse(
-                      localStorage.getItem('headers') ?? '{}'
-                    );
-                    const storedOrgId = storedHeaders['org-id'];
-                    const isSameOrg =
-                      storedOrgId === process.env.NEXT_PUBLIC_ORGID;
-
-                    return isSameOrg
-                      ? true
-                      : card.title === 'Projects' || card.title === 'Reports';
-                  })
-                  .map((card, index) => (
-                    <DynamicCard
-                      key={index}
-                      title={card.title}
-                      icon={card.icon}
-                      sx={{
-                        borderRadius: 2,
-                        boxShadow: 3,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'scale(1.05)',
-                          boxShadow: 6,
-                        },
-                        maxWidth: { xs: 280, sm: 350 },
-                      }}
-                      onClick={() => handleCardClick(card)}
-                    />
-                  ))}
+                cardData.map((card, index) => (
+                  <DynamicCard
+                    key={index}
+                    title={card.title}
+                    icon={card.icon}
+                    sx={{
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: 6,
+                      },
+                      maxWidth: { xs: 280, sm: 350 },
+                    }}
+                    onClick={() => handleCardClick(card)}
+                  />
+                ))}
             </Box>
           ) : error ? (
             <Typography variant="h6" color="error" textAlign="center">
@@ -195,39 +180,27 @@ export default function Home() {
                   justifyContent: 'center',
                 }}
               >
-                {(cardData.length > 0 ) && cardData
-                  .filter((card) => {
-                    const storedHeaders = JSON.parse(
-                      localStorage.getItem('headers') ?? '{}'
-                    ); // Parse the JSON
-                    const storedOrgId = storedHeaders['org-id']; // Get org-id
-                    const isSameOrg =
-                      storedOrgId == process.env.NEXT_PUBLIC_ORGID;
-                    console.log(isSameOrg);
-                    console.log(storedOrgId);
-
-                    return isSameOrg
-                      ? true // Show only these if org ID matches
-                      : card.title === 'Projects' || card.title === 'Reports'; // Show all cards if org ID is different
-                  })
-                  .map((card, index) => (
-                    <DynamicCard
-                      key={index}
-                      title={card.title}
-                      icon={card.icon}
-                      sx={{
-                        borderRadius: 2,
-                        boxShadow: 3,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'scale(1.05)',
-                          boxShadow: 6,
-                        },
-                        maxWidth: { xs: 280, sm: 350 },
-                      }}
-                      onClick={() => handleCardClick(card)}
-                    />
-                  ))}
+                {cardData.length > 0 &&
+                  cardData
+                    .filter(() => {})
+                    .map((card, index) => (
+                      <DynamicCard
+                        key={index}
+                        title={card.title}
+                        icon={card.icon}
+                        sx={{
+                          borderRadius: 2,
+                          boxShadow: 3,
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'scale(1.05)',
+                            boxShadow: 6,
+                          },
+                          maxWidth: { xs: 280, sm: 350 },
+                        }}
+                        onClick={() => handleCardClick(card)}
+                      />
+                    ))}
               </Box>
             </>
           )}
