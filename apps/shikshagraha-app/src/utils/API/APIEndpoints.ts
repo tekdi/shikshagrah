@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
 
   roleRead: `${baseurl}/entity-management/v1/entities/entityListBasedOnEntityType?entityType=professional_role`,
   userCreate: `${baseurl}/interface/v1/account/create`,
+  checkUser:(email: string) => `${baseurl}/user/v1/public/checkUsername?username=${email}`,
   udiseSearch: (udise: string) =>
     `${baseurl}/entity-management/v1/entities/details/${udise}`,
   fieldOptionsRead: `${baseurl}/fields/options/read`,

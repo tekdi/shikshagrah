@@ -26,7 +26,7 @@ WidgetProps) => {
   const maxSelections = schema.maxSelection ?? enumOptions.length;
   const { t } = useTranslation();
   const lowerLabel = label?.toLowerCase();
-  const isRoleField = lowerLabel === 'subroles';
+  const isRoleField = lowerLabel === 'sub-role';
   const helperText = ' Please select a sub role.';
   const selectedValues = Array.isArray(value) ? value : [];
 
