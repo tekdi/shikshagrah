@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef, use, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Form from '@rjsf/mui';
 import validator from '@rjsf/validator-ajv8';
 import axios from 'axios';
@@ -861,8 +861,7 @@ const DynamicForm = ({
       setFormData(newFormData);
       prevFormData.current = newFormData;
       // Handle other field changes
-      const firstName = (newFormData?.firstName || '').trim();
-      const lastName = (newFormData?.lastName || '').trim();
+
       // Handle email/mobile validation
       if (newFormData.email && newFormData.mobile) {
         setShowEmailMobileError('');
@@ -1040,12 +1039,12 @@ const DynamicForm = ({
     // Example: Update specific fields from API response
     setFormData((prev) => ({
       ...prev,
-      State: response.state || { _id: '', name: '', externalId: '' },
-      District: response.district || { _id: '', name: '', externalId: '' },
-      Block: response.block || { _id: '', name: '', externalId: '' },
-      Cluster: response.cluster || { _id: '', name: '', externalId: '' },
-      School: response.School || { _id: '', name: '', externalId: '' }, // Note the capitalization here
-      udise: response.udise || '',
+      State: response.state ?? { _id: '', name: '', externalId: '' },
+      District: response.district ?? { _id: '', name: '', externalId: '' },
+      Block: response.block ?? { _id: '', name: '', externalId: '' },
+      Cluster: response.cluster ?? { _id: '', name: '', externalId: '' },
+      School: response.School ?? { _id: '', name: '', externalId: '' }, // Note the capitalization here
+      udise: response.udise ?? '',
     }));
   }, []);
   const MemoizedUdiaseWithButton = React.memo(({ onFetchData, ...props }) => (
@@ -1156,7 +1155,7 @@ const DynamicForm = ({
 
     let otpPayload;
     const hasMobile = !!formData.mobile?.trim(); // Checks if user entered any mobile number
-    const isValidMobile = /^[6-9]\d{9}$/.test(formData.mobile?.trim() || '');
+    const isValidMobile = /^[6-9]\d{9}$/.test(formData.mobile?.trim() ?? '');
 
     otpPayload = {
       name: `${formData.firstName}${
@@ -1203,13 +1202,13 @@ const DynamicForm = ({
 
       // Find matching subroles in your uiSchema options
       const subRoleOptions =
-        uiSchema['Sub-Role']?.['ui:options']?.enumOptions || [];
+        uiSchema['Sub-Role']?.['ui:options']?.enumOptions ?? [];
 
       return formData['Sub-Role'].map((selectedId) => {
         const foundOption = subRoleOptions.find(
           (option) => option.value === selectedId
         );
-        return foundOption?._originalData?.externalId || selectedId;
+        return foundOption?._originalData?.externalId ?? selectedId;
       });
     };
     // const userName = formData.firstName;
@@ -1222,13 +1221,13 @@ const DynamicForm = ({
       email: formData.email,
       ...(isMobile && { phone: formData.mobile }),
       ...(isMobile && { phone_code: '+91' }),
-      state: formData.State?._id || '',
-      district: formData.District?._id || '',
-      block: formData.Block?._id || '',
-      cluster: formData.Cluster?._id || '',
-      school: formData.School?._id || '',
-      registration_code: formData.District?.externalId || '',
-      professional_role: localStorage.getItem('role') || '',
+      state: formData.State?._id ?? '',
+      district: formData.District?._id ?? '',
+      block: formData.Block?._id ?? '',
+      cluster: formData.Cluster?._id ?? '',
+      school: formData.School?._id ?? '',
+      registration_code: formData.District?.externalId ?? '',
+      professional_role: localStorage.getItem('role') ?? '',
       professional_subroles: getSubRoleExternalIds(),
       otp: Number(otp),
       // customFields,
@@ -1262,7 +1261,7 @@ const DynamicForm = ({
       );
       router.push('/home');
       const organizations =
-        registrationResponse?.result?.user?.organizations || [];
+        registrationResponse?.result?.user?.organizations ?? [];
       const orgId = organizations[0]?.id;
       if (orgId) {
         localStorage.setItem(

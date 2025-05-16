@@ -36,7 +36,7 @@ const CustomSingleSelectWidget = ({
     if (schema.enum && schema.enumNames) {
       return schema.enum.map((value, index) => ({
         value,
-        label: schema.enumNames[index] || value,
+        label: schema.enumNames[index] ?? value,
       }));
     }
 
@@ -65,7 +65,7 @@ const CustomSingleSelectWidget = ({
     );
 
     // Always use externalId for the value
-    const valueToSend = selectedOption?._originalData?.externalId || selected;
+    const valueToSend = selectedOption?._originalData?.externalId ?? selected;
 
     onChange(valueToSend);
 
@@ -75,9 +75,9 @@ const CustomSingleSelectWidget = ({
         localStorage.setItem('role', roleIdToFetch);
         if (roleIdToFetch) {
           const subrolesResponse = await getSubroles(roleIdToFetch);
-          const subrolesData = subrolesResponse.result || [];
+          const subrolesData = subrolesResponse.result ?? [];
 
-          const formattedSubroles = subrolesData?.data?.map((subrole) => ({
+          const formattedSubroles = subrolesData?.data?.map((subrole: any) => ({
             value: subrole._id,
             label: subrole.name,
             _originalData: subrole,

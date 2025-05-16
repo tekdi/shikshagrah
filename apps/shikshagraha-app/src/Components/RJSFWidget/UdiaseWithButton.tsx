@@ -77,31 +77,31 @@ const UdiaseWithButton = ({
           // Keep capitalized to match your form's expected structure
           _id: locationInfo?._id || '',
           name: locationInfo?.metaInformation?.name || '',
-          externalId: localValue || '',
+          externalId: localValue ?? '',
         },
         state: {
           _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
           name: locationInfo?.parentInformation?.state?.[0]?.name || '',
           externalId:
-            locationInfo?.parentInformation?.state?.[0]?.externalId || '',
+            locationInfo?.parentInformation?.state?.[0]?.externalId ?? '',
         },
         district: {
           _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
           name: locationInfo?.parentInformation?.district?.[0]?.name || '',
           externalId:
-            locationInfo?.parentInformation?.district?.[0]?.externalId || '',
+            locationInfo?.parentInformation?.district?.[0]?.externalId ?? '',
         },
         block: {
           _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
           name: locationInfo?.parentInformation?.block?.[0]?.name || '',
           externalId:
-            locationInfo?.parentInformation?.block?.[0]?.externalId || '',
+            locationInfo?.parentInformation?.block?.[0]?.externalId ?? '',
         },
         cluster: {
           _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
           name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
           externalId:
-            locationInfo?.parentInformation?.cluster?.[0]?.externalId || '',
+            locationInfo?.parentInformation?.cluster?.[0]?.externalId ?? '',
         },
       };
 

@@ -63,7 +63,7 @@ export const generateRJSFSchema = (
         fieldSchema.enum = roleEnums;
 
         const defaultRole =
-          validRoles.find((r) => r.externalId === rolesValue) || validRoles[0];
+          validRoles.find((r) => r.externalId === rolesValue) ?? validRoles[0];
         if (defaultRole) {
           fieldSchema.default = defaultRole.externalId;
         }
@@ -100,10 +100,10 @@ export const generateRJSFSchema = (
             'ui:options': {
               enumOptions:
                 subrolesData?.data?.map((subrole: any) => ({
-                  value: subrole._id || subrole.externalId,
+                  value: subrole._id ?? subrole.externalId,
                   label: subrole.name,
                   _originalData: subrole, // Keep original data if needed
-                })) || [],
+                })) ?? [],
             },
           };
         } else {

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { generateRJSFSchema } from '../../utils/generateSchemaFromAPI';
 import DynamicForm from '../../Components/DynamicForm';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -11,7 +11,6 @@ import {
   schemaRead,
 } from '../../services/LoginService';
 import { useRouter } from 'next/navigation';
-import { useRef } from 'react';
 export default function Register() {
   const [formSchema, setFormSchema] = useState<any>();
   const [uiSchema, setUiSchema] = useState<any>();
@@ -42,12 +41,12 @@ export default function Register() {
 
         // Fetch roles first
         const rolesResponse = await fetchRoleData();
-        const rolesData = rolesResponse?.result || [];
+        const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
 
         const response = await schemaRead();
         // SAFETY CHECK: Ensure fields exist in response
-        const fields = response?.result?.data?.fields?.result || [];
+        const fields = response?.result?.data?.fields?.result ?? [];
         if (fields.length === 0) {
           throw new Error('No form fields received from API');
         }
@@ -57,7 +56,7 @@ export default function Register() {
         const selectedRoleObj = rolesData.find((role: any) => role.externalId);
         if (selectedRoleObj) {
           const subrolesResponse = await getSubroles(selectedRoleObj._id);
-          subrolesData = subrolesResponse.result || [];
+          subrolesData = subrolesResponse.result ?? [];
           setSubRoles(subrolesData);
         }
 

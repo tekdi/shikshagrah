@@ -189,7 +189,7 @@ export const schemaRead = async (): Promise<any> => {
   const apiUrl: string = `${API_ENDPOINTS.formRead}`;
   console.log(apiUrl);
   const requestOrigin =
-    localStorage.getItem('origin') || 'shikshagraha-qa.tekdinext.com';
+    localStorage.getItem('origin') ?? 'shikshagraha-qa.tekdinext.com';
   try {
     const response = await axios.post(
       apiUrl,

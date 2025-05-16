@@ -22,8 +22,8 @@ const CustomMultiSelectWidget = ({
 }: // rawErrors = [],
 WidgetProps) => {
   const enumOptions =
-    uiSchema?.['ui:options']?.enumOptions || options.enumOptions || [];
-  const maxSelections = schema.maxSelection || enumOptions.length;
+    uiSchema?.['ui:options']?.enumOptions ?? (options.enumOptions || []);
+  const maxSelections = schema.maxSelection ?? enumOptions.length;
   const { t } = useTranslation();
   const lowerLabel = label?.toLowerCase();
   const isRoleField = lowerLabel === 'subroles';
