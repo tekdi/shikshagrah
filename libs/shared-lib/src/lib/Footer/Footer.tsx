@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
   useEffect(() => {
     if (pathname === '/home') {
       setValue(0);
-    } else if (pathname.startsWith('/content')) {
+    } else if (pathname.startsWith('/content/content')) {
       setValue(1);
     } else if (pathname.startsWith('/profile')) {
       setValue(2);
@@ -26,14 +26,11 @@ export const Footer: React.FC = () => {
     if (value !== newValue) {
       setValue(newValue);
       if (newValue === 0) {
-        window.location.href = '/shikshagraha/home';
-
-
-        
+        window.location.href = '/home';
       } else if (newValue === 1) {
-        router.replace(`${process.env.NEXT_PUBLIC_CONTENT}/content`);
+        router.replace(`/content/content`);
       } else {
-        window.location.href = '/shikshagraha/profile';
+        window.location.href = '/profile';
       }
     }
   };

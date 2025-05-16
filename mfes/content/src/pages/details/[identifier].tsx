@@ -90,15 +90,8 @@ export default function Details({ details }: DetailsProps) {
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: false,
-        actionIcons: [
-          {
-            icon: <LogoutIcon />,
-            ariaLabel: 'Logout',
-            onClick: handleAccountClick,
-          },
-        ],
       }}
-      isFooter={true}
+      // isFooter={true}
       showLogo={true}
       showBack={true}
     >

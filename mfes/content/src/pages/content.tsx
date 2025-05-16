@@ -3,18 +3,8 @@
 //@ts-nocheck
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Box,
-  Fab,
-  Typography,
-  Button
-} from '@mui/material';
-import {
-  ContentCard,
-  CommonTabs,
-  Layout,
-  Circular,
-} from '@shared-lib';
+import { Box, Fab, Typography, Button } from '@mui/material';
+import { ContentCard, CommonTabs, Layout, Circular } from '@shared-lib';
 import { ContentSearch } from '../services/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +17,7 @@ import { useTheme } from '@mui/material/styles';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { trackingData } from '../services/TrackingService';
+import SG_LOGO from '../../public/assests/images/SG_Logo.png';
 interface ContentItem {
   name: string;
   gradeLevel: string[];
@@ -114,23 +105,25 @@ export default function Content() {
   );
   const fetchDataTrack = async (resultData: any) => {
     if (!resultData.length) return; // Ensure contentData is available
-
     try {
       const courseList = resultData.map((item: any) => item.identifier); // Extract all identifiers
-      const userId = localStorage.getItem('subId');
+      const userId = localStorage.getItem('userId');
       const userIdArray = userId?.split(',');
       if (!userId || !courseList.length) return; // Ensure required values exist
       //@ts-ignore
-
+      console.log('userIdArray', userIdArray);
       const course_track_data = await trackingData(userIdArray, courseList);
 
       if (course_track_data?.data) {
         //@ts-ignore
-
-        const userTrackData =
+        // const userTrackData =
+        //   course_track_data.data.find((course: any) => course.userId === userId)
+        //     ?.course || [];
+        // setTrackData(userTrackData);
+        return (
           course_track_data.data.find((course: any) => course.userId === userId)
-            ?.course || [];
-        setTrackData(userTrackData);
+            ?.course ?? []
+        );
       }
     } catch (error) {
       console.error('Error fetching track data:', error);
@@ -169,17 +162,17 @@ export default function Content() {
 
   const handleAccountClick = (event: React.MouseEvent<HTMLElement>) => {
     // router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
-     const LOGIN = process.env.NEXT_PUBLIC_LOGINPAGE;
-     //@ts-ignore
-     window.location.href = LOGIN;
+    const LOGIN = process.env.NEXT_PUBLIC_LOGINPAGE;
+    //@ts-ignore
+    window.location.href = LOGIN;
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
 
-
   const handleSearchClick = async () => {
     if (searchValue.trim()) {
       const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+
       // fetchContent(type, searchValue, filterValues);
       let result =
         type &&
@@ -196,7 +189,7 @@ export default function Content() {
     } else {
       setSearchValue('');
       setContentData([]);
-      const type = tabValue === 0 ? 'Course' : 'Learning Resource';
+
       fetchContent(type, searchValue, filterValues);
     }
   };
@@ -237,7 +230,7 @@ export default function Content() {
         //@ts-ignore
         const trackable = result?.trackable;
         setSelectedContent(result);
-
+        console.log('selectedContent', result);
         router.push(`/content-details/${identifier}`);
       }
     } catch (error) {
@@ -277,22 +270,19 @@ export default function Content() {
             {contentData?.map((item) => (
               <Grid
                 key={item?.identifier}
-                size={{ xs: 6, sm: 6, md: 3, lg: 3 }}
+                size={{ xs: 6, sm: 6, md: 2, lg: 2 }}
               >
                 <ContentCard
                   title={item?.name.trim()}
-                  image={
-                    item?.posterImage && item?.posterImage !== 'undefined'
-                      ? item?.posterImage
-                      : '/assests/images/image_ver.png'
-                  }
+                  image={item?.posterImage ? item?.posterImage : SG_LOGO.src}
                   content={item?.description || '-'}
                   // subheader={item?.contentType}
                   actions={item?.contentType}
                   orientation="horizontal"
                   item={[item]}
                   TrackData={trackData}
-                  type={tabValue === 0 ? 'course' : 'content'}
+                  // type={tabValue === 0 ? 'course' : 'content'}
+                  type={tabValue === 0 ? 'Course' : 'Learning Resource'}
                   onClick={() =>
                     handleCardClick(item?.identifier, item?.mimeType)
                   }
@@ -321,10 +311,10 @@ export default function Content() {
   );
 
   const tabs = [
-    // {
-    //   label: 'Courses',
-    //   content: renderTabContent(),
-    // },
+    {
+      label: 'Courses',
+      content: renderTabContent(),
+    },
     {
       label: 'Resource  ',
       content: renderTabContent(),
@@ -376,6 +366,31 @@ export default function Content() {
     },
   ];
 
+  // useEffect(() => {
+  //   const init = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const result = await fetchContent(filterValues);
+  //       const newContentData = Array.from(
+  //         new Map(result.map((item: any) => [item.identifier, item])).values()
+  //       );
+
+  //       const userTrackData = await fetchDataTrack(newContentData || []);
+  //       setContentData((newContentData as ContentSearchResponse[]) || []);
+  //       setTrackData(userTrackData);
+
+  //       setHasMoreData(
+  //         result?.count > filterValues.offset + newContentData?.length
+  //       );
+  //     } catch (error) {
+  //       console.error(error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   init();
+  // }, [filterValues, fetchContent, fetchDataTrack]);
+
   //@ts-ignore
   const handleApplyFilters = async (selectedValues) => {
     // setFilterValues(selectedValues);
@@ -426,25 +441,12 @@ export default function Content() {
         [field]: value,
       });
     };
-  const handleOtpSubmit = async () => {
-    console.log(issueData);
-    const queryString = new URLSearchParams(issueData).toString();
-    const frappeDeskUrl = `http://localhost:8000/helpdesk/tickets/new?${queryString}`;
-    router.push(frappeDeskUrl);
-  };
+
   return (
     <Layout
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: true,
-
-        // profileIcon: [
-        //   {
-        //     icon: <LogoutIcon />,
-        //     ariaLabel: 'Account',
-        //     onLogoutClick: handleAccountClick,
-        //   },
-        // ],
       }}
       isFooter={true}
       showLogo={true}
@@ -479,6 +481,7 @@ export default function Content() {
           flexDirection: 'column',
           marginTop: '20px',
           paddingBottom: '80px',
+          overflowX: 'hidden',
         }}
       >
         <CommonTabs

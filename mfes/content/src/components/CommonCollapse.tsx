@@ -8,9 +8,10 @@ import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutline
 import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
 import LensOutlinedIcon from '@mui/icons-material/LensOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
-import { Progress } from '@shared-lib';
+import { CircularProgressWithLabel, Progress } from '@shared-lib';
 import { useTheme } from '@mui/material/styles';
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 // Types for nested data structure and actions
 interface NestedItem {
   identifier: string;
@@ -80,11 +81,20 @@ const RenderNestedData: React.FC<{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: '8px',
               }}
             >
-              <Box onClick={() => handleItemClick(item.identifier)}>
+              <Box
+                onClick={() => handleItemClick(item.identifier)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flex: 1, // Take remaining space
+                }}
+              >
+                {childrenCount === 0 && getIconByMimeType(item.mimeType)}
                 <Typography variant="body1" fontSize={'14px'} fontWeight={400}>
-                  {childrenCount === 0 && getIconByMimeType(item.mimeType)}{' '}
                   {item.name}
                 </Typography>
 
@@ -113,48 +123,27 @@ const RenderNestedData: React.FC<{
                 {progressNumber !== undefined && (
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      marginLeft: '100%',
-                      position: 'relative',
-                      bottom: '20px',
+                      // display: 'flex',
+                      // alignItems: 'center',
+                      // gap: '12px',
+                      // marginLeft: '100%',
+                      // position: 'relative',
+                      // bottom: '32px',
+                      minWidth: '40px',
                     }}
                   >
-                    <Progress
-                      variant="determinate"
-                      value={100}
-                      size={30}
-                      thickness={6}
-                      sx={{
-                        color: '#cccccc',
-                        position: 'absolute',
-                        left: '10px',
+                    <CircularProgressWithLabel
+                      color2={'#e8d7b4'}
+                      value={progressNumber ?? 0}
+                      _text={{
+                        sx: {
+                          color: progressNumber === 100 ? '#21A400' : '#FFB74D',
+                        },
                       }}
-                    />
-                    <Progress
-                      variant="determinate"
-                      value={progressNumber}
-                      size={30}
-                      thickness={6}
                       sx={{
                         color: progressNumber === 100 ? '#21A400' : '#FFB74D',
-                        position: 'absolute',
-                        left: '10px',
                       }}
                     />
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        marginLeft: '12px',
-                        color: progressNumber === 100 ? '#21A400' : '#FFB74D',
-                        position: 'absolute',
-                        left: '50px',
-                      }}
-                    >
-                      {`${progressNumber}%`}
-                    </Typography>
                   </Box>
                 )}
               </Box>
@@ -232,44 +221,18 @@ export const CommonCollapse: React.FC<CommonAccordionProps> = ({
                 position: 'relative',
               }}
             >
-              <Progress
-                variant="determinate"
-                value={100}
-                size={30}
-                thickness={6}
-                sx={{
-                  color: '#cccccc',
-                  position: 'absolute',
-                  left: '10px',
+              <CircularProgressWithLabel
+                color2={'#e8d7b4'}
+                value={progress ?? 0}
+                _text={{
+                  sx: {
+                    color: progress === 100 ? '#21A400' : '#FFB74D',
+                  },
                 }}
-              />
-              <Progress
-                variant="determinate"
-                value={progress}
-                size={30}
-                thickness={6}
                 sx={{
                   color: progress === 100 ? '#21A400' : '#FFB74D',
-                  position: 'absolute',
-                  left: '10px',
                 }}
               />
-              <Typography
-                sx={{
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  marginLeft: '6px',
-                  color: progress === 100 ? '#21A400' : '#FFB74D',
-                  position: 'absolute',
-                  left: '40px',
-                }}
-              >
-                {status &&
-                //@ts-ignore
-                data?.mimeType === 'application/vnd.ekstep.content-collection'
-                  ? status
-                  : `${progress}%`}
-              </Typography>
             </Box>
           )}
           <Box
@@ -299,56 +262,6 @@ export const CommonCollapse: React.FC<CommonAccordionProps> = ({
             {/* @ts-ignore */}
             {getIconByMimeType(data?.mimeType)} {title}
           </Typography>
-          {progress !== undefined && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2px',
-                // marginLeft: 'auto',
-                position: 'relative',
-              }}
-            >
-              <Progress
-                variant="determinate"
-                value={100}
-                size={30}
-                thickness={6}
-                sx={{
-                  color: '#cccccc',
-                  position: 'absolute',
-                  left: '10px',
-                }}
-              />
-              <Progress
-                variant="determinate"
-                value={progress}
-                size={30}
-                thickness={6}
-                sx={{
-                  color: progress === 100 ? '#21A400' : '#FFB74D',
-                  position: 'absolute',
-                  left: '10px',
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  marginLeft: '6px',
-                  color: progress === 100 ? '#21A400' : '#FFB74D',
-                  position: 'absolute',
-                  left: '40px',
-                }}
-              >
-                {status &&
-                //@ts-ignore
-                data?.mimeType === 'application/vnd.ekstep.content-collection'
-                  ? status
-                  : `${progress}%`}
-              </Typography>
-            </Box>
-          )}
         </Box>
       )}
 

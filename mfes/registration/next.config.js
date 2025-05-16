@@ -16,7 +16,7 @@ const nextConfig = {
     svgr: false,
   },
 
-  basePath: '/shikshagraha/registration', // This should match the path set in Nginx
+  basePath: '/registration', // This should match the path set in Nginx
 
 };
 

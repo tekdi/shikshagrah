@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
+// @ts-nocheck
 'use client';
 import React, { useEffect, useState } from 'react';
 import {
@@ -11,36 +11,40 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  InputAdornment,
+  ButtonBase,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getToken } from '../services/LoginService';
-import { jwtDecode } from 'jwt-decode';
-import { fetchProfileData } from '../services/ProfileService';
-import { ButtonBase } from '@mui/material';
+import {
+  authenticateLoginUser,
+  fetchTenantData,
+  signin,
+} from '../services/LoginService';
 import AppConst from '../utils/AppConst/AppConst';
-import InputAdornment from '@mui/material/InputAdornment';
 
 export default function Login() {
-  const [formData, setFormData] = useState({
-    userName: '',
-    password: '',
-  });
-  const [error, setError] = useState({
-    userName: false,
-    password: false,
-  });
+  const [formData, setFormData] = useState({ userName: '', password: '' });
+  const [error, setError] = useState({ userName: false, password: false });
   const [showPassword, setShowPassword] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [profileData, setProfileData] = useState(null);
   const basePath = AppConst?.BASEPATH;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
+
+  useEffect(() => {
+    const token = localStorage.getItem('accToken');
+    const status = localStorage.getItem('userStatus');
+    if (token && status !== 'archived') {
+      router.push('/home');
+    }
+  }, []);
 
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,12 +60,17 @@ export default function Login() {
         ...prev,
         [field]:
           field === 'password'
-            ? !passwordRegex.test(value) // Validate password
-            : value.trim() === '', // Validate username for non-emptiness
+            ? !passwordRegex.test(value)
+            : value.trim() === '',
       }));
     };
 
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
+  }, []);
+
   const handleButtonClick = async () => {
+    setShowError(false);
     if (!formData.userName || !formData.password) {
       setError({
         userName: !formData.userName,
@@ -80,82 +89,99 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const response = await getToken({
-        username: formData.userName,
-        password: formData.password,
-      });
+      console.log('formData', formData);
 
-      if (response?.access_token) {
-        const decoded = jwtDecode(response?.access_token);
-        const subValue = decoded?.sub?.split(':')[2];
-        localStorage.setItem('userId', subValue);
-        localStorage.setItem('accToken', response?.access_token);
-        localStorage.setItem('refToken', response?.refresh_token);
+      const { userName, password } = formData;
+      const isMobile = /^[6-9]\d{9}$/.test(userName);
 
-        // Fetch profile data
-        await getProfileData();
+      const payload = {
+        username: userName,
+        password,
+        ...(isMobile ? { phone_code: '+91' } : {}),
+      };
 
-        // Check rootOrgId and route or show error
+      console.log('Signin payload:', payload);
+
+      const response = await signin(payload);
+      console.log('response login', response);
+      const accessToken = response?.result?.access_token;
+      const refreshToken = response?.result?.refresh_token;
+
+      if (accessToken) {
+        // const tenantResponse = await authenticateLoginUser({
+        //   token: accessToken,
+        // });
+        const userStatus = response?.result?.user?.status;
+
+        localStorage.setItem('userStatus', userStatus);
+
+        if (userStatus !== 'ACTIVE') {
+          setShowError(true);
+          setErrorMessage('The user is deactivated, please contact admin.');
+          return;
+        }
+
+        // Only store token if status is active
+        localStorage.setItem('accToken', accessToken);
+        localStorage.setItem('refToken', refreshToken);
+        localStorage.setItem('firstname', response?.result?.user?.name);
+        localStorage.setItem('userId', response?.result?.user?.id);
+        localStorage.setItem('name', response?.result?.user?.username);
+        router.push('/home');
+        const organizations = response?.result?.user?.organizations || [];
+        const orgId = organizations[0]?.id;
+        if (orgId) {
+          localStorage.setItem('headers', JSON.stringify({ 'org-id': orgId.toString() }));
+        }
+
+        // const tenantIdToCompare =
+        //   tenantResponse?.result?.tenantData?.[0]?.tenantId;
+        // if (tenantIdToCompare) {
+        //   localStorage.setItem(
+        //     'headers',
+        //     JSON.stringify({ 'org-id': tenantIdToCompare })
+        //   );
+
+        //   const tenantData = await fetchTenantData({ token: accessToken });
+        //   const matchedTenant = tenantData?.result?.find(
+        //     (tenant) => tenant.tenantId === tenantIdToCompare
+        //   );
+
+        //   localStorage.setItem('channelId', matchedTenant?.channelId);
+        //   localStorage.setItem(
+        //     'frameworkname',
+        //     matchedTenant?.contentFramework
+        //   );
+
+        // if (tenantIdToCompare === process.env.NEXT_PUBLIC_ORGID) {
+
+        // }
+        // else {
+        //   setShowError(true);
+        //   setErrorMessage(
+        //     'The user does not belong to the same organization.'
+        //   );
+        // }
+        // }
       } else {
         setShowError(true);
-        setErrorMessage(response);
+        console.log('response', response);
+        setErrorMessage(response?.response?.data?.message);
       }
     } catch (error) {
       setShowError(true);
-      setErrorMessage('Login failed. Please try again.');
+      setErrorMessage(error?.message ?? 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const getProfileData = async () => {
-    try {
-
-      const token = localStorage.getItem('accToken') || '';
-      const userId = localStorage.getItem('userId') || '';
-
-      const data = await fetchProfileData(userId, token);
-
-      setProfileData(data?.content[0]);
-      localStorage.setItem('name', data?.content[0]?.userName);
-      if (data?.content[0]?.rootOrgId === process.env.NEXT_PUBLIC_ORGID) {
-        const redirectUrl = '/home';
-        router.push(redirectUrl);
-      } else {
-        setShowError(true);
-        setErrorMessage('The user does not belong to the same organization.');
-      }
-    } catch (err) {
-      setError('Failed to load profile data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (profileData) {
-      console.log('Updated Profile Data:', profileData);
-      localStorage.setItem(
-        'headers',
-        JSON.stringify({ 'org-id': profileData?.rootOrgId })
-      );
-
-    }
-  }, [profileData]);
   const handleRegisterClick = () => {
-    console.log('Registration clicked');
-    console.log(process.env.NEXT_PUBLIC_REGISTRATION);
-
-    const registrationUrl = process.env.NEXT_PUBLIC_REGISTRATION ?? '/';
-    router.push(registrationUrl);
+    router.push('/register');
   };
 
   const handlePasswordClick = () => {
-    console.log('Password clicked');
-    console.log(process.env.NEXT_PUBLIC_FORGOT_PASSWORD);
-
-    const registrationUrl = process.env.NEXT_PUBLIC_FORGOT_PASSWORD ?? '/';
-    router.push(registrationUrl);
+    router.push('/forgetpassword');
   };
 
   return (
@@ -218,32 +244,34 @@ export default function Login() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexDirection: 'column',
+            mb: 2,
             gap: 1,
           }}
         >
           <Box
             component="img"
-            src={`${basePath}/assets/images/SG_Logo.jpg`}
+            src={`/assets/images/SG_Logo.jpg`}
             alt="logo"
             sx={{
-              width: { xs: '100%', sm: '100%' },
-              height: { xs: '100%', sm: '100%' },
+              width: '70%',
+              height: '70%',
               borderRadius: '50%',
               objectFit: 'cover',
             }}
           />
         </Box>
+
         <TextField
           fullWidth
-          label="Username/Email"
+          label="Username"
           value={formData.userName}
           onChange={handleChange('userName')}
           error={error.userName}
           helperText={error.userName ? 'Username is required' : ''}
-          sx={{
-            mb: 2,
-          }}
+          sx={{ mb: 2 }}
         />
+
         <TextField
           fullWidth
           label="Password"
@@ -273,18 +301,9 @@ export default function Login() {
               </InputAdornment>
             ),
           }}
-          sx={{
-            mb: 1,
-            '& .MuiInputBase-root': {
-              backgroundColor: 'inherit', 
-            },
-            '& .MuiInputAdornment-root': {
-              backgroundColor: 'inherit', 
-            },
-          }}
+          sx={{ mb: 1 }}
         />
-
-        {/* <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
+        <Typography variant="body2" textAlign="center" mt={2} color="#6B6B6B">
           <ButtonBase
             onClick={handlePasswordClick}
             sx={{
@@ -298,8 +317,7 @@ export default function Login() {
           >
             Forgot Password?
           </ButtonBase>
-        </Typography> */}
-
+        </Typography>
         <Box
           sx={{
             display: 'flex',
@@ -343,10 +361,13 @@ export default function Login() {
             Register
           </ButtonBase>
         </Typography>
+
         <Grid container justifyContent="center" alignItems="center">
           {showError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {errorMessage}
+            <Alert severity="error">
+              {typeof errorMessage === 'object'
+                ? JSON.stringify(errorMessage)
+                : errorMessage}
             </Alert>
           )}
         </Grid>

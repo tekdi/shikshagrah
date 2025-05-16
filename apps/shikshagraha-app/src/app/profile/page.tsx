@@ -6,10 +6,18 @@ import { useEffect, useState } from 'react';
 import {
   fetchProfileData,
   fetchLocationDetails,
-  sendOtp,
   verifyOtp,
   deleteUser,
+  myCourseDetails,
+  renderCertificate,
+  deactivateUser,
+  resetUserPassword,
 } from '../../services/ProfileService';
+import {
+  sendOtp,
+  verifyOtpService,
+  authenticateUser,
+} from '../../services/LoginService';
 import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,10 +38,25 @@ import {
   FormControlLabel,
   Radio,
   DialogContentText,
+  Card,
+  Divider,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  Tooltip,
+  IconButton,
+  InputAdornment,
+  Snackbar,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-export default function Profile() {
+import OTPDialog from '../../Components/OTPDialog';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+export default function Profile({ params }: { params: { id: string } }) {
   const [profileData, setProfileData] = useState(null);
+  const [userData, setUserData] = useState(null);
+
   const [locationDetails, setLocationDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,24 +74,78 @@ export default function Profile() {
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [userDataProfile, setUserDataProfile] = useState([
+    { label: 'First Name', value: '' },
+    { label: 'Middle Name', value: '' },
+    { label: 'Last Name', value: '' },
+    { label: 'Profile Type', value: '' },
+  ]);
+  const [userCustomFields, setUserCustomFields] = useState([]);
+  const [courseDetails, setCourseDetails] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hashCode, setHashCode] = useState('');
+  const [isOpenOTP, setIsOpenOTP] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [mappedProfile, setMappedProfile] = useState([]);
+
+  const [showPassword, setShowPassword] = useState({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+
+  const [passwords, setPasswords] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [severity, setSeverity] = useState('');
 
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('accToken') || '';
-        const userId = localStorage.getItem('userId') || '';
-        const data = await fetchProfileData(userId, token);
-        setProfileData(data?.content[0]);
+        const acc_token = localStorage.getItem('accToken');
+        const userId = localStorage.getItem('userId');
 
-        const locations = data?.content[0]?.profileLocation || [];
-        const flattenedLocationData = await fetchLocationDetails(locations);
-        const order = ['state', 'district', 'block', 'cluster'];
-        const sortedLocations = flattenedLocationData.sort(
-          (a, b) => order.indexOf(a.type) - order.indexOf(b.type)
-        );
-        setLocationDetails(sortedLocations);
+        if (acc_token && userId) {
+          const profileData = await fetchProfileData(userId, acc_token);
+          console.log('Profile data:', profileData);
+          if (profileData) {
+            setUserData(profileData);
+            const mappedProfileArray = [
+              { label: 'State', value: profileData?.state?.label || '' },
+              { label: 'District', value: profileData?.district?.label || '' },
+              { label: 'Block', value: profileData?.block?.label || '' },
+              { label: 'Cluster', value: profileData?.cluster?.label || '' },
+              { label: 'School', value: profileData?.school?.label || '' },
+              {
+                label: 'Professional Role',
+                value: profileData?.professional_role?.label || '',
+              },
+              {
+                label: 'Professional Subrole',
+                value:
+                  profileData?.professional_subroles
+                    ?.map((sub) => sub.label)
+                    .join(', ') || '',
+              },
+            ];
+            console.log('Mapped profile array:', mappedProfileArray);
+            setMappedProfile(mappedProfileArray); // Assuming you have a `setProfile` state
+          }
+        }
       } catch (err) {
+        console.error('Profile fetch error:', err);
         setShowError(true);
       } finally {
         setLoading(false);
@@ -76,9 +153,35 @@ export default function Profile() {
     };
 
     getProfileData();
+    // handleMyCourses();
+    setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
-  console.log('profileData', profileData);
+  const handleMyCourses = async () => {
+    const token = localStorage.getItem('accToken');
+    if (token) {
+      const userId = localStorage.getItem('userId');
+      const detailsResponse = await myCourseDetails({
+        token,
+        userId,
+      });
+      setCourseDetails(detailsResponse?.result);
+    }
+  };
+  const handleViewTest = async (certificateId: string) => {
+    try {
+      const response = await renderCertificate(certificateId);
+      const responseData = JSON.parse(response);
+      const certificateHtml = responseData?.result; // <-- grab HTML from the 'result' field
+
+      const blob = new Blob([certificateHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Error rendering certificate:', err);
+    }
+  };
+
   const handleAccountClick = () => {
     setShowLogoutModal(true);
   };
@@ -86,7 +189,7 @@ export default function Profile() {
   const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    router.push('/');
   };
 
   const handleLogoutCancel = () => {
@@ -105,121 +208,143 @@ export default function Profile() {
     setSelectedOption(selectedValue);
     setValue(selectedValue === 'email' ? profileData.email : profileData.phone);
   };
-
+  const handleResend = () => {
+    if (onResendOtp) {
+      handleSendOtp(); // Call parent resend function
+      setTimer(30); // Start 30 sec countdown
+    }
+  };
   const handleSendOtp = async () => {
-    console.log('selectedOption', selectedOption);
-    const contactValue = selectedOption === 'email' ? newEmail : newPhone;
-    const type = selectedOption; // 'email' or 'phone'
-    console.log('contactValue', contactValue);
-    if (!contactValue) {
-      setError(`Please enter a valid ${type}`);
+    let otpPayload;
+    if (userData.email) {
+      otpPayload = {
+        email: userData.email,
+        reason: 'signup',
+        firstName: userData.firstName,
+        key: 'SendOtpOnMail',
+        replacements: {
+          '{eventName}': 'Shiksha Graha OTP',
+          '{programName}': 'Shiksha Graha',
+        },
+      };
+    } else if (userData.mobile) {
+      console.log('userData.mobile', String(userData?.mobile ?? ''));
+      otpPayload = {
+        mobile: String(userData?.mobile ?? ''), // Ensure fallback to empty string if undefined
+        reason: 'signup',
+      };
+    } else {
+      setShowError(true);
+      setErrorMessage('Either email or mobile must be provided');
       return;
     }
 
+    const registrationResponse = await sendOtp(otpPayload);
+    if (
+      registrationResponse?.params?.successmessage === 'OTP sent successfully'
+    ) {
+      setHashCode(registrationResponse?.result?.data?.hash);
+      setErrorMessage(registrationResponse.message);
+      setIsOpenOTP(true);
+    } else {
+      setShowError(true);
+      setErrorMessage(
+        registrationResponse.data && registrationResponse.data.params.err
+      );
+    }
+  };
+  const handleVerifyOTP = async (otp: string) => {
+    let verifyOTPpayload;
+    if (userData.email) {
+      verifyOTPpayload = {
+        email: userData.email,
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    } else {
+      verifyOTPpayload = {
+        mobile: String(userData?.mobile ?? ''),
+        reason: 'signup',
+        otp: otp,
+        hash: hashCode,
+      };
+    }
+
+    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
+    if (
+      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
+    ) {
+      handleUserDeactivation();
+    }
+  };
+  const handleProfileOtpResend = async () => {
+    const resendPayload = userData.email
+      ? { email: userData.email, reason: 'signup' }
+      : { mobile: String(userData.mobile ?? ''), reason: 'signup' };
+
     try {
-      console.log('', contactValue);
-      setEmail(newEmail);
-      setNewPhone(newPhone);
-      sendOtp(contactValue, type);
-      setOpenEmailDialog(false);
-      setOpenOtpDialog(true);
+      const response = await sendOtp(resendPayload);
+      if (response?.params?.successmessage === 'OTP sent successfully') {
+        // Optionally update the hash code if returned
+        setHashCode(response.result?.hash);
+        console.log('OTP resent successfully');
+      } else {
+        console.error('Failed to resend OTP');
+      }
     } catch (error) {
-      setError('Failed to send OTP');
+      console.error('Error resending OTP:', error);
     }
   };
 
-  const handleOtpSubmit = async () => {
+  const handleUserDeactivation = async () => {
     try {
-      if (!otp) {
-        setError('Please enter OTP');
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('accToken');
+
+      if (!userId || !token) {
+        console.error('Missing userId or token');
         return;
       }
-      const storedUserId = localStorage.getItem('userId');
-      const authToken = localStorage.getItem('accToken');
-      if (!storedUserId || !authToken) {
-        setError('User authentication failed. Please log in again.');
-        return;
-      }
-      const emailOrPhone = newEmail || newPhone; // Use the entered email/phone
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      console.log('emailOrPhone', emailOrPhone);
-      const type = emailRegex.test(emailOrPhone) ? 'email' : 'phone';
-      const otpResponse = await verifyOtp(emailOrPhone, otp, type);
-      console.log('otpResponse', otpResponse);
-      const err = otpResponse?.response;
-      if (
-        otpResponse ==
-          'OTP verification failed. Remaining attempt count is 0.' ||
-        otpResponse ==
-          'OTP verification failed. Remaining attempt count is 1.' ||
-        err?.data?.params?.status === 'FAILED'
-      ) {
-        // setShowError(true);
-        setShowError(true);
-        setErrorMessage(err.data.params.errmsg);
-        setInvalidOtp(true);
-        setRemainingAttempts((prev) => prev - 1);
-        return;
-      } else if (otpResponse.params.status == 'SUCCESS') {
-        const registrationResponse = await deleteUser({});
-        console.log(registrationResponse);
-        if (registrationResponse.result.response == 'SUCCESS') {
-          setOpenOtpDialog(false);
-          setOpenConfirmDeleteDialog(true);
-          console.log('Account successfully deleted');
-          // setShowError(true);
-          // setErrorMessage('Account successfully deleted');
-        } else {
-          setShowError(true);
-          setErrorMessage(err.data.params.errmsg);
-        }
+
+      const response = await deactivateUser(userId, token);
+
+      const userStatus = response?.result?.basicDetails?.status;
+      if (userStatus === 'archived') {
+        setOpenConfirmDeleteDialog(true); // Open the dialog
+      } else {
+        console.warn('User status is not inactive:', userStatus);
       }
     } catch (error) {
-      setError('Invalid OTP');
-      console.error(error);
+      console.error('Error during OTP submission or user deactivation:', error);
+      // You can show an error dialog or snackbar here
     }
   };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const data = await getUserById(params.id);
+  //       setUserData(data?.result?.user);
+  //     } catch (error) {
+  //       console.error('Error fetching user data:', error);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [params.id]);
+
+  const handleDialogOpen = () => setDialogOpen(true);
+  const handleDialogClose = () => setDialogOpen(false);
+
+  const handleClickShowNewPassword = () => setShowNewPassword((prev) => !prev);
+  const handleClickShowConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev);
 
   const confirm = () => {
     router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
-  const roleTypes =
-    [...new Set(profileData?.profileUserTypes?.map((role) => role.type))] || [];
-  const subRoles =
-    [
-      ...new Set(
-        profileData?.profileUserTypes
-          ?.filter((role) => role.subType)
-          .map((role) => role.subType)
-      ),
-    ] || [];
-  const organisationRoles =
-    profileData?.organisations
-      ?.flatMap((org) => org.roles)
-      ?.filter((role) => role !== null) || [];
-  const displayRole = roleTypes.length ? roleTypes.join(', ') : 'N/A';
-  const displaySubRole = subRoles.length ? subRoles.join(', ') : 'N/A';
-  const framework = profileData?.framework || {};
-  const displayBoard = framework.board?.join(', ') || 'N/A';
-  const displayMedium = framework.medium?.join(', ') || 'N/A';
-  const displayGradeLevel = framework.gradeLevel?.join(', ') || 'N/A';
-  const displaySubject = framework.subject?.join(', ') || 'N/A';
-  // localStorage.setItem('frameworkname', framework?.id);
-  useEffect(() => {
-    if (typeof window !== 'undefined' && profileData?.framework?.id) {
-      localStorage.setItem('frameworkname', profileData.framework.id);
-    }
-  }, [profileData]);
-  const [value, setValue] = useState(profileData?.email || '');
-  const handleEditClick = () => {
-    router.push('/profile-edit');
-    localStorage.setItem('selectedBoard', displayBoard);
-    localStorage.setItem('selectedMedium', displayMedium);
-    localStorage.setItem('selectedGradeLevel', displayGradeLevel);
-    localStorage.setItem('selectedSubject', displaySubject);
-  };
+
   const toCamelCase = (str) => {
     return str
       .toLowerCase()
@@ -242,417 +367,691 @@ export default function Profile() {
       </Box>
     );
   }
-  // if (error) {
-  //   return (
-  //     <Typography variant="h6" color="error" textAlign="center" sx={{ mt: 5 }}>
-  //       {error}
-  //     </Typography>
-  //   );
-  // }
-  return (
-    <Layout
-      showTopAppBar={{
-        title: 'Profile',
-        showMenuIcon: true,
-        profileIcon: [
-          {
-            icon: <LogoutIcon />,
-            ariaLabel: 'Account',
-            onLogoutClick: handleAccountClick,
-          },
-        ],
-      }}
-      isFooter={true}
-    >
-      <Box
-        sx={{
-          // backgroundColor: '#f5f5f5',
-          minHeight: '100vh',
-          overflowY: 'auto',
-          paddingTop: '10%',
-          paddingBottom: '56px',
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    // Reset all states when closing
+    setPasswords({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setErrors({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswords({ ...passwords, [name]: value });
+
+    // Validate on change
+    if (name === 'newPassword') {
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+      if (!passwordRegex.test(value)) {
+        setErrors({
+          ...errors,
+          newPassword:
+            'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character',
+        });
+      } else {
+        setErrors({ ...errors, newPassword: '' });
+      }
+
+      // Also validate confirm password if it's not empty
+      if (passwords.confirmPassword && value !== passwords.confirmPassword) {
+        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+      } else if (
+        passwords.confirmPassword &&
+        value === passwords.confirmPassword
+      ) {
+        setErrors({ ...errors, confirmPassword: '' });
+      }
+    }
+
+    if (name === 'confirmPassword') {
+      if (value !== passwords.newPassword) {
+        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+      } else {
+        setErrors({ ...errors, confirmPassword: '' });
+      }
+    }
+  };
+  const handleSubmit = () => {
+    // Validate all fields before submission
+    let hasErrors = false;
+    const newErrors = { ...errors };
+
+    if (!passwords.oldPassword) {
+      newErrors.oldPassword = 'Old password is required';
+      hasErrors = true;
+    }
+
+    if (!passwords.newPassword) {
+      newErrors.newPassword = 'New password is required';
+      hasErrors = true;
+    } else {
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+      if (!passwordRegex.test(passwords.newPassword)) {
+        newErrors.newPassword =
+          'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
+        hasErrors = true;
+      }
+    }
+
+    if (!passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+      hasErrors = true;
+    } else if (passwords.newPassword !== passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      hasErrors = true;
+    }
+
+    setErrors(newErrors);
+
+    if (!hasErrors) {
+      // Submit the form or call your API here
+      resetPassword();
+      // handleClose();
+    }
+  };
+  const handleCloseSnackbar = () => {
+    setShowError(false);
+    setErrorMessage('');
+    if (severity === 'success') {
+      router.push('/');
+    }
+    // router.push('/');
+  };
+
+  const resetPassword = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('accToken') || '';
+      console.log('Token:', token);
+      const result = await resetUserPassword(
+        passwords.oldPassword,
+        passwords.newPassword,
+        token
+      );
+      if (!result.success) {
+        console.error('Reset password failed:', result.errorMessage);
+        setShowError(true);
+        setErrorMessage(result.errorMessage);
+        setSeverity('error');
+      } else {
+        setShowError(true);
+        setErrorMessage('User Password Updated Successfully');
+        setSeverity('success');
+      }
+
+      // handleClose();
+      localStorage.clear();
+      // router.push('/');
+    } catch (error) {
+      console.error('Reset password failed:', error);
+      setShowError(true);
+      setErrorMessage(error);
+      setSeverity('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isAuthenticated) {
+    return (
+      <Layout
+        showTopAppBar={{
+          title: 'Profile',
+          showMenuIcon: true,
+          profileIcon: [
+            {
+              icon: <LogoutIcon />,
+              ariaLabel: 'Account',
+              onLogoutClick: handleAccountClick,
+            },
+          ],
         }}
+        isFooter={true}
       >
-        <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
+        <Box
+          sx={{
+            // backgroundColor: '#f5f5f5',
+            minHeight: '100vh',
+            overflowY: 'auto',
+            paddingTop: '3%',
+            paddingBottom: '56px',
+          }}
+        >
+          <Box sx={{ maxWidth: 600, margin: 'auto', mt: 3, p: 2 }}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit',
+                  padding: '1px',
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                },
+              }}
+            >
+              <Grid
+                container
+                spacing={2}
+                alignItems="center"
+                justifyContent="left"
+                direction="row"
+              >
+                <Grid item>
+                  <Avatar
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                    }}
+                    src={profileData?.avatar ?? ''}
+                  >
+                    {(userData?.name?.charAt(0) ?? 'U').toUpperCase()}
+                  </Avatar>
+                </Grid>
+                <Grid item>
+                  <Typography
+                    variant="h5"
+                    textAlign="left"
+                    color="#582E92"
+                    fontWeight="bold"
+                  >
+                    {userData?.name}
+                  </Typography>
+                  <Typography variant="subtitle1" textAlign="left" color="gray">
+                    {userData?.role}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    textAlign="left"
+                    color="darkslategray"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
+                    @{userData?.username}
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: '#582E92',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      '&:hover': {
+                        color: '#461B73',
+                      },
+                      // Defensive CSS:
+                      pointerEvents: 'auto',
+                      userSelect: 'text',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                    onClick={handleClick}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+                  >
+                    Reset Password
+                  </Typography>
+                </Grid>
+              </Grid>
+              <br></br>
+              <br></br>
+              <Grid
+                container
+                spacing={5}
+                alignItems="center"
+                justifyContent="center"
+                direction="row"
+              >
+                <Grid item xs={12}>
+                  {mappedProfile.map((item) => (
+                    <Box
+                      key={item.label}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: {
+                          xs: 'column',
+                          sm: 'row',
+                        },
+                        justifyContent: 'space-between',
+                        alignItems: {
+                          xs: 'flex-start',
+                          sm: 'center',
+                        },
+                        paddingBottom: '16px',
+                        width: '100%',
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#FF9911',
+                          minWidth: {
+                            xs: '100%',
+                            sm: '30%',
+                          },
+                          marginBottom: {
+                            xs: '4px',
+                            sm: 0,
+                          },
+                        }}
+                      >
+                        {item.label}:
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          width: {
+                            xs: '100%',
+                            sm: '65%',
+                          },
+                        }}
+                      >
+                        {item.value || 'N/A'}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Grid>
+              </Grid>
+            </Box>
+
+            {/* Courses Card */}
+            <Box
+              sx={{
+                p: 4,
+                borderRadius: 3,
+                boxShadow: 3,
+                borderRadius: '12px',
+                p: 3,
+                mt: 3,
+                transform: 'translateY(-5px)',
+                boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
+                  padding: '1px', // Thickness of the border line
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude', // Ensures only the border is visible
+                },
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                gutterBottom
+                color="black"
+              >
+                📘 My Courses
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              {courseDetails?.data?.length > 0 ? (
+                <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>
+                          Course ID
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>
+                          Status
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {courseDetails?.data
+                        ?.filter(
+                          (course: any) => course.status === 'viewCertificate'
+                        )
+                        .map((course: any) => (
+                          <TableRow
+                            key={course.usercertificateId}
+                            hover
+                            sx={{
+                              transition: '0.3s',
+                              '&:hover': { backgroundColor: '#f9f9f9' },
+                            }}
+                          >
+                            <TableCell>{course.courseId}</TableCell>
+                            <TableCell>{course.status}</TableCell>
+                            <TableCell>
+                              <Link
+                                component="button"
+                                variant="body2"
+                                underline="hover"
+                                onClick={() =>
+                                  handleViewTest(course.certificateId)
+                                }
+                              >
+                                View Certificate
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No course data found.
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Button
+                onClick={handleDeleteAccountClick}
+                variant="contained"
+                sx={{
+                  bgcolor: '#582E92',
+                  color: 'white',
+                  ':hover': { bgcolor: '#461B73' },
+                }}
+              >
+                Delete Account
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        <OTPDialog
+          open={isOpenOTP}
+          onClose={() => setIsOpenOTP(false)}
+          onSubmit={handleVerifyOTP}
+          onResendOtp={handleProfileOtpResend}
+          type="delete"
+        />
+        {showError && errorMessage && (
+          <Box sx={{ my: 2 }}>
+            <Alert severity="error" onClose={() => setShowError(false)}>
+              {errorMessage}
+            </Alert>
+          </Box>
+        )}
+
+        {/* Delete Account Confirmation Dialog */}
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+        >
+          <DialogTitle>Confirm Account Deletion</DialogTitle>
+          <DialogActions>
+            <Button
+              onClick={() => setOpenDeleteDialog(false)}
+              sx={{ color: '#582E92' }}
+            >
+              Cancel
+            </Button>
+            <Button
+              // onClick={handleUserDeactivation}
+              onClick={handleSendOtp}
+              color="error"
+            >
+              Delete Account
+            </Button>
+          </DialogActions>
+        </Dialog>
+        {/* Email Input Dialog */}
+
+        <Dialog
+          open={openConfirmDeleteDialog}
+          onClose={() => setOpenConfirmDeleteDialog(false)}
+        >
+          <DialogTitle>
+            Your account has been successfully deleted!!
+          </DialogTitle>
+          <DialogContent></DialogContent>
+          <DialogActions>
+            <Button onClick={confirm} sx={{ color: '#582E92' }}>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
+          <DialogTitle>Confirm Logout</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to log out?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleLogoutCancel} color="primary">
+              No
+            </Button>
+            <Button onClick={handleLogoutConfirm} color="secondary">
+              Yes, Logout
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={open} onClose={handleClose}>
           <Box
             sx={{
-              position: 'relative',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit',
-                padding: '1px',
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-              },
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: 'auto',
             }}
           >
             <Grid
               container
-              spacing={2}
-              alignItems="center"
               justifyContent="center"
-              direction="column"
+              alignItems="center"
+              sx={{
+                maxWidth: { xs: '90%', sm: '400px', md: '500px' },
+                bgcolor: '#FFFFFF',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                borderRadius: '16px',
+                padding: { xs: 2, sm: 3 },
+                textAlign: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '10px',
+                  padding: '4px',
+                  background:
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                },
+              }}
             >
-              <Grid item>
-                <Avatar
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-                  }}
-                  src={profileData?.avatar || ''}
-                >
-                  {profileData?.firstName?.charAt(0) || 'U'}
-                </Avatar>
-              </Grid>
-              <Grid item>
+              <DialogTitle sx={{ width: '100%', p: 0, mb: 2 }}>
                 <Typography
                   variant="h5"
-                  textAlign="center"
-                  color="#582E92"
-                  fontWeight="bold"
+                  component="div"
+                  sx={{ fontWeight: 600 }}
                 >
-                  {profileData?.firstName || 'User'}
+                  Reset Password
                 </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-          {/* Profile Card */}
-          <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <Grid container spacing={2}>
-              {/* Role */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
+              </DialogTitle>
+
+              <DialogContent sx={{ width: '100%', p: 0 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="oldPassword"
+                  label="Old Password"
+                  type={showOldPassword ? 'text' : 'password'}
+                  value={passwords.oldPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.oldPassword}
+                  helperText={errors.oldPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                          edge="end"
+                        >
+                          {showOldPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
                   }}
-                >
-                  <span style={{ color: '#FF9911' }}>Role: </span>
-                  {displayRole === 'administrator'
-                    ? 'HT & Officials'
-                    : toCamelCase(displayRole)}
-                </Typography>
-                {displayRole === 'administrator' && (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#333',
-                      paddingBottom: '10px',
-                    }}
-                  >
-                    <span style={{ color: '#FF9911' }}>Sub-role: </span>
-                    {displaySubRole || 'N/A'}
-                  </Typography>
-                )}
-                {locationDetails.map((loc, index) => (
-                  <>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#333',
-                        paddingBottom: '10px',
-                      }}
-                    >
-                      <span style={{ color: '#FF9911' }}>
-                        {loc.type.charAt(0).toUpperCase() + loc.type.slice(1)}:
-                      </span>{' '}
-                      {loc.name || 'N/A'}
-                    </Typography>
-                  </>
-                ))}
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>School: </span>
-                  {profileData?.organisations[0]?.orgName || 'N/A'}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-          {/* Framework Card */}
-          <Box
-            sx={{
-              // background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-              borderRadius: '12px',
-              p: 3,
-              mt: 3,
-              transform: 'translateY(-5px)',
-              boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.3)',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                padding: '1px', // Thickness of the border line
-                background:
-                  'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
-                WebkitMask:
-                  'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude', // Ensures only the border is visible
-              },
-            }}
-          >
-            <EditIcon
-              sx={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                cursor: 'pointer',
-                color: '#582E92',
-              }}
-              onClick={handleEditClick}
-            />
-            <Grid container spacing={2}>
-              {/* Board */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Board: </span>
-                  {displayBoard}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Medium: </span>
-                  {displayMedium}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Classes: </span>
-                  {displayGradeLevel}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    paddingBottom: '10px',
-                  }}
-                >
-                  <span style={{ color: '#FF9911' }}>Subjects: </span>
-                  {displaySubject}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Button
-              onClick={handleDeleteAccountClick}
-              variant="contained"
-              sx={{
-                bgcolor: '#582E92',
-                color: 'white',
-                ':hover': { bgcolor: '#461B73' },
-              }}
-            >
-              Delete Account
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-      {showError && (
-        <Alert severity="error" sx={{ marginTop: '15px' }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {/* Delete Account Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
-      >
-        <DialogTitle>Confirm Account Deletion</DialogTitle>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenDeleteDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirmation} color="error">
-            Proceed
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* Email Input Dialog */}
-      <Dialog open={openEmailDialog} onClose={() => setOpenEmailDialog(false)}>
-        <DialogTitle>Enter Your Email/Mobile Number</DialogTitle>
-        <DialogContent>
-          <RadioGroup value={selectedOption} onChange={handleOptionChange}>
-            {profileData?.email && (
-              <>
-                <FormControlLabel
-                  value="email"
-                  control={<Radio />}
-                  label={`Email: ${profileData.email}`}
+                  sx={{ mb: 2 }}
                 />
-                {selectedOption === 'email' && (
-                  <TextField
-                    label="Update Email"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                  />
-                )}
-              </>
-            )}
 
-            {profileData?.phone && (
-              <>
-                <FormControlLabel
-                  value="phone"
-                  control={<Radio />}
-                  label={`Mobile: ${profileData.phone}`}
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="newPassword"
+                  label="New Password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwords.newPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.newPassword}
+                  helperText={errors.newPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          edge="end"
+                        >
+                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
                 />
-                {selectedOption === 'phone' && (
-                  <TextField
-                    label="Update Phone"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                  />
-                )}
-              </>
-            )}
-          </RadioGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenEmailDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSendOtp} sx={{ color: '#582E92' }}>
-            Send OTP
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      {/* OTP Input Dialog */}
-      <Dialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)}>
-        <DialogTitle>Enter OTP</DialogTitle>
-        <DialogContent>
-          <TextField
-            placeholder="Enter Otp"
-            fullWidth
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setOpenOtpDialog(false)}
-            sx={{ color: '#582E92' }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleOtpSubmit} color="error">
-            Delete Account
-          </Button>
-        </DialogActions>
-      </Dialog>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwords.confirmPassword}
+                  onChange={handlePasswordChange}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          edge="end"
+                        >
+                          {showConfirmPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+              </DialogContent>
 
-      <Dialog
-        open={openConfirmDeleteDialog}
-        onClose={() => setOpenConfirmDeleteDialog(false)}
-      >
-        <DialogTitle>Your account has been successfully deleted!!</DialogTitle>
-        <DialogContent></DialogContent>
-        <DialogActions>
-          <Button onClick={confirm} sx={{ color: '#582E92' }}>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={showLogoutModal} onClose={handleLogoutCancel}>
-        <DialogTitle>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to log out?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleLogoutCancel} color="primary">
-            No
-          </Button>
-          <Button onClick={handleLogoutConfirm} color="secondary">
-            Yes, Logout
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Layout>
-  );
+              <DialogActions sx={{ width: '100%', p: 0, mt: 2 }}>
+                <Button
+                  onClick={handleClose}
+                  variant="outlined"
+                  sx={{
+                    mr: 2,
+                    color: '#582E92',
+                    borderRadius: '30px',
+                    borderColor: '#582E92',
+                    '&:hover': {
+                      borderColor: '#461B73',
+                    },
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  variant="contained"
+                  sx={{
+                    bgcolor: '#582E92',
+                    color: '#FFFFFF',
+                    borderRadius: '30px',
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    padding: '8px 16px',
+                    '&:hover': {
+                      bgcolor: '#543E98',
+                    },
+                    width: { xs: '50%', sm: '50%' },
+                  }}
+                >
+                  Reset Password
+                </Button>
+              </DialogActions>
+            </Grid>
+          </Box>
+        </Dialog>
+        <Snackbar
+          open={showError}
+          autoHideDuration={severity === 'success' ? 1000 : 6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={severity}
+            sx={{ width: '100%' }}
+          >
+            {errorMessage}
+          </Alert>
+        </Snackbar>
+      </Layout>
+    );
+  } else {
+    handleLogoutConfirm();
+  }
 }

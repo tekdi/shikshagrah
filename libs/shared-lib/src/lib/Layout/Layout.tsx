@@ -32,6 +32,7 @@ import {
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 interface LayoutProps {
   children: React.ReactNode;
+  isLoadingChildren?: boolean;
   isFooter?: boolean;
   showBack?: boolean;
   backTitle?: string;
@@ -445,6 +446,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onSortChange,
   onApply,
   filterValues,
+  isLoadingChildren = false,
   sx = {},
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -457,7 +459,8 @@ export const Layout: React.FC<LayoutProps> = ({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        overflowX: 'hidden',
+        // justifyContent: 'space-between',
         // alignItems: 'center',
         // bgcolor: 'grey',
         ...sx,
@@ -513,7 +516,7 @@ export const Layout: React.FC<LayoutProps> = ({
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
-            marginTop: '70px',
+            marginTop: '90px',
             marginLeft: '10px',
           }}
         >
@@ -597,6 +600,10 @@ export const Layout: React.FC<LayoutProps> = ({
           sx={{
             width: '100%',
             bgcolor: 'white',
+            position: 'fixed',
+            bottom: 0, // Anchors to the bottom
+            left: 0,
+            zIndex: 1200,
           }}
         >
           <Footer
