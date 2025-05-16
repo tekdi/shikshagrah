@@ -43,6 +43,7 @@ import {
 } from '../services/LoginService';
 import { useRouter } from 'next/navigation';
 import OTPDialog from './OTPDialog';
+import { API_ENDPOINTS } from '../utils/API/APIEndpoints';
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
   const { uiSchema } = props;
@@ -88,6 +89,16 @@ const DynamicForm = ({
   const [hashCode, setHashCode] = useState('');
   const [subroles, setSubroles] = useState<any[]>([]);
   const [alertSeverity, setAlertSeverity] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const isValidMobile = (mobile: string) => {
+    return /^[6-9]\d{9}$/.test(mobile);
+  };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     if (formData?.dob) {
@@ -141,7 +152,6 @@ const DynamicForm = ({
         setFormUiSchema(oldFormUiSchema);
       }
     }
-    console.log('formData--', formData);
     if (formData?.Role !== '') {
       const updatedFormSchema = {
         ...formSchema,
@@ -833,34 +843,104 @@ const DynamicForm = ({
       setShowEmailMobileError('');
     }
   }, [formData.email, formData.mobile]);
+
+  const checkUsernameAvailability = useCallback(
+    _.debounce(async (username) => {
+      if (!username) {
+        setUsernameError('');
+        setIsUsernameValid(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${API_ENDPOINTS.checkUser(username)}`,
+          {
+            headers: {
+              Origin: 'localhost',
+            },
+          }
+        );
+
+        if (response?.data?.message === 'Username is already taken') {
+          setErrorMessage(response?.data?.message);
+          setShowError(true);
+          setAlertSeverity('error');
+          setIsUsernameValid(false);
+        } else {
+          setErrorMessage('');
+          setShowError(true);
+          setIsUsernameValid(true);
+        }
+      } catch (error) {
+        setUsernameError('Error checking username availability');
+        setIsUsernameValid(false);
+      }
+    }, 500),
+    []
+  );
+
   const handleChange = useCallback(
     async ({ formData, errors }: { formData: any; errors: any }) => {
       const prevRole = prevFormData.current?.Role;
       const currentRole = formData?.Role;
+
       // Create a new form data object
       let newFormData = { ...formData };
+
       // Check if role changed and clear sub-roles if it did
       if (currentRole && currentRole !== prevRole) {
         newFormData = {
           ...newFormData,
-          'Sub-Role': undefined, // Clear sub-role when role changes
+          'Sub-Role': undefined,
         };
-        setSubroles([]); // Reset subroles
-        // Immediately update the form data to reflect the cleared sub-role
+        setSubroles([]);
         setFormData(newFormData);
-        // Update UI schema for sub-roles
         setFormUiSchema((prev) => ({
           ...prev,
           'Sub-Role': {
             ...prev['Sub-Role'],
-            'ui:widget': 'hidden', // Hide until new subroles are loaded
+            'ui:widget': 'hidden',
           },
         }));
       }
+
+      // Only autofill email/mobile if username changed
+      const usernameChanged =
+        formData.Username !== prevFormData.current?.Username;
+
+      if (usernameChanged) {
+        if (isValidMobile(formData.Username)) {
+          newFormData = {
+            ...newFormData,
+            mobile: formData.Username,
+          };
+          setShowEmailMobileError(
+            "Email is optional since you've provided a mobile number"
+          );
+        } else if (isValidEmail(formData.Username)) {
+          newFormData = {
+            ...newFormData,
+            email: formData.Username,
+          };
+          setShowEmailMobileError(
+            "Mobile is optional since you've provided an email"
+          );
+        } else {
+          setShowEmailMobileError(
+            'Username must be either a valid email or 10-digit mobile number'
+          );
+        }
+      }
+
+      // Check username availability if username changed
+      if (usernameChanged) {
+        checkUsernameAvailability(formData.Username);
+      }
+
       // Update form data
       setFormData(newFormData);
       prevFormData.current = newFormData;
-      // Handle other field changes
 
       // Handle email/mobile validation
       if (newFormData.email && newFormData.mobile) {
@@ -876,12 +956,13 @@ const DynamicForm = ({
       } else {
         setShowEmailMobileError('');
       }
+
       // Call the onChange prop if it exists
       if (onChange) {
         onChange({ formData: newFormData, errors });
       }
     },
-    [onChange]
+    [onChange, checkUsernameAvailability]
   );
 
   const handleSubmit = ({ formData }: { formData: any }) => {
@@ -1035,6 +1116,39 @@ const DynamicForm = ({
       setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
     }
   }, [formData.Role]);
+  useEffect(() => {
+    setFormSchema((prevSchema) => {
+      const updatedProperties = { ...prevSchema.properties };
+
+      if (updatedProperties.email) {
+        updatedProperties.email.readOnly = false;
+        updatedProperties.email.required = false;
+      }
+
+      if (updatedProperties.mobile) {
+        updatedProperties.mobile.readOnly = false;
+        updatedProperties.mobile.required = false;
+      }
+
+      return { ...prevSchema, properties: updatedProperties };
+    });
+
+    setFormUiSchema((prevUiSchema) => {
+      const updatedUiSchema = { ...prevUiSchema };
+
+      if (updatedUiSchema.email) {
+        updatedUiSchema.email['ui:disabled'] = false;
+        updatedUiSchema.email['ui:readonly'] = false;
+      }
+
+      if (updatedUiSchema.mobile) {
+        updatedUiSchema.mobile['ui:disabled'] = false;
+        updatedUiSchema.mobile['ui:readonly'] = false;
+      }
+
+      return updatedUiSchema;
+    });
+  }, []);
   const handleFetchData = React.useCallback((response: any) => {
     // Example: Update specific fields from API response
     setFormData((prev) => ({
@@ -1412,7 +1526,8 @@ const DynamicForm = ({
                 (!formData?.email && !formData?.mobile) ||
                 !formData?.confirm_password ||
                 !formData.Role ||
-                !formData?.udise
+                !formData?.udise ||
+                !isUsernameValid
                 // !formData?.school ||
                 // !formData?.state
               }
