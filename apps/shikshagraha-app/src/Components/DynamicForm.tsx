@@ -1178,8 +1178,8 @@ const DynamicForm = ({
           },
         },
       });
-      setErrorMessage(registrationResponse.message);
-      setAlertSeverity('success');
+      // setErrorMessage(registrationResponse.message);
+      // setAlertSeverity('success');
       setIsOpenOTP(true);
     } else {
       setShowError(true);
@@ -1273,9 +1273,9 @@ const DynamicForm = ({
     } else {
       setShowError(true);
       setAlertSeverity('error');
-
+      console.log('registrationResponse', registrationResponse);
       setErrorMessage(
-        registrationResponse.data && registrationResponse.data.params.err
+        registrationResponse.data.message 
       );
     }
   };
