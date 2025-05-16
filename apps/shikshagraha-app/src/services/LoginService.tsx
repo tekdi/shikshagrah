@@ -156,9 +156,40 @@ export const fetchTenantData = async ({
     return error;
   }
 };
+
+export const fetchRoleData = async (): Promise<any> => {
+  const apiUrl = `${API_ENDPOINTS.roleRead}`;
+
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        tenantId: `shikshagraha`,
+      },
+    });
+
+    return response?.data;
+  } catch (error: any) {
+    console.error('Error fetching tenant data:', error);
+    return error;
+  }
+};
+export const getSubroles = async (parentEntityId: string) => {
+  const response = await fetch(
+    `https://saas-qa.tekdinext.com/entity-management/v1/entities/subEntityList/${parentEntityId}?type=professional_subroles`,
+    {
+      headers: {
+        tenantId: 'shikshagraha',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return await response.json();
+};
 export const schemaRead = async (): Promise<any> => {
   const apiUrl: string = `${API_ENDPOINTS.formRead}`;
   console.log(apiUrl);
+  const requestOrigin =
+    localStorage.getItem('origin') || 'shikshagraha-qa.tekdinext.com';
   try {
     const response = await axios.post(
       apiUrl,
@@ -169,6 +200,7 @@ export const schemaRead = async (): Promise<any> => {
       {
         headers: {
           'Content-Type': 'application/json',
+          Origin: origin,
         },
       }
     );
@@ -196,8 +228,16 @@ export const registerUserService = async (requestData: any) => {
 
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}${process.env.NEXT_PUBLIC_NEW_REGISTRATION}`,
-      modifiedRequestData
+      `${API_ENDPOINTS.userCreate}`,
+      modifiedRequestData,
+      {
+        headers: {
+          Origin: 'http://localhost:3000',
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/plain, */*',
+          Referer: 'http://localhost:3000/',
+        },
+      }
     );
     return response.data;
   } catch (error) {
@@ -205,16 +245,20 @@ export const registerUserService = async (requestData: any) => {
       console.error('Error submitting registration data:', error);
       return error.response;
     } else {
-      // handle other types of errors
+      console.error('Unexpected error:', error);
+      throw error;
     }
   }
 };
 
 export const fetchContentOnUdise = async (udise: string): Promise<any> => {
-  console.log(udise);
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_ENTITY}/entities/details/${udise}`;
+  const apiUrl = `${API_ENDPOINTS.udiseSearch(udise)}`;
   try {
-    const response = await axios.get(apiUrl);
+    const response = await axios.get(apiUrl, {
+      headers: {
+        tenantId: 'shikshagraha',
+      },
+    });
     return response?.data;
   } catch (error) {
     console.error('error in fetching user details', error);
@@ -238,6 +282,31 @@ export const sendOtp = async (requestData: any) => {
     } else {
       console.error('Unexpected error:', error);
     }
+  }
+};
+
+export const readIndividualTenantData = async (tenantId: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
+  }
+
+  const apiUrl = `${baseUrl}/interface/v1/user/tenant/read/${tenantId}`;
+
+  try {
+    const { data } = await axios.get(apiUrl);
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      console.error(
+        'Error fetching tenant data:',
+        err.response?.status,
+        err.response?.data
+      );
+      throw new Error(`API error: ${err.response?.status}`);
+    }
+    console.error('Unexpected error:', err);
+    throw err;
   }
 };
 export const verifyOtpService = async (requestData: any) => {

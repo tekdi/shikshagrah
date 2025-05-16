@@ -61,11 +61,11 @@ const UdiaseWithButton = ({
         setErrorMessage('No school found. Please enter a valid UDISE Code.');
         onFetchData({
           udise: '',
-          school: { _id: '', name: '' },
-          state: { _id: '', name: '' },
-          district: { _id: '', name: '' },
-          block: { _id: '', name: '' },
-          cluster: { _id: '', name: '' },
+          school: { _id: '', name: '', externalId: '' },
+          state: { _id: '', name: '', externalId: '' },
+          district: { _id: '', name: '', externalId: '' },
+          block: { _id: '', name: '', externalId: '' },
+          cluster: { _id: '', name: '', externalId: '' },
         });
         return;
       }
@@ -73,25 +73,35 @@ const UdiaseWithButton = ({
       const locationInfo = response.result[0];
       const sampleResponse = {
         udise: localValue,
-        school: {
+        School: {
+          // Keep capitalized to match your form's expected structure
           _id: locationInfo?._id || '',
           name: locationInfo?.metaInformation?.name || '',
+          externalId: localValue || '',
         },
         state: {
           _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
           name: locationInfo?.parentInformation?.state?.[0]?.name || '',
+          externalId:
+            locationInfo?.parentInformation?.state?.[0]?.externalId || '',
         },
         district: {
           _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
           name: locationInfo?.parentInformation?.district?.[0]?.name || '',
+          externalId:
+            locationInfo?.parentInformation?.district?.[0]?.externalId || '',
         },
         block: {
           _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
           name: locationInfo?.parentInformation?.block?.[0]?.name || '',
+          externalId:
+            locationInfo?.parentInformation?.block?.[0]?.externalId || '',
         },
         cluster: {
           _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
           name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
+          externalId:
+            locationInfo?.parentInformation?.cluster?.[0]?.externalId || '',
         },
       };
 
