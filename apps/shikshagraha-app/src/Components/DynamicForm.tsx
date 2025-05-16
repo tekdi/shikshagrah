@@ -1198,7 +1198,7 @@ const DynamicForm = ({
                   ...prev['Sub-Role']?.['ui:options'],
                   enumOptions: newSubroles,
                 },
-                'ui:widget': newSubroles.length
+                'ui:widget': newSubroles?.length
                   ? 'CustomMultiSelectWidget'
                   : 'hidden',
               },
