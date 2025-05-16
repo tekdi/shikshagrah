@@ -21,8 +21,9 @@ const CustomMultiSelectWidget = ({
   uiSchema,
 }: // rawErrors = [],
 WidgetProps) => {
-  const { enumOptions = [] } = options;
-  const maxSelections = schema.maxSelection || enumOptions.length;
+  const enumOptions =
+    uiSchema?.['ui:options']?.enumOptions ?? (options.enumOptions || []);
+  const maxSelections = schema.maxSelection ?? enumOptions.length;
   const { t } = useTranslation();
   const lowerLabel = label?.toLowerCase();
   const isRoleField = lowerLabel === 'subroles';
@@ -111,6 +112,12 @@ WidgetProps) => {
             sx: {
               maxHeight: '300px',
             },
+          },
+        }}
+        sx={{
+          '& .MuiSelect-select': {
+            padding: '10px 12px',
+            fontSize: '12px',
           },
         }}
         error={false}
