@@ -194,7 +194,7 @@ const PasswordReset = ({ name }: { name: string }) => {
 
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Password and confirm password must be the same.');
       setShowError(true);
       return;
     }
@@ -245,7 +245,7 @@ const PasswordReset = ({ name }: { name: string }) => {
     } else if (name === 'confirmPassword') {
       setConfirmPassword(val);
       if (val !== newPassword) {
-        return 'Passwords do not match';
+        return 'Password and confirm password must be the same.';
       }
     } else {
       return null;
@@ -476,7 +476,7 @@ const PasswordReset = ({ name }: { name: string }) => {
           <>
             <Box sx={{ width: '100%' }}>
               <Typography variant="h5" gutterBottom>
-                Reset Password
+                Forgot Password
               </Typography>
             </Box>
             <TextField
