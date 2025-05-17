@@ -407,7 +407,10 @@ export default function Profile({ params }: { params: { id: string } }) {
 
       // Also validate confirm password if it's not empty
       if (passwords.confirmPassword && value !== passwords.confirmPassword) {
-        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+        setErrors({
+          ...errors,
+          confirmPassword: 'Password and confirm password must be the same.',
+        });
       } else if (
         passwords.confirmPassword &&
         value === passwords.confirmPassword
@@ -418,7 +421,10 @@ export default function Profile({ params }: { params: { id: string } }) {
 
     if (name === 'confirmPassword') {
       if (value !== passwords.newPassword) {
-        setErrors({ ...errors, confirmPassword: 'Passwords do not match' });
+        setErrors({
+          ...errors,
+          confirmPassword: 'Password and confirm password must be the same.',
+        });
       } else {
         setErrors({ ...errors, confirmPassword: '' });
       }
@@ -451,7 +457,8 @@ export default function Profile({ params }: { params: { id: string } }) {
       newErrors.confirmPassword = 'Please confirm your password';
       hasErrors = true;
     } else if (passwords.newPassword !== passwords.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword =
+        'Password and confirm password must be the same.';
       hasErrors = true;
     }
 
@@ -595,7 +602,23 @@ export default function Profile({ params }: { params: { id: string } }) {
                     color="darkslategray"
                     sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
-                    @{userData?.username}
+                  {userData?.username}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    textAlign="left"
+                    color="darkslategray"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
+                {userData?.email}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    textAlign="left"
+                    color="darkslategray"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
+                    {userData?.phone}
                   </Typography>
                   <Typography
                     component="span"
@@ -778,7 +801,7 @@ export default function Profile({ params }: { params: { id: string } }) {
               )}
             </Box>
 
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
+            {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Button
                 onClick={handleDeleteAccountClick}
                 variant="contained"
@@ -790,7 +813,7 @@ export default function Profile({ params }: { params: { id: string } }) {
               >
                 Delete Account
               </Button>
-            </Box>
+            </Box> */}
           </Box>
         </Box>
         <OTPDialog

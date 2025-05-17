@@ -77,7 +77,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
         break;
       case 'confirm password':
-        if (val !== formData.password) return 'Passwords do not match.';
+        if (val !== formData.password) return 'Password and confirm password must be the same.';
         break;
     }
     return null;

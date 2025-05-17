@@ -982,7 +982,9 @@ const NewUserWithStepper: React.FC = () => {
                 type={showConfirmPassword ? 'text' : 'password'}
                 error={error.confirmPassword}
                 helperText={
-                  error.confirmPassword ? 'Passwords do not match.' : ''
+                  error.confirmPassword
+                    ? 'Password and confirm password must be the same.'
+                    : ''
                 }
                 InputProps={{
                   endAdornment: (
