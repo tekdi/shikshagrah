@@ -1527,7 +1527,9 @@ const DynamicForm = ({
                 !formData?.confirm_password ||
                 !formData.Role ||
                 !formData?.udise ||
-                !isUsernameValid
+                !isUsernameValid ||
+                !formData?.['Sub-Role'] ||
+                formData['Sub-Role'].length === 0
                 // !formData?.school ||
                 // !formData?.state
               }

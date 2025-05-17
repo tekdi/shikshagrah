@@ -25,33 +25,30 @@ export default function Register() {
   const [rolesList, setRolesList] = useState<any[]>([]);
   const [subRoles, setSubRoles] = useState<any[]>([]);
   const previousRole = useRef<string | null>(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // const currentDomain = window.location.hostname;
       const currentDomain = 'shikshagraha-qa.tekdinext.com';
       localStorage.setItem('origin', currentDomain);
       setDomain(currentDomain);
-      console.log('Current domain:', currentDomain); // Debug
     }
   }, []);
+
   useEffect(() => {
     const fetchSchema = async () => {
       try {
         setLoading(true);
 
-        // Fetch roles first
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
 
         const response = await schemaRead();
-        // SAFETY CHECK: Ensure fields exist in response
         const fields = response?.result?.data?.fields?.result ?? [];
         if (fields.length === 0) {
           throw new Error('No form fields received from API');
         }
 
-        // Fetch subroles if needed
         let subrolesData = [];
         const selectedRoleObj = rolesData.find((role: any) => role.externalId);
         if (selectedRoleObj) {
@@ -60,7 +57,6 @@ export default function Register() {
           setSubRoles(subrolesData);
         }
 
-        // Generate RJSF schema with proper fields
         const { schema, uiSchema, fieldNameToFieldIdMapping } =
           generateRJSFSchema(
             fields, // Now guaranteed to be an array
@@ -74,7 +70,6 @@ export default function Register() {
         setFieldNameToFieldIdMapping(fieldNameToFieldIdMapping);
       } catch (error) {
         console.error('Error fetching schema:', error);
-        // setError('Failed to load form. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -83,6 +78,7 @@ export default function Register() {
     fetchSchema();
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, []);
+
   const handleSubmit = ({ formData }: any) => {
     setFormData(formData);
   };
@@ -129,6 +125,7 @@ export default function Register() {
   const handleBack = () => {
     router.push('/');
   };
+
   useEffect(() => {
     if (formSchema && uiSchema) {
       console.log('Final Role field schema:', {
@@ -138,6 +135,7 @@ export default function Register() {
       });
     }
   }, [formSchema, uiSchema]);
+
   const StaticHeader = () => (
     <Box
       sx={{
@@ -152,7 +150,7 @@ export default function Register() {
       }}
     >
       <Grid container alignItems="center">
-        <Grid item xs={2}>
+        <Grid item xs={3} sm={2}>
           <Button
             onClick={handleBack}
             sx={{
@@ -172,8 +170,8 @@ export default function Register() {
         </Grid>
         <Grid
           item
-          xs={8}
-          textAlign="center"
+          xs={6}
+          sm={8}
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -182,7 +180,14 @@ export default function Register() {
         >
           <Typography
             variant="h6"
-            sx={{ color: '#572E91', fontWeight: 'bold' }}
+            sx={{
+              color: '#572E91',
+              fontWeight: 'bold',
+              fontSize: {
+                xs: '1rem',
+                sm: '1.25rem',
+              },
+            }}
           >
             Shikshagraha
           </Typography>
@@ -190,7 +195,7 @@ export default function Register() {
       </Grid>
     </Box>
   );
-  //addeed
+
   if (!isAuthenticated) {
     return (
       <Box
@@ -199,42 +204,59 @@ export default function Register() {
           display: 'flex',
           flexDirection: 'column',
           bgcolor: '#f5f5f5',
-          // Allow scrolling if content is large
           paddingBottom: '60px',
-          // margin:'-1rem'
         }}
       >
         <StaticHeader />
-        <Box sx={{ mx: 'auto', width: '100%', maxWidth: 400, mt: 4, px: 2 }}>
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                color: '#572E91',
-                fontWeight: 'bold',
-                mb: 1,
-                textAlign: 'center',
-              }}
-            >
-              Welcome to Shikshagraha
-            </Typography>
+        <Box
+          sx={{
+            mx: 'auto',
+            width: '100%',
+            maxWidth: {
+              xs: '90%',
+              sm: 500,
+              md: 600,
+            },
+            mt: {
+              xs: 2,
+              sm: 4,
+            },
+            px: {
+              xs: 2,
+              sm: 3,
+            },
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              color: '#572E91',
+              fontWeight: 'bold',
+              mb: 2,
+              textAlign: 'center',
+              fontSize: {
+                xs: '1.2rem',
+                sm: '1.5rem',
+              },
+            }}
+          >
+            Welcome to Shikshagraha
+          </Typography>
 
-            {formSchema && (
-              <DynamicForm
-                schema={formSchema}
-                uiSchema={uiSchema}
-                SubmitaFunction={handleSubmit}
-                hideSubmit={false}
-                onChange={({ formData }) => {
-                  if (formData.Role) {
-                    // Clear subroles when role changes
-                    setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
-                  }
-                }}
-                fieldIdMapping={fieldNameToFieldIdMapping}
-              />
-            )}
-          </Box>
+          {formSchema && (
+            <DynamicForm
+              schema={formSchema}
+              uiSchema={uiSchema}
+              SubmitaFunction={handleSubmit}
+              hideSubmit={false}
+              onChange={({ formData }) => {
+                if (formData.Role) {
+                  setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
+                }
+              }}
+              fieldIdMapping={fieldNameToFieldIdMapping}
+            />
+          )}
         </Box>
       </Box>
     );
