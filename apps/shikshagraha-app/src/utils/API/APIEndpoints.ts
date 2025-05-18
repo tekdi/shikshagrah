@@ -20,10 +20,12 @@ export const API_ENDPOINTS = {
   resetPassword: `${baseurl}/user/v1/account/changePassword`,
   formRead: `${baseurl}/user/v1/form/read`,
   ForgotPassword: `${baseurl}/user/v1/account/resetPassword`,
-
+  sendForgetOtp: `${baseurl}/user/v1/account/generateOtp`,
+  
   roleRead: `${baseurl}/entity-management/v1/entities/entityListBasedOnEntityType?entityType=professional_role`,
   userCreate: `${baseurl}/interface/v1/account/create`,
-  checkUser:(email: string) => `${baseurl}/user/v1/public/checkUsername?username=${email}`,
+  checkUser: (email: string) =>
+    `${baseurl}/user/v1/public/checkUsername?username=${email}`,
   udiseSearch: (udise: string) =>
     `${baseurl}/entity-management/v1/entities/details/${udise}`,
   fieldOptionsRead: `${baseurl}/fields/options/read`,
