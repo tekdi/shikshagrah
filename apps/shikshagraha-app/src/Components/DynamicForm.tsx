@@ -1198,7 +1198,7 @@ const DynamicForm = ({
                   ...prev['Sub-Role']?.['ui:options'],
                   enumOptions: newSubroles,
                 },
-                'ui:widget': newSubroles?.length
+                'ui:widget': newSubroles?.length //
                   ? 'CustomMultiSelectWidget'
                   : 'hidden',
               },
@@ -1322,7 +1322,7 @@ const DynamicForm = ({
         const foundOption = subRoleOptions.find(
           (option) => option.value === selectedId
         );
-        return foundOption?._originalData?.externalId ?? selectedId;
+        return foundOption?._originalData?._id ?? selectedId;
       });
     };
     // const userName = formData.firstName;
@@ -1342,7 +1342,7 @@ const DynamicForm = ({
       cluster: formData.Cluster?._id ?? '',
       school: formData.School?._id ?? '',
       registration_code: formData.District?.externalId ?? '',
-      professional_role: localStorage.getItem('role') ?? 'student',
+      professional_role: localStorage.getItem('role'),
       professional_subroles: getSubRoleExternalIds(),
       otp: Number(otp),
       // customFields,

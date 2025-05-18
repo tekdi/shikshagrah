@@ -67,7 +67,7 @@ export const generateRJSFSchema = (
         if (defaultRole) {
           fieldSchema.default = defaultRole.externalId;
         }
-
+        localStorage.setItem('role', defaultRole._id);
         schema.properties[name] = fieldSchema;
 
         uiSchema[name] = {

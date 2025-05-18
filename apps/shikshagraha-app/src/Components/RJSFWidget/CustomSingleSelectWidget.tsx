@@ -59,20 +59,20 @@ const CustomSingleSelectWidget = ({
 
   const handleChange = async (event: any) => {
     const selected = event.target.value;
-    console.log('selected', selected);
     const selectedOption = enumOptions.find(
-      (option) => option.value === selected
+      (option: any) => option.value === selected
     );
 
     // Always use externalId for the value
-    const valueToSend = selectedOption?._originalData?.externalId ?? selected;
+    const valueToSend = selectedOption?._originalData?._id ?? selected;
 
-    onChange(valueToSend);
+    onChange(selected);
 
     if (isRoleField && selected) {
       try {
         const roleIdToFetch = selectedOption?._originalData?._id;
-        localStorage.setItem('role', roleIdToFetch);
+        localStorage.setItem('role', roleIdToFetch); //
+
         if (roleIdToFetch) {
           const subrolesResponse = await getSubroles(roleIdToFetch);
           const subrolesData = subrolesResponse.result ?? [];
@@ -136,7 +136,7 @@ const CustomSingleSelectWidget = ({
       <Select
         id={id}
         labelId={`${id}-label`}
-        value={value}
+        value={value ?? ''}
         onChange={handleChange}
         displayEmpty
         label={label}
