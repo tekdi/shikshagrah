@@ -22,6 +22,7 @@ import {
   sendOtp,
   verifyOtpService,
   resetPassword,
+  sendForgetOtp,
 } from '../services/LoginService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -103,7 +104,7 @@ const PasswordReset = ({ name }: { name: string }) => {
       };
 
       console.log(otpPayload);
-      const response = await sendOtp(otpPayload);
+      const response = await sendForgetOtp(otpPayload);
 
       console.log(response);
       if (response?.responseCode === 'OK') {
@@ -147,7 +148,7 @@ const PasswordReset = ({ name }: { name: string }) => {
         ...(isMobile && { phone_code: '+91' }),
       };
 
-      await sendOtp(otpPayload);
+      await sendForgetOtp(otpPayload);
       setSecondsLeft(600); // Reset expiration timer
     } catch (err) {
       setError('Failed to resend OTP');
@@ -481,7 +482,7 @@ const PasswordReset = ({ name }: { name: string }) => {
             </Box>
             <TextField
               fullWidth
-              label="Email/Mobile/Username"
+              label="Email/Mobile"
               name="identifier"
               value={formData.identifier}
               onChange={handleInputChange}

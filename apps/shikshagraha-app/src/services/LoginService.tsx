@@ -284,7 +284,31 @@ export const sendOtp = async (requestData: any) => {
     }
   }
 };
+export const sendForgetOtp = async (requestData: any) => {
+  try {
+    const response = await axios.post(
+      `${API_ENDPOINTS.sendForgetOtp}`,
+      requestData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          // 'X-auth-token': '', // If token is dynamic, pass it as param
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error sending OTP:', error.response?.data);
+      return error.response?.data;
+    } else {
+      console.error('Unexpected error:', error);
+    }
+  }
+};
 
+
+;
 export const readIndividualTenantData = async (tenantId: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   if (!baseUrl) {

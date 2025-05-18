@@ -884,7 +884,7 @@ const DynamicForm = ({
     async ({ formData, errors }: { formData: any; errors: any }) => {
       const prevRole = prevFormData.current?.Role;
       const currentRole = formData?.Role;
-
+      console.log('currentRole', currentRole);
       // Create a new form data object
       let newFormData = { ...formData };
 
@@ -1327,6 +1327,7 @@ const DynamicForm = ({
     };
     // const userName = formData.firstName;
     const isMobile = /^[6-9]\d{9}$/.test(formData.mobile);
+    console.log(formData.Roles, 'roles');
     const payload = {
       name:
         formData.firstName + (formData.lastName ? ` ${formData.lastName}` : ''),
@@ -1341,7 +1342,7 @@ const DynamicForm = ({
       cluster: formData.Cluster?._id ?? '',
       school: formData.School?._id ?? '',
       registration_code: formData.District?.externalId ?? '',
-      professional_role: localStorage.getItem('role') ?? '',
+      professional_role: localStorage.getItem('role') ?? 'student',
       professional_subroles: getSubRoleExternalIds(),
       otp: Number(otp),
       // customFields,
@@ -1388,9 +1389,7 @@ const DynamicForm = ({
       setShowError(true);
       setAlertSeverity('error');
       console.log('registrationResponse', registrationResponse);
-      setErrorMessage(
-        registrationResponse.data.message 
-      );
+      setErrorMessage(registrationResponse.data.message);
     }
   };
 
