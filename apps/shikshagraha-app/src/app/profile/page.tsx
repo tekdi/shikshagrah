@@ -596,30 +596,61 @@ export default function Profile({ params }: { params: { id: string } }) {
                   <Typography variant="subtitle1" textAlign="left" color="gray">
                     {userData?.role}
                   </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    textAlign="left"
-                    color="darkslategray"
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                  >
-                  {userData?.username}
-                  </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    textAlign="left"
-                    color="darkslategray"
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                  >
-                {userData?.email}
-                  </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    textAlign="left"
-                    color="darkslategray"
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                  >
-                    {userData?.phone}
-                  </Typography>
+                  {userData?.username && (
+                    <Typography
+                      variant="subtitle2"
+                      textAlign="left"
+                      color="darkslategray"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        fontWeight: 'bold',
+                        fontSize: { xs: '10px', sm: '12px' },
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' }
+                      }}
+                    >
+                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Username:</Box> {userData.username}
+                    </Typography>
+                  )}
+                  {userData?.email && (
+                    <Typography
+                      variant="subtitle2"
+                      textAlign="left"
+                      color="darkslategray"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        fontWeight: 'bold',
+                        fontSize: { xs: '10px', sm: '12px' },
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' }
+                      }}
+                    >
+                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Email:</Box> {userData.email}
+                    </Typography>
+                  )}
+                  {userData?.phone && (
+                    <Typography
+                      variant="subtitle2"
+                      textAlign="left"
+                      color="darkslategray"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        fontWeight: 'bold',
+                        fontSize: {  xs: '10px', sm: '12px' },
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' }
+                      }}
+                    >
+                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Phone:</Box> {userData.phone}
+                    </Typography>
+                  )}
+
                   <Typography
                     component="span"
                     sx={{
