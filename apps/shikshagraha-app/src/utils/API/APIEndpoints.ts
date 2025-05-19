@@ -1,4 +1,4 @@
-import ForgotPassword from "../../app/forgetpassword/page";
+import ForgotPassword from '../../app/forgetpassword/page';
 
 const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -15,12 +15,19 @@ export const API_ENDPOINTS = {
   userAuth: `${baseurl}/user/auth`,
 
   accountLogin: `${baseurl}/user/v1/account/login`,
-  sendOtp: `${baseurl}/user/v1/account/generateOtp`,
+  sendOtp: `${baseurl}/user/v1/account/registrationOtp`,
   userProfileRead: `${baseurl}/user/v1/user/read`,
   resetPassword: `${baseurl}/user/v1/account/changePassword`,
   formRead: `${baseurl}/user/v1/form/read`,
   ForgotPassword: `${baseurl}/user/v1/account/resetPassword`,
-
+  sendForgetOtp: `${baseurl}/user/v1/account/generateOtp`,
+  
+  roleRead: `${baseurl}/entity-management/v1/entities/entityListBasedOnEntityType?entityType=professional_role`,
+  userCreate: `${baseurl}/interface/v1/account/create`,
+  checkUser: (email: string) =>
+    `${baseurl}/user/v1/public/checkUsername?username=${email}`,
+  udiseSearch: (udise: string) =>
+    `${baseurl}/entity-management/v1/entities/details/${udise}`,
   fieldOptionsRead: `${baseurl}/fields/options/read`,
   cohortSearch: `${baseurl}/cohort/search`,
   fieldOptionDelete: (type: string, option: string) =>

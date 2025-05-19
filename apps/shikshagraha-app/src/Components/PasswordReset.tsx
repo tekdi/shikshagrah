@@ -22,6 +22,7 @@ import {
   sendOtp,
   verifyOtpService,
   resetPassword,
+  sendForgetOtp,
 } from '../services/LoginService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -103,7 +104,7 @@ const PasswordReset = ({ name }: { name: string }) => {
       };
 
       console.log(otpPayload);
-      const response = await sendOtp(otpPayload);
+      const response = await sendForgetOtp(otpPayload);
 
       console.log(response);
       if (response?.responseCode === 'OK') {
@@ -147,7 +148,7 @@ const PasswordReset = ({ name }: { name: string }) => {
         ...(isMobile && { phone_code: '+91' }),
       };
 
-      await sendOtp(otpPayload);
+      await sendForgetOtp(otpPayload);
       setSecondsLeft(600); // Reset expiration timer
     } catch (err) {
       setError('Failed to resend OTP');
@@ -194,7 +195,7 @@ const PasswordReset = ({ name }: { name: string }) => {
 
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Password and confirm password must be the same.');
       setShowError(true);
       return;
     }
@@ -245,7 +246,7 @@ const PasswordReset = ({ name }: { name: string }) => {
     } else if (name === 'confirmPassword') {
       setConfirmPassword(val);
       if (val !== newPassword) {
-        return 'Passwords do not match';
+        return 'Password and confirm password must be the same.';
       }
     } else {
       return null;
@@ -476,12 +477,12 @@ const PasswordReset = ({ name }: { name: string }) => {
           <>
             <Box sx={{ width: '100%' }}>
               <Typography variant="h5" gutterBottom>
-                Reset Password
+                Forgot Password
               </Typography>
             </Box>
             <TextField
               fullWidth
-              label="Email/Mobile/Username"
+              label="Email/Mobile"
               name="identifier"
               value={formData.identifier}
               onChange={handleInputChange}

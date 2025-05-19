@@ -41,7 +41,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const usernameRegex = /^[a-zA-Z0-9_]+$/; //add
+  const usernameRegex = /^[a-zA-Z0-9_@.]+$/; //add
   const lowerLabel = label?.toLowerCase();
 
   const isOptional = () => {
@@ -77,7 +77,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
         break;
       case 'confirm password':
-        if (val !== formData.password) return 'Passwords do not match.';
+        if (val !== formData.password) return 'Password and confirm password must be the same.';
         break;
     }
     return null;

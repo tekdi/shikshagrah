@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef, use } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Form from '@rjsf/mui';
 import validator from '@rjsf/validator-ajv8';
 import axios from 'axios';
@@ -43,6 +43,7 @@ import {
 } from '../services/LoginService';
 import { useRouter } from 'next/navigation';
 import OTPDialog from './OTPDialog';
+import { API_ENDPOINTS } from '../utils/API/APIEndpoints';
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
   const { uiSchema } = props;
@@ -86,6 +87,18 @@ const DynamicForm = ({
   const [isOpenOTP, setIsOpenOTP] = useState(false);
   const [registerData, setRegisterData] = useState<any>({});
   const [hashCode, setHashCode] = useState('');
+  const [subroles, setSubroles] = useState<any[]>([]);
+  const [alertSeverity, setAlertSeverity] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const isValidMobile = (mobile: string) => {
+    return /^[6-9]\d{9}$/.test(mobile);
+  };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     if (formData?.dob) {
@@ -139,17 +152,17 @@ const DynamicForm = ({
         setFormUiSchema(oldFormUiSchema);
       }
     }
-    if (formData?.roles === 'HT & Officials') {
+    if (formData?.Role !== '') {
       const updatedFormSchema = {
         ...formSchema,
-        required: formSchema.required?.filter((key) => key !== 'roles'),
+        required: formSchema.required?.filter((key) => key !== 'Role'),
       };
 
       const updatedFormUiSchema = {
         ...formUiSchema,
         subRoles: {
           ...formUiSchema.subRoles,
-          'ui:widget': 'CustomMultiSelectWidget',
+          'ui:widget': 'CustomSingleSelectWidget',
         },
       };
 
@@ -158,7 +171,7 @@ const DynamicForm = ({
     } else {
       const updatedFormSchema = {
         ...formSchema,
-        required: formSchema.required?.filter((key) => key !== 'roles'),
+        required: formSchema.required?.filter((key) => key !== 'role'),
       };
 
       const updatedFormUiSchema = {
@@ -830,44 +843,128 @@ const DynamicForm = ({
       setShowEmailMobileError('');
     }
   }, [formData.email, formData.mobile]);
-  const handleChange = async ({
-    formData,
-    errors,
-  }: {
-    formData: any;
-    errors: any;
-  }) => {
-    setFormData(formData);
 
-    const firstName = (formData?.firstName || '').trim();
-    const lastName = (formData?.lastName || '').trim();
+  const checkUsernameAvailability = useCallback(
+    _.debounce(async (username) => {
+      if (!username) {
+        setUsernameError('');
+        setIsUsernameValid(false);
+        return;
+      }
 
-    // And optionally prevent cases like "___" when names are empty strings:
-    // if ((firstName || lastName) && !(firstName === '' && lastName === '')) {
-    //   formData.Username = `${firstName}_${lastName}`.toLowerCase();
-    // } else {
-    //   formData.Username = undefined;
-    // }
+      try {
+        const response = await axios.get(
+          `${API_ENDPOINTS.checkUser(username)}`,
+          {
+            headers: {
+              Origin: 'localhost',
+            },
+          }
+        );
 
-    if (formData.email && formData.mobile) {
-      // Clear message if both fields are filled
-      setShowEmailMobileError('');
-    } else if (formData.email) {
-      setShowEmailMobileError(
-        "Contact number is optional since you've provided an email"
-      );
-    } else if (formData.mobile) {
-      setShowEmailMobileError(
-        "Email is optional since you've provided a Contact number"
-      );
-    } else {
-      // Clear message if neither field is filled
-      setShowEmailMobileError('');
-    }
+        if (response?.data?.message === 'Username is already taken') {
+          setErrorMessage(response?.data?.message);
+          setShowError(true);
+          setAlertSeverity('error');
+          setIsUsernameValid(false);
+        } else {
+          setErrorMessage('');
+          setShowError(true);
+          setIsUsernameValid(true);
+        }
+      } catch (error) {
+        setUsernameError('Error checking username availability');
+        setIsUsernameValid(false);
+      }
+    }, 500),
+    []
+  );
 
-    setFormData(formData);
-    setFormUiSchema(formUiSchema);
-  };
+  const handleChange = useCallback(
+    async ({ formData, errors }: { formData: any; errors: any }) => {
+      const prevRole = prevFormData.current?.Role;
+      const currentRole = formData?.Role;
+      console.log('currentRole', currentRole);
+      // Create a new form data object
+      let newFormData = { ...formData };
+
+      // Check if role changed and clear sub-roles if it did
+      if (currentRole && currentRole !== prevRole) {
+        newFormData = {
+          ...newFormData,
+          'Sub-Role': undefined,
+        };
+        setSubroles([]);
+        setFormData(newFormData);
+        setFormUiSchema((prev) => ({
+          ...prev,
+          'Sub-Role': {
+            ...prev['Sub-Role'],
+            'ui:widget': 'hidden',
+          },
+        }));
+      }
+
+      // Only autofill email/mobile if username changed
+      const usernameChanged =
+        formData.Username !== prevFormData.current?.Username;
+
+      if (usernameChanged) {
+        if (isValidMobile(formData.Username)) {
+          newFormData = {
+            ...newFormData,
+            mobile: formData.Username,
+          };
+          setShowEmailMobileError(
+            "Email is optional since you've provided a mobile number"
+          );
+        } else if (isValidEmail(formData.Username)) {
+          newFormData = {
+            ...newFormData,
+            email: formData.Username,
+          };
+          setShowEmailMobileError(
+            "Mobile is optional since you've provided an email"
+          );
+        } else {
+          setShowEmailMobileError(
+            'Username must be either a valid email or 10-digit mobile number'
+          );
+        }
+      }
+
+      // Check username availability if username changed
+      if (usernameChanged) {
+        checkUsernameAvailability(formData.Username);
+      }
+
+      // Update form data
+      setFormData(newFormData);
+      prevFormData.current = newFormData;
+
+      // Handle email/mobile validation
+      if (newFormData.email && newFormData.mobile) {
+        setShowEmailMobileError('');
+      } else if (newFormData.email) {
+        setShowEmailMobileError(
+          "Contact number is optional since you've provided an email"
+        );
+      } else if (newFormData.mobile) {
+        setShowEmailMobileError(
+          "Email is optional since you've provided a Contact number"
+        );
+      } else {
+        setShowEmailMobileError('');
+      }
+
+      // Call the onChange prop if it exists
+      if (onChange) {
+        onChange({ formData: newFormData, errors });
+      }
+    },
+    [onChange, checkUsernameAvailability]
+  );
+
   const handleSubmit = ({ formData }: { formData: any }) => {
     //step-1 : Check and remove skipped Data
     function filterFormData(skipHideObject, formData) {
@@ -1012,43 +1109,106 @@ const DynamicForm = ({
 
     return updatedError;
   };
+  useEffect(() => {
+    if (!formData.Role) {
+      setSubroles([]);
+      // Also clear any selected subroles
+      setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
+    }
+  }, [formData.Role]);
+  useEffect(() => {
+    setFormSchema((prevSchema) => {
+      const updatedProperties = { ...prevSchema.properties };
+
+      if (updatedProperties.email) {
+        updatedProperties.email.readOnly = false;
+        updatedProperties.email.required = false;
+      }
+
+      if (updatedProperties.mobile) {
+        updatedProperties.mobile.readOnly = false;
+        updatedProperties.mobile.required = false;
+      }
+
+      return { ...prevSchema, properties: updatedProperties };
+    });
+
+    setFormUiSchema((prevUiSchema) => {
+      const updatedUiSchema = { ...prevUiSchema };
+
+      if (updatedUiSchema.email) {
+        updatedUiSchema.email['ui:disabled'] = false;
+        updatedUiSchema.email['ui:readonly'] = false;
+      }
+
+      if (updatedUiSchema.mobile) {
+        updatedUiSchema.mobile['ui:disabled'] = false;
+        updatedUiSchema.mobile['ui:readonly'] = false;
+      }
+
+      return updatedUiSchema;
+    });
+  }, []);
   const handleFetchData = React.useCallback((response: any) => {
     // Example: Update specific fields from API response
     setFormData((prev) => ({
       ...prev,
-      state: {
-        _id: response?.state?._id || '',
-        name: response?.state?.name || '',
-      },
-      district: {
-        _id: response?.district?._id || '',
-        name: response?.district?.name || '',
-      },
-      block: {
-        _id: response?.block?._id || '',
-        name: response?.block?.name || '',
-      },
-      cluster: {
-        _id: response?.cluster?._id || '',
-        name: response?.cluster?.name || '',
-      },
-      school: {
-        _id: response?.school?._id || '',
-        name: response?.school?.name || '',
-      },
-      udise: response?.udise || '',
+      State: response.state ?? { _id: '', name: '', externalId: '' },
+      District: response.district ?? { _id: '', name: '', externalId: '' },
+      Block: response.block ?? { _id: '', name: '', externalId: '' },
+      Cluster: response.cluster ?? { _id: '', name: '', externalId: '' },
+      School: response.School ?? { _id: '', name: '', externalId: '' }, // Note the capitalization here
+      udise: response.udise ?? '',
     }));
   }, []);
   const MemoizedUdiaseWithButton = React.memo(({ onFetchData, ...props }) => (
     <UdiaseWithButton {...props} onFetchData={onFetchData} />
   ));
+  const subroleOptions = React.useMemo(() => {
+    return subroles?.map((subrole) => ({
+      value: subrole.value,
+      label: subrole.label,
+      // Include any additional data needed
+      ...(subrole._originalData && { _originalData: subrole._originalData }),
+    }));
+  }, [subroles]);
+  console.log('formSchema', formData);
   const widgets = React.useMemo(
     () => ({
-      CustomMultiSelectWidget,
+      CustomMultiSelectWidget: (props) => (
+        <CustomMultiSelectWidget
+          {...props}
+          options={{
+            ...props.options,
+            enumOptions: subroles,
+          }}
+        />
+      ),
+      CustomSingleSelectWidget: (props) => (
+        <CustomSingleSelectWidget
+          {...props}
+          onSubrolesChange={(newSubroles) => {
+            setSubroles(newSubroles);
+            // Force update the form schema
+            setFormUiSchema((prev) => ({
+              ...prev,
+              'Sub-Role': {
+                ...prev['Sub-Role'],
+                'ui:options': {
+                  ...prev['Sub-Role']?.['ui:options'],
+                  enumOptions: newSubroles,
+                },
+                'ui:widget': newSubroles?.length //
+                  ? 'CustomMultiSelectWidget'
+                  : 'hidden',
+              },
+            }));
+          }}
+        />
+      ),
       CustomCheckboxWidget,
       CustomDateWidget,
       SearchTextFieldWidget,
-      CustomSingleSelectWidget,
       CustomRadioWidget,
       CustomTextFieldWidget,
       UdiaseWithButton: (props) => (
@@ -1056,7 +1216,7 @@ const DynamicForm = ({
       ),
       CustomEmailWidget,
     }),
-    [handleFetchData]
+    [handleFetchData, subroles]
   );
   const validateForm = () => {
     const isValid = !!(formData.email || formData.mobile);
@@ -1108,51 +1268,41 @@ const DynamicForm = ({
     // const userName = formData.firstName;
 
     let otpPayload;
-    if (formData.email) {
-      otpPayload = {
-        email: formData.email,
-        reason: 'signup',
-        firstName: formData.firstName,
-        key: 'SendOtpOnMail',
-        replacements: {
-          '{eventName}': 'Shiksha Graha OTP',
-          '{programName}': 'Shiksha Graha',
-        },
-      };
-    } else if (formData.mobile) {
-      otpPayload = {
-        mobile: formData.mobile,
-        reason: 'signup',
-      };
-    } else {
-      setShowError(true);
-      setErrorMessage('Either email or mobile must be provided');
-      return;
-    }
+    const hasMobile = !!formData.mobile?.trim(); // Checks if user entered any mobile number
+    const isValidMobile = /^[6-9]\d{9}$/.test(formData.mobile?.trim() ?? '');
+
+    otpPayload = {
+      name: `${formData.firstName}${
+        formData.lastName ? ` ${formData.lastName}` : ''
+      }`,
+      email: formData.email,
+      ...(hasMobile && { phone: formData.mobile.trim() }),
+      ...(hasMobile && { phone_code: '+91' }),
+      password: formData.password,
+      registration_code: 'blr',
+      // registration_code: formData.Distric._id, // Using default value as per your curl example
+    };
 
     const registrationResponse = await sendOtp(otpPayload);
-    console.log('registrationResponse', registrationResponse);
-    if (
-      registrationResponse?.params?.successmessage === 'OTP sent successfully'
-    ) {
+    if (registrationResponse?.responseCode === 'OK') {
       setRequestData({
         usercreate: {
           request: {
-            userName: registrationResponse?.result?.userData?.username,
+            userName: formData.username,
           },
         },
       });
-      setHashCode(registrationResponse?.result?.data?.hash);
-      setErrorMessage(registrationResponse.message);
+      // setErrorMessage(registrationResponse.message);
+      // setAlertSeverity('success');
       setIsOpenOTP(true);
     } else {
       setShowError(true);
-      setErrorMessage(
-        registrationResponse.data && registrationResponse.data.params.err
-      );
+      setAlertSeverity('error');
+      setErrorMessage(registrationResponse.message);
     }
   };
-  const handleRegister = async (otp: string) => {
+  const handleRegister = async (otp) => {
+    console.log('formData', formData);
     if (!formData.email && !formData.mobile) {
       setShowEmailMobileError(
         'Please provide either an email or a mobile number.'
@@ -1160,122 +1310,91 @@ const DynamicForm = ({
       return;
     }
     setIsOpenOTP(false);
-    const customFields = Object.entries(fieldIdMapping).flatMap(
-      ([name, fieldId]) => {
-        let fieldValue = formData[name] ?? '';
 
-        // Skip subRoles if not present or empty
-        if (name === 'subRoles') {
-          if (
-            !fieldValue ||
-            (Array.isArray(fieldValue) && fieldValue.length === 0)
-          ) {
-            return []; // Skip this field
-          }
-          // Ensure it's an array
-          fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-          return [{ fieldId, value: fieldValue }];
-        }
+    const getSubRoleExternalIds = () => {
+      if (!formData['Sub-Role'] || formData['Sub-Role'].length === 0) return [];
 
-        // Ensure roles is an array
-        if (name === 'roles') {
-          fieldValue = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-          return [{ fieldId, value: fieldValue }];
-        }
+      // Find matching subroles in your uiSchema options
+      const subRoleOptions =
+        uiSchema['Sub-Role']?.['ui:options']?.enumOptions ?? [];
 
-        // For other fields, stringify if object
-        if (typeof fieldValue === 'object' && fieldValue !== null) {
-          return [
-            {
-              fieldId,
-              value: JSON.stringify({
-                id: fieldValue._id ?? fieldValue.id ?? '',
-                name: fieldValue.name ?? '',
-              }),
-            },
-          ];
-        }
-
-        // For primitives
-        return [{ fieldId, value: fieldValue }];
-      }
-    );
-
+      return formData['Sub-Role'].map((selectedId) => {
+        const foundOption = subRoleOptions.find(
+          (option) => option.value === selectedId
+        );
+        return foundOption?._originalData?._id ?? selectedId;
+      });
+    };
     // const userName = formData.firstName;
+    const isMobile = /^[6-9]\d{9}$/.test(formData.mobile);
+    console.log(formData.Roles, 'roles');
     const payload = {
-      name: formData.firstName,
+      name:
+        formData.firstName + (formData.lastName ? ` ${formData.lastName}` : ''),
       username: formData.Username,
       password: formData.password,
-      gender: formData.gender ?? 'male',
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      mobile: formData.mobile,
       email: formData.email,
-      tenantCohortRoleMapping: [
-        {
-          tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
-          roleId: 'ac21322c-9c7c-4a39-8c56-4b5722f14c04',
-        },
-      ],
-      customFields,
+      ...(isMobile && { phone: formData.mobile }),
+      ...(isMobile && { phone_code: '+91' }),
+      state: formData.State?._id ?? '',
+      district: formData.District?._id ?? '',
+      block: formData.Block?._id ?? '',
+      cluster: formData.Cluster?._id ?? '',
+      school: formData.School?._id ?? '',
+      registration_code: formData.District?.externalId ?? '',
+      professional_role: localStorage.getItem('role'),
+      professional_subroles: getSubRoleExternalIds(),
+      otp: Number(otp),
+      // customFields,
     };
 
-    console.log('payload', payload);
-
     setRegisterData(payload);
-    let verifyOTPpayload;
-    if (formData.email) {
-      verifyOTPpayload = {
-        email: formData.email,
-        reason: 'signup',
-        otp: otp,
-        hash: hashCode,
-      };
-    } else {
-      verifyOTPpayload = {
-        mobile: formData.mobile,
-        reason: 'signup',
-        otp: otp,
-        hash: hashCode,
-      };
-    }
 
-    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
-    if (
-      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
-    ) {
-      const registrationResponse = await registerUserService(payload);
-      if (
-        registrationResponse?.params?.successmessage ===
-        'User created successfully'
-      ) {
-        setRequestData({
-          usercreate: {
-            request: {
-              userName: registrationResponse?.result?.userData?.username,
-            },
+    const registrationResponse = await registerUserService(payload);
+    if (registrationResponse?.responseCode === 'OK') {
+      setRequestData({
+        usercreate: {
+          request: {
+            userName: registrationResponse?.result?.user?.username,
           },
-        });
-        setErrorMessage(registrationResponse.message);
-        setDialogOpen(true);
-      } else {
-        setShowError(true);
-        setErrorMessage(
-          registrationResponse.data && registrationResponse.data.params.err
+        },
+      });
+      setErrorMessage(registrationResponse.message);
+      setAlertSeverity('success');
+      const accessToken = registrationResponse?.result?.access_token;
+      const refreshToken = registrationResponse?.result?.refresh_token;
+      localStorage.setItem('accToken', accessToken);
+      localStorage.setItem('refToken', refreshToken);
+      localStorage.setItem(
+        'firstname',
+        registrationResponse?.result?.user?.name
+      );
+      localStorage.setItem('userId', registrationResponse?.result?.user?.id);
+      localStorage.setItem(
+        'name',
+        registrationResponse?.result?.user?.username
+      );
+      router.push('/home');
+      const organizations =
+        registrationResponse?.result?.user?.organizations ?? [];
+      const orgId = organizations[0]?.id;
+      if (orgId) {
+        localStorage.setItem(
+          'headers',
+          JSON.stringify({ 'org-id': orgId.toString() })
         );
       }
+      // setDialogOpen(true);
     } else {
-      console.log('verifyOtpResponse', verifyOtpResponse);
       setShowError(true);
-      setErrorMessage(
-        verifyOtpResponse.data && verifyOtpResponse.data.params.err
-      );
+      setAlertSeverity('error');
+      console.log('registrationResponse', registrationResponse);
+      setErrorMessage(registrationResponse.data.message);
     }
   };
 
   const handleDialogClose = async () => {
     setDialogOpen(false);
-    console.log('handleDialogClose', formData);
     try {
       const response = await signin({
         username: formData.Username,
@@ -1356,6 +1475,13 @@ const DynamicForm = ({
   };
   return (
     <>
+      {errorMessage && showError && (
+        <Box sx={{ my: 2 }}>
+          <Alert severity={alertSeverity} onClose={() => setShowError(false)}>
+            {errorMessage}
+          </Alert>
+        </Box>
+      )}
       {!isCallSubmitInHandle ? (
         <Form
           ref={formRef}
@@ -1391,18 +1517,19 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleSendOtp}
+              // onClick={handleRegister}
               disabled={
                 !formData?.firstName ||
                 !formData?.lastName ||
                 !formData?.password ||
                 (!formData?.email && !formData?.mobile) ||
                 !formData?.confirm_password ||
-                !formData.roles ||
-                (formData?.roles.includes('HT & Officials') &&
-                  !formData?.subRoles?.length) ||
+                !formData.Role ||
                 !formData?.udise ||
-                !formData?.school ||
-                !formData?.state
+                !isUsernameValid ||
+                (formData.Role !== 'parents' && formData.Role !== 'others' && (!formData?.['Sub-Role'] || formData['Sub-Role'].length === 0))
+                // !formData?.school ||
+                // !formData?.state
               }
               sx={{
                 whiteSpace: 'nowrap',
@@ -1486,7 +1613,7 @@ const DynamicForm = ({
           </Button>
         </DialogActions>
       </Dialog>
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      {/* {errorMessage && <Alert severity={alertSeverity}>{errorMessage}</Alert>} */}
     </>
   );
 };
