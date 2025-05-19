@@ -1527,8 +1527,7 @@ const DynamicForm = ({
                 !formData.Role ||
                 !formData?.udise ||
                 !isUsernameValid ||
-                !formData?.['Sub-Role'] ||
-                formData['Sub-Role'].length === 0
+                (formData.Role !== 'parents' && formData.Role !== 'others' && (!formData?.['Sub-Role'] || formData['Sub-Role'].length === 0))
                 // !formData?.school ||
                 // !formData?.state
               }
