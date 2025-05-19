@@ -1,9 +1,15 @@
-//@ts-check
+// next.config.ts
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+const isDev = process.env.NODE_ENV === 'development';
 const { composePlugins, withNx } = require('@nx/next');
-// @ts-ignore
-const BASE_PATH = process.env.NEXT_PUBLIC_SHIKSHAGRAHA_BASEPATH || '';
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: false,
+});
+
 /**
  * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
  **/
@@ -12,17 +18,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  basePath: '/shikshalokam',
   nx: {
-    // Set this to true if you would like to use SVGR
-    // See: https://github.com/gregberge/svgr
     svgr: false,
   },
-  basePath: '/shikshalokam',
 };
 
-const plugins = [
-  // Add more Next.js plugins to this list if needed.
-  withNx,
-];
+const plugins = [withNx, withPWA];
 
 module.exports = composePlugins(...plugins)(nextConfig);
