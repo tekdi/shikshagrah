@@ -4,9 +4,15 @@
 const { composePlugins, withNx } = require('@nx/next');
 // @ts-ignore
 const BASE_PATH = process.env.NEXT_PUBLIC_SHIKSHAGRAHA_BASEPATH || '';
-/**
- * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
- **/
+
+const isDev = process.env.NODE_ENV === 'development';
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: false,
+});
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -20,9 +26,6 @@ const nextConfig = {
   basePath: '',
 };
 
-const plugins = [
-  // Add more Next.js plugins to this list if needed.
-  withNx,
-];
+const plugins = [withNx, withPWA];
 
 module.exports = composePlugins(...plugins)(nextConfig);
