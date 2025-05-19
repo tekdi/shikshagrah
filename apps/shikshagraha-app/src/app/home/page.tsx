@@ -162,14 +162,6 @@ export default function Home() {
                 >
                   Welcome, {localStorage.getItem('firstname')}
                 </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ mt: 1, fontSize: { xs: '16px', sm: '20px' } }}
-                >
-                  Browse Shikshagraha library to find relevant content based on
-                  your preferences (Board, Medium, Class, Subject)
-                </Typography>
               </Box>
 
               <Box
