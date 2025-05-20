@@ -95,6 +95,7 @@ export default function Login() {
       };
       console.log('Signin payload:', payload);
       const response = await signin(payload);
+
       const accessToken = response?.result?.access_token;
       const refreshToken = response?.result?.refresh_token;
       const userId = response?.result?.user?.id;
@@ -111,13 +112,12 @@ export default function Login() {
         localStorage.setItem('firstname', response?.result?.user?.name);
         localStorage.setItem('userId', response?.result?.user?.id);
         localStorage.setItem('name', response?.result?.user?.username);
+        document.cookie = `accToken=${accessToken}; path=/; secure; SameSite=Strict`;
+        document.cookie = `userId=${userId}; path=/; secure; SameSite=Strict`;
         router.push('/home');
         const organizations = response?.result?.user?.organizations || [];
         const orgId = organizations[0]?.id;
-        if (accessToken && userId) {
-          document.cookie = `accToken=${token}; path=/; secure; SameSite=Strict`;
-          document.cookie = `userId=${userId}; path=/; secure; SameSite=Strict`;
-        }
+
         if (orgId) {
           localStorage.setItem(
             'headers',
