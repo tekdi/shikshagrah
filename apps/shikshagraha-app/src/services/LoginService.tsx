@@ -79,7 +79,6 @@ export const readHomeListForm = async (token: string) => {
         'X-Auth-Token': token,
       },
     });
-    debugger;
     return data;
   } catch (err: unknown | any) {
     if (err.status == 401) {
@@ -87,7 +86,6 @@ export const readHomeListForm = async (token: string) => {
       localStorage.clear();
       window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
     }
-    debugger;
     if (axios.isAxiosError(err)) {
       console.error(
         'Error fetching tenant data:',
