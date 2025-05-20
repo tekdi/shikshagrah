@@ -57,7 +57,7 @@ export default function Details({ details }: DetailsProps) {
       // if (trackable?.autoBatch?.toString().toLowerCase() === 'no') {
       //   router.push(`/content-details/${identifier}`);
       // } else {
-      // router.push(`/details/${identifier}`);
+      router.push(`/details/${identifier}`);
       // }
     } catch (error) {
       console.error('Failed to fetch content:', error);
@@ -90,6 +90,8 @@ export default function Details({ details }: DetailsProps) {
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: false,
+        showBackIcon: true,
+        backIconClick: onBackClick,
       }}
       // isFooter={true}
       showLogo={true}

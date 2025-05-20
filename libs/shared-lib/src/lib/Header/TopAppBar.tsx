@@ -65,7 +65,7 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
   bgcolor = '#FF9911',
 }) => {
   const accountIcon = actionIcons.find((icon) => icon.ariaLabel === 'Account');
-
+  console.log('showBackIcon', showBackIcon);
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar
@@ -79,9 +79,9 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
         }}
       >
         <Toolbar>
-          {showMenuIcon && (
-            <>
-              {/* <IconButton
+          {/* {showMenuIcon && ( */}
+          <>
+            {/* <IconButton
                 size="large"
                 edge="start"
                 color="inherit"
@@ -90,30 +90,30 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
               >
                 <MenuIcon />
               </IconButton> */}
-              {showBackIcon && (
-                <IconButton
-                  size="large"
-                  edge="start"
-                  color="inherit"
-                  aria-label="back"
-                  onClick={backIconClick}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-              )}
-              <Typography
-                component="div"
-                sx={{
-                  flexGrow: 1,
-                  textAlign: 'center',
-                  fontSize: '22px',
-                  fontWeight: 700,
-                }}
+            {showBackIcon && (
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="back"
+                onClick={backIconClick}
               >
-                {title}
-              </Typography>
-            </>
-          )}
+                <ArrowBackIcon />
+              </IconButton>
+            )}
+            <Typography
+              component="div"
+              sx={{
+                flexGrow: 1,
+                textAlign: 'center',
+                fontSize: '22px',
+                fontWeight: 700,
+              }}
+            >
+              {title}
+            </Typography>
+          </>
+          {/* )} */}
 
           {profileIcon && profileIcon.length > 0 && (
             <IconButton

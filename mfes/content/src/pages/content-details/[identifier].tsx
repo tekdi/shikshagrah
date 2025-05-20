@@ -19,14 +19,18 @@ import Grid from '@mui/material/Grid2';
 
 import { useRouter } from 'next/router';
 import { fetchContent } from '../../services/Read';
-import { createUserCertificateStatus } from '../../services/Certificate';
+import {
+  createUserCertificateStatus,
+  getUserCertificateStatus,
+} from '../../services/Certificate';
 import SG_LOGO from '../../../public/assests/images/SG_Logo.png';
+import InfoCard from '../../components/InfoCard';
 interface ContentDetailsObject {
   name: string;
   [key: string]: any;
 }
 
-const ContentDetails = () => {
+const ContentDetails = (props: any) => {
   const router = useRouter();
   const { identifier } = router.query;
   const [searchValue, setSearchValue] = useState('');
@@ -34,27 +38,40 @@ const ContentDetails = () => {
   const [contentDetails, setContentDetails] =
     useState<ContentDetailsObject | null>(null);
   const theme = useTheme();
-  const handleBackClick = () => {
-    router.back(); // Navigate to the previous page
-  };
-  const handleAccountClick = (event: React.MouseEvent<HTMLElement>) => {
-    console.log('Account clicked');
-    setAnchorEl(event.currentTarget);
-  };
-  const fetchContentDetails = async () => {
-    try {
-      if (identifier) {
-        const result = await fetchContent(identifier as string);
-        setContentDetails(result);
-      }
-    } catch (error) {
-      console.error('Failed to fetch content:', error);
-    }
-  };
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
   useEffect(() => {
+    const fetchContentDetails = async () => {
+      try {
+        const result = await fetchContent(identifier as string);
+        const userId = localStorage.getItem('userId');
+        setContentDetails(result);
+        if (!userId) {
+          setContentDetails(result);
+          return;
+        }
+        const data = await getUserCertificateStatus({
+          userId: userId,
+          courseId: identifier as string,
+        });
+        if (
+          data?.result?.status === 'enrolled' ||
+          data?.result?.status === 'completed'
+        ) {
+          router.replace(`/details/${identifier}`);
+        } else {
+          setContentDetails(result);
+        }
+      } catch (error) {
+        console.error('Failed to fetch content:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     if (identifier) {
       fetchContentDetails();
+    } else {
+      setIsLoading(false);
     }
   }, [identifier]);
 
@@ -64,86 +81,40 @@ const ContentDetails = () => {
 
   const handleClick = async () => {
     try {
-      // const data = await createUserCertificateStatus({
-      //   userId: localStorage.getItem('userId') ?? '',
-      //   courseId: identifier as string,
-      // });
-      // console.log('createUserCertificateStatus', data);
+      const data = await createUserCertificateStatus({
+        userId: localStorage.getItem('userId') ?? '',
+        courseId: identifier as string,
+      });
+      console.log('createUserCertificateStatus', data);
 
       router.replace(`/details/${identifier}`);
       // }
     } catch (error) {
       console.error('Failed to create user certificate:', error);
+      router.replace(`/details/${identifier}`);
     }
+  };
+  const onBackClick = () => {
+    router.back();
   };
   return (
     <Layout
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: false,
-        // actionIcons: [
-        //   {
-        //     icon: <LogoutIcon />,
-        //     ariaLabel: 'Logout',
-        //     onLogoutClick: handleAccountClick,
-        //   },
-        // ],
+        showBackIcon: true,
+        backIconClick: onBackClick,
       }}
       isFooter={true}
       showLogo={true}
       showBack={true}
     >
-      <Grid container spacing={2} sx={{ marginTop: '120px', padding: 2 }}>
-        <Grid size={{ xs: 2, md: 1 }} sx={{ textAlign: 'center' }}>
-          <Typography fontSize={'12px'} fontWeight={400}>
-            {contentDetails?.name}
-          </Typography>
-          <Box
-            sx={{
-              margin: 'auto',
-              textAlign: 'center',
-              // width: { xs: '100%', sm: '100%', md: '500px', lg: '500px' },
-              // height: { xs: 'auto', md: 'auto', lg: '100vh' },
-            }}
-          >
-            <ImageCard
-              image={contentDetails?.posterImage ?? SG_LOGO.src}
-              name={''}
-            />
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, md: 11 }}>
-          <Stack spacing={2}>
-            <Typography fontSize={'12px'} fontWeight={700}>
-              Description
-            </Typography>
-            <Typography fontSize={'14px'} fontWeight={400}>
-              {contentDetails?.description ? contentDetails.description : '-'}
-            </Typography>
-          </Stack>
-        </Grid>
-      </Grid>
-
-      <Divider sx={{ borderWidth: '1px', width: '100%', marginTop: '16px' }} />
-      <Grid container justifyContent="center" sx={{ marginBottom: '16px' }}>
-        <Button
-          variant="contained"
-          sx={{
-            // bgcolor: '#6750A4',
-
-            bgcolor: theme.palette.primary.main,
-            color: '#fff',
-            margin: '12px',
-            borderRadius: '100px',
-            textTransform: 'none',
-            boxShadow: 'none',
-          }}
-          //onClick={() => router.push(`/details/${identifier}`)}
-          onClick={handleClick}
-        >
-          Join Now/Start Course
-        </Button>
-      </Grid>
+      <InfoCard
+        item={contentDetails}
+        topic={contentDetails?.se_subjects?.join(',')}
+        onBackClick={onBackClick}
+        _config={{ onButtonClick: handleClick }}
+      />
     </Layout>
   );
 };

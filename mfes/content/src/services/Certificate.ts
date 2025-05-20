@@ -41,7 +41,7 @@ export const createUserCertificateStatus = async ({
     },
     {
       headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '',
+        tenantId: localStorage.getItem('tenantId') ?? '8',
         Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
       },
     }
