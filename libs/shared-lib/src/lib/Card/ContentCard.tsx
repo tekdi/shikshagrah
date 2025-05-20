@@ -78,7 +78,6 @@ export const ContentCard: React.FC<CommonCardProps> = ({
   onClick,
   _card,
 }) => {
-  const theme = useTheme();
   const [statusBar, setStatusBar] = React.useState<StatusProps>();
 
   const getLeafNodes = (node: any) => {
@@ -152,7 +151,7 @@ export const ContentCard: React.FC<CommonCardProps> = ({
       sx={{
         display: 'flex',
         flexDirection: orientation === 'horizontal' ? 'row' : 'column',
-        height: minheight || '100%',
+        height: minheight ?? '100%',
         cursor: onClick ? 'pointer' : 'default',
         bgcolor: 'background.paper',
         boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
@@ -172,7 +171,7 @@ export const ContentCard: React.FC<CommonCardProps> = ({
       <Box sx={{ position: 'relative', width: '100%' }}>
         <CardMedia
           component="img"
-          image={image || '/assets/images/default.png'}
+          image={image ?? '/assets/images/default.png'}
           alt={imageAlt || 'Image'}
           sx={{
             width: '100%',

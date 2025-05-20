@@ -24,7 +24,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
   onBackClick,
   _config,
 }) => {
-  const { _infoCard } = _config || {};
+  const { _infoCard } = _config ?? {};
   const [openModal, setOpenModal] = useState(false);
   console.log('infocard--', _infoCard);
   return (
@@ -37,7 +37,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
             maxHeight: '280px',
             ..._infoCard?._cardMedia,
           }}
-          image={item?.posterImage || _infoCard?.default_img}
+          image={item?.posterImage ?? _infoCard?.default_img}
           alt={item?.name}
         />
         <Box
@@ -162,7 +162,6 @@ const InfoCard: React.FC<InfoCardProps> = ({
                           hour12: true,
                         }).format(new Date(item.startedOn))
                       : ' - '}
-                    {/* {JSON.stringify(_infoCard?.isShowStatus || {})} */}
                   </Box>
                 ))}
               {!_infoCard?.isHideStatus && (

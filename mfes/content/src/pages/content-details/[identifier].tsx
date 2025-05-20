@@ -40,22 +40,6 @@ const ContentDetails = (props: any) => {
   const theme = useTheme();
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
-  // const fetchContentDetails = async () => {
-  //   try {
-  //     if (identifier) {
-  //       const result = await fetchContent(identifier as string);
-  //       setContentDetails(result);
-  //     }
-  //   } catch (error) {
-  //     console.error('Failed to fetch content:', error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (identifier) {
-  //     fetchContentDetails();
-  //   }
-  // }, [identifier]);
   useEffect(() => {
     const fetchContentDetails = async () => {
       try {

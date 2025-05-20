@@ -67,14 +67,11 @@ export default function Content() {
 
   useEffect(() => {
     const token = getCookie('accToken');
-    // const tenantId = getCookie('tenantId');
     const userId = getCookie('userId');
     if (token !== null) {
       localStorage.setItem('accToken', token);
     }
-    // if (tenantId !== null) {
-    //   localStorage.setItem('tenantId', tenantId);
-    // }
+
     if (userId !== null) {
       localStorage.setItem('userId', userId);
     }
@@ -141,7 +138,7 @@ export default function Content() {
         //@ts-ignore
         const userTrackData =
           course_track_data.data.find((course: any) => course.userId === userId)
-            ?.course || [];
+            ?.course ?? [];
         setTrackData(userTrackData);
         return (
           course_track_data.data.find((course: any) => course.userId === userId)
