@@ -20,6 +20,7 @@ export const trackingData = (subIds: string[], courseIds: string[]) => {
     headers: {
       'Content-Type': 'application/json',
       tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
+      Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
     },
     data,
   };

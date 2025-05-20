@@ -57,6 +57,29 @@ export default function Content() {
     status: '',
     priority: '',
   });
+
+  const getCookie = (name: any) => {
+    const cookies = document.cookie.split('; ');
+    const cookie = cookies.find((row) => row.startsWith(name + '='));
+    const value = cookie ? cookie.split('=')[1] : null;
+    return value && value !== 'null' && value !== 'undefined' ? value : null;
+  };
+
+  useEffect(() => {
+    const token = getCookie('accToken');
+    // const tenantId = getCookie('tenantId');
+    const userId = getCookie('userId');
+    if (token !== null) {
+      localStorage.setItem('accToken', token);
+    }
+    // if (tenantId !== null) {
+    //   localStorage.setItem('tenantId', tenantId);
+    // }
+    if (userId !== null) {
+      localStorage.setItem('userId', userId);
+    }
+  }, []);
+
   const fetchContent = useCallback(
     async (
       type?: string,
@@ -116,10 +139,10 @@ export default function Content() {
 
       if (course_track_data?.data) {
         //@ts-ignore
-        // const userTrackData =
-        //   course_track_data.data.find((course: any) => course.userId === userId)
-        //     ?.course || [];
-        // setTrackData(userTrackData);
+        const userTrackData =
+          course_track_data.data.find((course: any) => course.userId === userId)
+            ?.course || [];
+        setTrackData(userTrackData);
         return (
           course_track_data.data.find((course: any) => course.userId === userId)
             ?.course ?? []
@@ -278,7 +301,7 @@ export default function Content() {
                   content={item?.description || '-'}
                   // subheader={item?.contentType}
                   actions={item?.contentType}
-                  orientation="horizontal"
+                  orientation="vertical"
                   item={[item]}
                   TrackData={trackData}
                   // type={tabValue === 0 ? 'course' : 'content'}
@@ -442,15 +465,20 @@ export default function Content() {
       });
     };
 
+  const handleBackClick = () => {
+    router.push('/');
+  };
   return (
     <Layout
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: true,
+        showBackIcon: true,
+        backIconClick: handleBackClick,
       }}
       isFooter={true}
       showLogo={true}
-      showBack={true}
+      // showBack={true}
       showSearch={{
         placeholder: 'Search content..',
         rightIcon: <SearchIcon />,

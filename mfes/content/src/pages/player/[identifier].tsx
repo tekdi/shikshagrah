@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import React from 'react';
-import { SunbirdPlayer } from '@shared-lib';
+import { Layout, SunbirdPlayer } from '@shared-lib';
+import { Box } from '@mui/material';
 interface PlayerPageProps {
   id: string; // Define the type for the 'id' prop
 }
@@ -11,8 +12,26 @@ const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
   if (!identifier) {
     return <div>Loading...</div>;
   }
-
-  return <SunbirdPlayer identifier={id ? id : (identifier as string)} />;
+  const onBackClick = () => {
+    router.back();
+  };
+  return (
+    <Layout
+      showTopAppBar={{
+        title: 'Content',
+        showMenuIcon: false,
+        showBackIcon: true,
+        backIconClick: onBackClick,
+      }}
+      // isFooter={true}
+      showLogo={true}
+      showBack={true}
+    >
+      <Box sx={{ marginTop: '5%' }}>
+        <SunbirdPlayer identifier={id ? id : (identifier as string)} />;
+      </Box>
+    </Layout>
+  );
 };
 
 export default PlayerPage;

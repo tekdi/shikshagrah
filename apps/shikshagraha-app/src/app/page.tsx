@@ -95,9 +95,9 @@ export default function Login() {
       };
       console.log('Signin payload:', payload);
       const response = await signin(payload);
-      console.log('response login', response);
       const accessToken = response?.result?.access_token;
       const refreshToken = response?.result?.refresh_token;
+      const userId = response?.result?.user?.id;
       if (accessToken) {
         const userStatus = response?.result?.user?.status;
         localStorage.setItem('userStatus', userStatus);
@@ -114,6 +114,10 @@ export default function Login() {
         router.push('/home');
         const organizations = response?.result?.user?.organizations || [];
         const orgId = organizations[0]?.id;
+        if (accessToken && userId) {
+          document.cookie = `accToken=${token}; path=/; secure; SameSite=Strict`;
+          document.cookie = `userId=${userId}; path=/; secure; SameSite=Strict`;
+        }
         if (orgId) {
           localStorage.setItem(
             'headers',
