@@ -77,7 +77,8 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
         break;
       case 'confirm password':
-        if (val !== formData.password) return 'Password and confirm password must be the same.';
+        if (val !== formData.password)
+          return 'Password and confirm password must be the same.';
         break;
     }
     return null;
@@ -182,6 +183,18 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
 
   return (
     <>
+      {/* Hidden fields to prevent autofill */}
+      <input
+        type="text"
+        name="prevent_autofill_username"
+        style={{ display: 'none' }}
+      />
+      <input
+        type="password"
+        name="prevent_autofill_password"
+        style={{ display: 'none' }}
+      />
+
       <TextField
         fullWidth
         id={id}
@@ -208,9 +221,12 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         }
         variant="outlined"
         size="small"
+        autoComplete={
+          isPasswordField || isConfirmPasswordField ? 'new-password' : 'off'
+        }
         FormHelperTextProps={{
           sx: {
-            color: 'red', // ✅ helperText color set manually
+            color: 'red',
             fontSize: '11px',
             marginLeft: '0px',
           },
@@ -219,6 +235,12 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           readOnly: readonly,
           inputMode: isMobileField ? 'numeric' : 'text',
           pattern: isMobileField ? '[0-9]*' : undefined,
+          autoComplete:
+            isPasswordField || isConfirmPasswordField ? 'new-password' : 'off',
+          name:
+            isPasswordField || isConfirmPasswordField
+              ? 'login-password'
+              : 'login-username',
           sx: {
             '& .MuiInputBase-input': {
               padding: '10px 12px',
@@ -241,18 +263,17 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         }}
         InputLabelProps={{
           sx: {
-            fontSize: '12px', // Label font size
+            fontSize: '12px',
             '&.Mui-focused': {
-              transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-              color: '#582E92', // Optional: change label color on focus
+              transform: 'translate(14px, -6px) scale(0.75)',
+              color: '#582E92',
             },
             '&.MuiInputLabel-shrink': {
-              transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-              color: '#582E92', // Optional: change label color when filled
+              transform: 'translate(14px, -6px) scale(0.75)',
+              color: '#582E92',
             },
           },
         }}
-        //   margin="normal"
       />
       {(isEmailField || isMobileField) &&
         !value &&
