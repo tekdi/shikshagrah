@@ -6,6 +6,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useRouter, usePathname } from 'next/navigation';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 export const Footer: React.FC = () => {
   const [value, setValue] = useState(0);
@@ -29,6 +30,8 @@ export const Footer: React.FC = () => {
         window.location.href = '/home';
       } else if (newValue === 1) {
         router.replace(`/content/content`);
+      } else if(newValue === 2) {
+        window.location.href = '/ml/project-downloads';
       } else {
         window.location.href = '/profile';
       }
@@ -84,6 +87,18 @@ export const Footer: React.FC = () => {
                 transition: 'transform 0.3s ease, color 0.3s ease',
                 transform: value === 1 ? 'scale(1.2)' : 'scale(1)',
                 color: value === 1 ? '#582E92 ' : 'inherit', // Selected icon color
+              }}
+            />
+          }
+        />
+        <BottomNavigationAction
+          icon={
+            <ArrowDownwardIcon
+              sx={{
+                fontSize: value === 2 ? '2rem' : '1.5rem',
+                transition: 'transform 0.3s ease, color 0.3s ease',
+                transform: value === 2 ? 'scale(1.2)' : 'scale(1)',
+                color: value === 2 ? '#582E92 ' : 'inherit', // Selected icon color
               }}
             />
           }
