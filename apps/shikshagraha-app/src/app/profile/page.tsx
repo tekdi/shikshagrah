@@ -109,7 +109,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     confirmPassword: '',
   });
   const [severity, setSeverity] = useState('');
-
+  const [disableReset, setDisableReset] = useState(false);
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
@@ -390,7 +390,7 @@ export default function Profile({ params }: { params: { id: string } }) {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswords({ ...passwords, [name]: value });
-
+    setDisableReset(false);
     // Validate on change
     if (name === 'newPassword') {
       const passwordRegex =
@@ -491,18 +491,20 @@ export default function Profile({ params }: { params: { id: string } }) {
       );
       if (!result.success) {
         console.error('Reset password failed:', result.errorMessage);
+        setDisableReset(true);
         setShowError(true);
         setErrorMessage(result.errorMessage);
         setSeverity('error');
       } else {
+        setDisableReset(true);
         setShowError(true);
         setErrorMessage('User Password Updated Successfully');
         setSeverity('success');
+        localStorage.clear();
+        router.push('/');
       }
 
       // handleClose();
-      localStorage.clear();
-      // router.push('/');
     } catch (error) {
       console.error('Reset password failed:', error);
       setShowError(true);
@@ -1112,6 +1114,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                 </Button>
                 <Button
                   onClick={handleSubmit}
+                  disabled={disableReset}
                   variant="contained"
                   sx={{
                     bgcolor: '#582E92',
