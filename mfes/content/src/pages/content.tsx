@@ -470,8 +470,8 @@ export default function Content() {
       showTopAppBar={{
         title: 'Content',
         showMenuIcon: true,
-        showBackIcon: true,
-        backIconClick: handleBackClick,
+        // showBackIcon: true,
+        // backIconClick: handleBackClick,
       }}
       isFooter={true}
       showLogo={true}
