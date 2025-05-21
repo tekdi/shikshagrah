@@ -41,16 +41,9 @@ export const Footer: React.FC = () => {
   }, [pathname]);
 
   const handleNavigation = (path: string) => {
-    // Ensure we're using absolute paths
     const absolutePath = path.startsWith('/') ? path : `/${path}`;
-
-    // Use replace to avoid adding to history stack
-    router.replace(absolutePath);
-
-    // Fallback to hard navigation if needed
-    if (window.location.pathname !== absolutePath) {
-      window.location.href = absolutePath;
-    }
+    // router.replace(absolutePath);
+    window.location.href = absolutePath;
   };
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
