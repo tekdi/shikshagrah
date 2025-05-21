@@ -575,8 +575,8 @@ export default function Profile({ params }: { params: { id: string } }) {
                 <Grid item>
                   <Avatar
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: 50,
+                      height: 50,
                       boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
                     }}
                     src={profileData?.avatar ?? ''}
@@ -599,6 +599,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                   {userData?.username && (
                     <Typography
                       variant="subtitle2"
+                      component="div"
                       textAlign="left"
                       color="darkslategray"
                       sx={{
@@ -606,17 +607,31 @@ export default function Profile({ params }: { params: { id: string } }) {
                         alignItems: 'center',
                         gap: 1,
                         fontWeight: 'bold',
-                        fontSize: { xs: '10px', sm: '12px' },
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        alignItems: { xs: 'flex-start', sm: 'center' }
+                        fontSize: { xs: '12px', sm: '14px' },
+                        flexWrap: 'wrap',
+                        width: '100%',
                       }}
                     >
-                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Username:</Box> {userData.username}
+                      <Box component="span" sx={{ color: '#582E92' }}>
+                        Username:
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: { xs: '150px', sm: 'none' },
+                        }}
+                      >
+                        {userData.username}
+                      </Box>
                     </Typography>
                   )}
                   {userData?.email && (
                     <Typography
                       variant="subtitle2"
+                      component="div"
                       textAlign="left"
                       color="darkslategray"
                       sx={{
@@ -624,17 +639,31 @@ export default function Profile({ params }: { params: { id: string } }) {
                         alignItems: 'center',
                         gap: 1,
                         fontWeight: 'bold',
-                        fontSize: { xs: '10px', sm: '12px' },
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        alignItems: { xs: 'flex-start', sm: 'center' }
+                        fontSize: { xs: '12px', sm: '14px' },
+                        flexWrap: 'wrap',
+                        width: '100%',
                       }}
                     >
-                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Email:</Box> {userData.email}
+                      <Box component="span" sx={{ color: '#582E92' }}>
+                        Email:
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: { xs: '150px', sm: 'none' },
+                        }}
+                      >
+                        {userData.email}
+                      </Box>
                     </Typography>
                   )}
                   {userData?.phone && (
                     <Typography
                       variant="subtitle2"
+                      component="div"
                       textAlign="left"
                       color="darkslategray"
                       sx={{
@@ -642,12 +671,25 @@ export default function Profile({ params }: { params: { id: string } }) {
                         alignItems: 'center',
                         gap: 1,
                         fontWeight: 'bold',
-                        fontSize: {  xs: '10px', sm: '12px' },
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        alignItems: { xs: 'flex-start', sm: 'center' }
+                        fontSize: { xs: '12px', sm: '14px' },
+                        flexWrap: 'wrap',
+                        width: '100%',
                       }}
                     >
-                      <Box component="span" sx={{ color: '#582E92', fontWeight: 'bold' }}>Phone:</Box> {userData.phone}
+                      <Box component="span" sx={{ color: '#582E92' }}>
+                        Phone:
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: { xs: '150px', sm: 'none' },
+                        }}
+                      >
+                        {userData.phone}
+                      </Box>
                     </Typography>
                   )}
 
@@ -686,56 +728,58 @@ export default function Profile({ params }: { params: { id: string } }) {
                 direction="row"
               >
                 <Grid item xs={12}>
-                  {mappedProfile.map((item) => (
-                    <Box
-                      key={item.label}
-                      sx={{
-                        display: 'flex',
-                        flexDirection: {
-                          xs: 'column',
-                          sm: 'row',
-                        },
-                        justifyContent: 'space-between',
-                        alignItems: {
-                          xs: 'flex-start',
-                          sm: 'center',
-                        },
-                        paddingBottom: '16px',
-                        width: '100%',
-                      }}
-                    >
-                      <Typography
-                        variant="body1"
+                  {mappedProfile
+                    .filter((item) => item.value) // Only include items with truthy values
+                    .map((item) => (
+                      <Box
+                        key={item.label}
                         sx={{
-                          fontWeight: 'bold',
-                          color: '#FF9911',
-                          minWidth: {
-                            xs: '100%',
-                            sm: '30%',
+                          display: 'flex',
+                          flexDirection: {
+                            xs: 'column',
+                            sm: 'row',
                           },
-                          marginBottom: {
-                            xs: '4px',
-                            sm: 0,
+                          justifyContent: 'space-between',
+                          alignItems: {
+                            xs: 'flex-start',
+                            sm: 'center',
                           },
+                          paddingBottom: '16px',
+                          width: '100%',
                         }}
                       >
-                        {item.label}:
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 'bold',
-                          color: '#333',
-                          width: {
-                            xs: '100%',
-                            sm: '65%',
-                          },
-                        }}
-                      >
-                        {item.value || 'N/A'}
-                      </Typography>
-                    </Box>
-                  ))}
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 'bold',
+                            color: '#FF9911',
+                            minWidth: {
+                              xs: '100%',
+                              sm: '30%',
+                            },
+                            marginBottom: {
+                              xs: '4px',
+                              sm: 0,
+                            },
+                          }}
+                        >
+                          {item.label}:
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 'bold',
+                            color: '#333',
+                            width: {
+                              xs: '100%',
+                              sm: '65%',
+                            },
+                          }}
+                        >
+                          {item.value}
+                        </Typography>
+                      </Box>
+                    ))}
                 </Grid>
               </Grid>
             </Box>
