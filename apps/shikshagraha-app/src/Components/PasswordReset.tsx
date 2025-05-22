@@ -482,7 +482,7 @@ const PasswordReset = ({ name }: { name: string }) => {
             </Box>
             <TextField
               fullWidth
-              label="Email/Mobile"
+              label="Email/Mobile/Username"
               name="identifier"
               value={formData.identifier}
               onChange={handleInputChange}
