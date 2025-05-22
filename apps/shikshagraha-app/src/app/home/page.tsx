@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
 'use client';
-import { Layout, DynamicCard } from '@shared-lib';
+import { Layout } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
@@ -20,6 +20,7 @@ import {
   Button,
 } from '@mui/material';
 import AppConst from '../../utils/AppConst/AppConst';
+import { CustomeCard } from '@shared-lib-v1';
 
 export default function Home() {
   const basePath = AppConst?.BASEPATH;
@@ -57,7 +58,7 @@ export default function Home() {
         if (!header['org-id']) return;
         try {
           const data = await readHomeListForm(token);
-          setCardData(data.result.data.fields.data);
+          setCardData(data?.result?.data?.fields?.data);
           localStorage.setItem(
             'theme',
             JSON.stringify(data.result.data.fields.data[0].theme)
@@ -129,7 +130,7 @@ export default function Home() {
             >
               {cardData.length > 0 &&
                 cardData.map((card, index) => (
-                  <DynamicCard
+                  <CustomeCard
                     key={index}
                     title={card.title}
                     icon={card.icon}
@@ -173,25 +174,24 @@ export default function Home() {
                 }}
               >
                 {cardData.length > 0 &&
-                  cardData
-                    .map((card, index) => (
-                      <DynamicCard
-                        key={index}
-                        title={card.title}
-                        icon={card.icon}
-                        sx={{
-                          borderRadius: 2,
-                          boxShadow: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                            boxShadow: 6,
-                          },
-                          maxWidth: { xs: 280, sm: 350 },
-                        }}
-                        onClick={() => handleCardClick(card)}
-                      />
-                    ))}
+                  cardData.map((card, index) => (
+                    <CustomeCard
+                      key={index}
+                      title={card.title}
+                      icon={card.icon}
+                      sx={{
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: 6,
+                        },
+                        maxWidth: { xs: 280, sm: 350 },
+                      }}
+                      onClick={() => handleCardClick(card)}
+                    />
+                  ))}
               </Box>
             </>
           )}

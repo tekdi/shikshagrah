@@ -26,13 +26,29 @@
       "@questionSet": ["mfes/editors/src/components/CollectionEditor.tsx"],
       "@registration": ["mfes/registration/src/app/newUser/page.tsx"],
       "@scp-teacher": ["mfes/scp-teacher/src/pages/index.tsx"],
-      "@shared-lib": ["libs/shared-lib/src/index.ts"],
+      // "@shared-lib": ["libs/shared-lib/src/index.ts"],
       "@shared-lib/*": ["libs/shared-lib/src/*"],
       "@shikshagrah/ui-theme": ["shared/src/index.ts"],
       "@shikshav2.0/shared": ["libs/shared/src/index.ts"],
       "@test-next-route": ["mfes/test-next-route/src/pages/index.tsx"],
       "@test-react-vite": ["mfes/mfes/test-react-vite"],
-      "@youthNet": ["mfes/youthNet/src/pages/index.tsx"]
+      "@youthNet": ["mfes/youthNet/src/pages/index.tsx"],
+      "@content-mfes/*": ["mfes/content/src/*"],
+
+      "@Content": ["mfes/content/src/components/Content/List.tsx"],
+      "@ContentEnrollDetails": [
+        "mfes/content/src/components/Content/ContentEnroll.tsx"
+      ],
+      "@CourseUnitDetails": [
+        "mfes/content/src/components/Content/CourseUnitDetails.tsx"
+      ],
+      "@InfoCard": ["mfes/content/src/components/Card/InfoCard.tsx"],
+      "@ContentPlayer": ["mfes/content/src/components/Content/Player.tsx"],
+
+      //dynamic form
+      "@shared-lib": ["libs/shared-lib-v2/src/index.tsx"],
+      "@shared-lib-v2/*": ["libs/shared-lib-v2/src/*"],
+      "@players/*": ["mfes/players/src/pages/play.tsx"]
     }
   },
   "exclude": ["node_modules", "tmp"]

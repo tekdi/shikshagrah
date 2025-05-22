@@ -9,11 +9,11 @@ export function middleware(request: { nextUrl: { clone: () => any } }) {
     return NextResponse.rewrite(url);
   }
 
-  if (url.pathname.startsWith('/content')) {
-    url.hostname = 'localhost';
-    url.port = '4301';
-    return NextResponse.rewrite(url);
-  }
+  // if (url.pathname.startsWith('/content')) {
+  //   url.hostname = 'localhost';
+  //   url.port = '4301';
+  //   return NextResponse.rewrite(url);
+  // }
 
   if (url.pathname.startsWith('/pwa')) {
     url.hostname = 'localhost';

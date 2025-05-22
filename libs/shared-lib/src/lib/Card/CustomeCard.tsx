@@ -4,9 +4,9 @@
 'use client';
 import { Card, CardContent, Box, Typography } from '@mui/material';
 
-export const DynamicCard = ({ title, icon, onClick }) => {
+export const CustomeCard = ({ title, icon, onClick }) => {
   const isImage = typeof icon === 'string' && icon.startsWith('/'); // Check if it's an image path
-
+  console.log('CARD');
   return (
     <Card
       sx={{

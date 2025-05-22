@@ -1,5 +1,6 @@
+import { post } from '@shared-lib';
 import axios, { AxiosRequestConfig } from 'axios';
-interface ContentSearchResponse {
+export interface ContentSearchResponse {
   ownershipType?: string[];
   publish_type?: string;
   copyright?: string;
@@ -49,6 +50,7 @@ interface ContentSearchResponse {
   author?: string;
   consumerId?: string;
   childNodes?: string[];
+  children: [{}];
   discussionForum?: {
     enabled?: string;
   };
@@ -107,16 +109,31 @@ interface ContentSearchResponse {
 }
 // Define the payload
 
-export const ContentSearch = async (
-  type: string,
-  searchText?: string,
-  filterValues?: object,
-  limit: number = 10,
-  offset: number = 0
-): Promise<ContentSearchResponse[]> => {
+export interface ResultProp {
+  QuestionSet?: ContentSearchResponse[];
+  content: ContentSearchResponse[];
+  count: number;
+}
+export interface ContentResponse {
+  result: ResultProp;
+}
+
+export const ContentSearch = async ({
+  type,
+  query,
+  filters,
+  limit = 5,
+  offset = 0,
+}: {
+  type: string;
+  query?: string;
+  filters?: object;
+  limit?: number;
+  offset?: number;
+}): Promise<ContentResponse> => {
   try {
     // Ensure the environment variable is defined
-    const searchApiUrl = process.env.NEXT_PUBLIC_CONTENT_BASE_URL;
+    const searchApiUrl = process.env.NEXT_PUBLIC_MIDDLEWARE_URL;
     if (!searchApiUrl) {
       throw new Error('Search API URL environment variable is not configured');
     }
@@ -127,41 +144,42 @@ export const ContentSearch = async (
         filters: {
           // identifier: 'do_114228944942358528173',
           // identifier: 'do_1141652605790289921389',
-          ...filterValues,
           //need below after login user channel for dynamic load content
-          // channel: 'shikshalokam-channel',
-
-          primaryCategory: [type],
+          // channel: '0135656861912678406',
+          ...filters,
+          status: ['live'],
+          primaryCategory:
+            type?.toLowerCase() === 'course'
+              ? ['Course']
+              : ['Learning Resource', 'Practice Question Set'],
+          channel: localStorage.getItem('channelId'),
         },
-        // fields: [
-        //   'name',
-        //   'appIcon',
-        //   'description',
-        //   'posterImage',
-        //   'mimeType',
-        //   'identifier',
-        //   'resourceType',
-        //   'primaryCategory',
-        //   'contentType',
-        //   'trackable',
-        //   'children',
-        //   'leafNodes',
-        // ],
-        query: searchText,
-        limit: limit,
-        offset: offset,
+        fields: [
+          'name',
+          'appIcon',
+          'description',
+          'posterImage',
+          'mimeType',
+          'identifier',
+          'resourceType',
+          'primaryCategory',
+          'contentType',
+          'trackable',
+          'children',
+          'leafNodes',
+        ],
+        query,
+        limit,
+        offset,
       },
-    };
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${searchApiUrl}/action/composite/v3/search`,
-      data: data,
     };
 
     // Execute the request
-    const response = await axios.request(config);
-    const res = response?.data?.result?.content;
+    const response = await post(
+      `${searchApiUrl}/action/composite/v3/search`,
+      data
+    );
+    const res = response?.data;
 
     return res;
   } catch (error) {
