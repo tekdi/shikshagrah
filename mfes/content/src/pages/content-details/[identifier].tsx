@@ -12,7 +12,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { Layout } from '@shared-lib';
+import { Layout } from '@shared-lib-v1';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid2';
@@ -97,17 +97,17 @@ const ContentDetails = (props: any) => {
   const onBackClick = () => {
     router.back();
   };
+
   return (
     <Layout
       showTopAppBar={{
-        title: 'Content',
-        showMenuIcon: false,
-        showBackIcon: true,
-        backIconClick: onBackClick,
+        title: 'Content details',
+        showMenuIcon: true,
+        showBackIcon: false,
       }}
       isFooter={true}
       showLogo={true}
-      showBack={true}
+      showBack={false}
     >
       <InfoCard
         item={contentDetails}

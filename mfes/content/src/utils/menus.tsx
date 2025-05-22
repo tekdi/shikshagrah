@@ -1,21 +1,18 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
-import { useRouter } from 'next/router';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useEffect, useState } from 'react';
 
-export const ProfileMenu = () => {
-  const router = useRouter();
+export const ProfileMenu = ({ router }: { router: any }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const profile = process.env.NEXT_PUBLIC_PROFILE;
 
-  const handleMenuClick = (item: any, hardRedirect?: boolean) => {
+  const handleMenuClick = (item: any, hardRedirect?: any) => {
     if (hardRedirect && item != '') {
       window.location.href = item;
     } else if (item != '') {
-      router.push(item);
+      router?.push(item);
     }
     setAnchorEl(null);
   };
@@ -52,7 +49,7 @@ export const ProfileMenu = () => {
       {
         icon: <AccountCircleIcon />,
         ariaLabel: 'Profile',
-        onOptionClick: () => handleMenuClick(profile, true),
+        onOptionClick: () => handleMenuClick('/mfe_registration/profile', true),
       },
       {
         icon: <ContentCopyIcon />,

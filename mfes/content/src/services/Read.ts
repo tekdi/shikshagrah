@@ -1,5 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios';
 import { URL_CONFIG } from '../utils/url.config';
+import { get } from '@shared-lib';
 interface ContentSearchResponse {
   ownershipType?: string[];
   publish_type?: string;
@@ -111,24 +111,19 @@ interface ContentSearchResponse {
 export const contentReadAPI = async (doId: string) => {
   try {
     // Ensure the environment variable is defined
-    const searchApiUrl = process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL;
+    const searchApiUrl = process.env.NEXT_PUBLIC_MIDDLEWARE_URL;
     if (!searchApiUrl) {
       throw new Error('Search API URL environment variable is not configured');
     }
-    console.log('doId', doId);
 
-    // Axios request configuration
-    const config: AxiosRequestConfig = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: `${searchApiUrl}/api/content/v1/read/` + doId,
-      headers: {
-        Authorization: `'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0WEZYTWFVOWFBanpUbk5aSXNySEpyV0hwVW94bzY3NyJ9.WSWVtVh5MCH_yymFEM_qpVzXGdDO5mukrqmIii1C5Ww'`,
-      },
-    };
-    console.log('config', config);
     // Execute the request
-    const response = await axios.request(config);
+    const response = await get(
+      `${searchApiUrl}/interface/v1/action/content/v3/read/${doId}`,
+      {
+        tenantId: localStorage.getItem('tenantId') || '',
+        Authorization: `Bearer ${localStorage.getItem('accToken') || ''}`,
+      }
+    );
     const res = response?.data?.result?.content;
 
     return res;
@@ -144,8 +139,12 @@ export const fetchContent = async (identifier: any) => {
     const FIELDS = URL_CONFIG.PARAMS.CONTENT_GET;
     const LICENSE_DETAILS = URL_CONFIG.PARAMS.LICENSE_DETAILS;
     const MODE = 'edit';
-    const response = await axios.get(
-      `${API_URL}?fields=${FIELDS}&mode=${MODE}&licenseDetails=${LICENSE_DETAILS}`
+    const response = await get(
+      `${API_URL}?fields=${FIELDS}&mode=${MODE}&licenseDetails=${LICENSE_DETAILS}`,
+      {
+        tenantId: localStorage.getItem('tenantId') ?? '',
+        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
+      }
     );
     console.log('response =====>', response);
     return response?.data?.result?.content;

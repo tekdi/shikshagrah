@@ -108,6 +108,8 @@ export default function Login() {
           return;
         }
         localStorage.setItem('accToken', accessToken);
+        localStorage.setItem('token', accessToken);
+
         localStorage.setItem('refToken', refreshToken);
         localStorage.setItem('firstname', response?.result?.user?.name);
         localStorage.setItem('userId', response?.result?.user?.id);

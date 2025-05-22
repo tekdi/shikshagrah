@@ -1,4 +1,6 @@
+import { post } from '@shared-lib';
 import axios from 'axios';
+import { headers } from 'next/headers';
 
 export const getUserCertificateStatus = async ({
   userId,
@@ -7,16 +9,18 @@ export const getUserCertificateStatus = async ({
   userId: string;
   courseId: string;
 }) => {
+  const payload = {
+    userId,
+    courseId,
+  };
   const response = await axios.post(
     `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/user_certificate/status/get`,
-    {
-      userId,
-      courseId,
-    },
+    payload,
     {
       headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '',
-        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
+        'Content-Type': 'application/json',
+        tenantId: 8,
+        authorization: `Bearer ${localStorage.getItem('accToken') || ''}`,
       },
     }
   );
@@ -30,20 +34,15 @@ export const createUserCertificateStatus = async ({
   userId: string;
   courseId: string;
 }) => {
-  if (typeof window === 'undefined') {
-    throw new Error('Cannot access localStorage in server environment');
-  }
-  const response = await axios.post(
+  const response = await post(
     `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/user_certificate/status/create`,
     {
       userId,
       courseId,
     },
     {
-      headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '8',
-        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
-      },
+      tenantId: localStorage.getItem('tenantId') || '',
+      Authorization: `Bearer ${localStorage.getItem('accToken') || ''}`,
     }
   );
   return response?.data ?? {};
@@ -51,10 +50,12 @@ export const createUserCertificateStatus = async ({
 
 export const getUserCertificates = async ({
   userId,
+  courseId,
   limit = 2,
   offset = 0,
 }: {
   userId: string;
+  courseId?: any[];
   limit?: number;
   offset?: number;
 }): Promise<any> => {
@@ -68,13 +69,14 @@ export const getUserCertificates = async ({
     const data = {
       filters: {
         userId: [userId],
+        courseId,
       },
       limit,
       offset,
     };
 
     // Execute the request
-    const response = await axios.post(
+    const response = await post(
       `${searchApiUrl}/tracking/user_certificate/status/search`,
       data
     );
@@ -87,89 +89,13 @@ export const getUserCertificates = async ({
   }
 };
 
-export const courseUpdate = async ({
-  userId,
-  courseId,
-}: {
-  userId: string;
-  courseId: string;
-}) => {
-  if (typeof window === 'undefined') {
-    throw new Error('Cannot access localStorage in server environment');
-  }
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/user_certificate/status/update`,
-    {
-      userId,
-      courseId,
-    },
-    {
-      headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '',
-        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
-      },
-    }
-  );
-  return response?.data ?? {};
-};
-
-export const courseIssue = async (data: {
-  userId: string;
-  courseId: string;
-  [key: string]: any;
-}) => {
-  if (typeof window === 'undefined') {
-    throw new Error('Cannot access localStorage in server environment');
-  }
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/certificate/issue`,
-    data,
-    {
-      headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '',
-        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
-      },
-    }
-  );
-  return response?.data ?? {};
-};
-export const getUserByToken = async (token: string): Promise<any> => {
-  const apiUrl = `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/user/auth`;
+export const issueCertificate = async (reqBody: any) => {
+  const apiUrl = `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/certificate/issue`;
   try {
-    const response = await axios.get(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response?.data?.result;
+    const response = await post(apiUrl, reqBody);
+    return response?.data;
   } catch (error) {
-    console.error('error in fetching user details', error);
+    console.log(error);
     throw error;
   }
-};
-
-export const showCertificate = async ({
-  credentialId,
-  templateId,
-}: {
-  credentialId: string;
-  templateId: string;
-}) => {
-  if (typeof window === 'undefined') {
-    throw new Error('Cannot access localStorage in a server environment');
-  }
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_MIDDLEWARE_URL}/tracking/certificate/render`,
-    {
-      credentialId,
-      templateId,
-    },
-    {
-      headers: {
-        tenantId: localStorage.getItem('tenantId') ?? '',
-        Authorization: `Bearer ${localStorage.getItem('accToken') ?? ''}`,
-      },
-    }
-  );
-  return response?.data ?? {};
 };

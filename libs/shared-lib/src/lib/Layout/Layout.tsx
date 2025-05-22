@@ -1,5 +1,5 @@
 //@ts-nocheck
-
+'use client';
 import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

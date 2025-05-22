@@ -1,20 +1,20 @@
 import Head from 'next/head';
-
-export const metadata = {
-  title: 'Welcome to Shikshalokam',
-  description: 'Welcome to Shikshalokam',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    // move themeColor here
-    themeColor: '#000000',
-  },
-  icons: {
-    icon: '/icons/icon-192x192.png',
-    apple: '/icons/icon-192x192.png',
-  },
-  manifest: '/manifest.json',
-};
+import { LanguageProvider } from '@shared-lib';
+// export const metadata = {
+//   title: 'Welcome to Shikshalokam',
+//   description: 'Welcome to Shikshalokam',
+//   viewport: {
+//     width: 'device-width',
+//     initialScale: 1,
+//     // move themeColor here
+//     themeColor: '#000000',
+//   },
+//   icons: {
+//     icon: '/icons/icon-192x192.png',
+//     apple: '/icons/icon-192x192.png',
+//   },
+//   manifest: '/manifest.json',
+// };
 
 export default function RootLayout({
   children,
@@ -28,7 +28,9 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }
