@@ -22,12 +22,22 @@ export const fetchProfileData = async (userId: string, token: string) => {
     });
 
     if (!response.ok) {
+      if (response.status == 401) {
+        localStorage.removeItem('accToken');
+        localStorage.clear();
+      }
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
       throw new Error('Failed to fetch profile data');
     }
 
     const data = await response.json();
     return data.result?.response || data.result;
-  } catch (error) {
+  } catch (error:any) {
+    if (error.status == 401) {
+      localStorage.removeItem('accToken');
+      localStorage.clear();
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+    }
     console.error('Error fetching profile data:', error);
     return null;
   }
