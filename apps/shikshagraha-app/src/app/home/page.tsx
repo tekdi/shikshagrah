@@ -78,7 +78,7 @@ export default function Home() {
   const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    router.push(``);
   };
 
   const handleLogoutCancel = () => {
@@ -86,7 +86,8 @@ export default function Home() {
   };
 
   const handleCardClick = (card) => {
-    window.location.href = buildProgramUrl(card.url, card.sameOrigin);
+    router.push(`${card.url}`);
+    // window.location.href = buildProgramUrl(card.url, card.sameOrigin);
   };
 
   const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
