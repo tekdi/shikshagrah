@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from 'react';
 import { generateRJSFSchema } from '../../utils/generateSchemaFromAPI';
 import DynamicForm from '../../Components/DynamicForm';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
 import {
   Box,
   Button,
@@ -33,14 +32,54 @@ export default function Register() {
   const [rolesList, setRolesList] = useState<any[]>([]);
   const [subRoles, setSubRoles] = useState<any[]>([]);
   const previousRole = useRef<string | null>(null);
+  const [displayName, setDisplayName] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const currentDomain = 'shikshagraha-qa.tekdinext.com';
-      localStorage.setItem('origin', currentDomain);
-      setDomain(currentDomain);
+      const hostname = window.location.hostname;
+
+      const parts = hostname.split('.');
+
+      const skipList = [
+        'app',
+        'www',
+        'dev',
+        'staging',
+        'tekdinext',
+        'org',
+        'com',
+        'net',
+      ];
+
+      // Step 1: Find the most likely base domain part
+      const domainPart =
+        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
+        'default';
+
+      // Step 2: Remove suffixes like -qa, -dev, etc. if present
+      const knownSuffixes = ['-qa', '-dev', '-staging'];
+      let coreDomain = knownSuffixes.reduce((name, suffix) => {
+        return name.endsWith(suffix) ? name.replace(suffix, '') : name;
+      }, domainPart);
+
+      // Step 3: Map or format display name
+      const displayName = formatDisplayName(coreDomain);
+      if (coreDomain === 'shikshagrah') {
+        coreDomain = 'shikshagraha';
+      }
+      setDisplayName(displayName);
+      localStorage.setItem('origin', coreDomain);
     }
   }, []);
+
+  const formatDisplayName = (domain: string): string => {
+    // Custom rules per domain (if needed)
+    if (domain === 'shikshagraha') return 'Shikshagraha';
+    if (domain === 'shikshalokam') return 'Shikshalokam';
+    if (domain === 'shikshagrah') return 'Shikshagraha';
+    // Default: Capitalize first letter
+    return domain.charAt(0).toUpperCase() + domain.slice(1);
+  };
 
   useEffect(() => {
     const fetchSchema = async () => {
@@ -153,7 +192,7 @@ export default function Register() {
               },
             }}
           >
-            Shikshagraha
+            {displayName}
           </Typography>
         </Grid>
       </Grid>
@@ -187,20 +226,18 @@ export default function Register() {
           <StaticHeader />
           <Box
             sx={{
-              mx: 'auto',
-              width: '100%',
-              maxWidth: {
-                xs: '90%',
-                sm: 500,
-                md: 600,
+              ml: 'auto',
+              mr: 'auto',
+              width: {
+                xs: '90vw',
+                md: '50vw',
               },
-              mt: {
-                xs: 2,
-                sm: 4,
-              },
-              px: {
-                xs: 2,
-                sm: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              // bgcolor: '#fff',
+              p: {
+                xs: '20px',
+                md: '40px',
               },
             }}
           >
@@ -217,7 +254,7 @@ export default function Register() {
                 },
               }}
             >
-              Welcome to Shikshagraha
+              Welcome to {displayName}
             </Typography>
 
             {formSchema && (

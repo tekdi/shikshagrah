@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
   formRead: `${baseurl}/user/v1/form/read`,
   ForgotPassword: `${baseurl}/user/v1/account/resetPassword`,
   sendForgetOtp: `${baseurl}/user/v1/account/generateOtp`,
-  deleteAccount:`${baseurl}/user/v1/account/delete`,
+  deleteAccount: `${baseurl}/user/v1/account/delete`,
   roleRead: `${baseurl}/entity-management/v1/entities/entityListBasedOnEntityType?entityType=professional_role`,
   userCreate: `${baseurl}/interface/v1/account/create`,
   checkUser: (email: string) =>

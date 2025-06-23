@@ -55,9 +55,15 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const validateField = (field: string, val: string): string | null => {
     if (isOptional() && !val) return null;
     console.log('field', field);
+    if (field.toLowerCase() === 'last name' && !val) {
+      return null;
+    }
     switch (field.toLowerCase()) {
       case 'first name':
         if (!nameRegex.test(val)) return 'Only letters are allowed.';
+        break;
+      case 'last name':
+        if (val && !nameRegex.test(val)) return 'Only letters are allowed.';
         break;
       case 'username':
         if (!usernameRegex.test(val))

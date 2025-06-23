@@ -13,7 +13,7 @@ import {
   Grid,
   InputAdornment,
   ButtonBase,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -38,6 +38,7 @@ export default function Login() {
   const unAuth = queryRouter.get('unAuth');
   const basePath = AppConst?.BASEPATH;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [displayName, setDisplayName] = useState('');
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
@@ -52,6 +53,53 @@ export default function Login() {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+
+      const parts = hostname.split('.');
+
+      const skipList = [
+        'app',
+        'www',
+        'dev',
+        'staging',
+        'tekdinext',
+        'org',
+        'com',
+        'net',
+      ];
+
+      // Step 1: Find the most likely base domain part
+      const domainPart =
+        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
+        'default';
+
+      // Step 2: Remove suffixes like -qa, -dev, etc. if present
+      const knownSuffixes = ['-qa', '-dev', '-staging'];
+      let coreDomain = knownSuffixes.reduce((name, suffix) => {
+        return name.endsWith(suffix) ? name.replace(suffix, '') : name;
+      }, domainPart);
+
+      // Step 3: Map or format display name
+      const displayName = formatDisplayName(coreDomain);
+
+      setDisplayName(displayName);
+      if (coreDomain === 'shikshagrah') {
+        coreDomain = 'shikshagraha';
+      }
+      localStorage.setItem('origin', coreDomain);
+    }
+  }, []);
+  const formatDisplayName = (domain: string): string => {
+    // Custom rules per domain (if needed)
+    if (domain === 'shikshagraha') return 'Shikshagraha';
+    if (domain === 'shikshalokam') return 'Shikshalokam';
+    if (domain === 'shikshagrah') return 'Shikshagraha';
+    // Default: Capitalize first letter
+    return domain.charAt(0).toUpperCase() + domain.slice(1);
+  };
+
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setShowError(false);
@@ -149,7 +197,7 @@ export default function Login() {
 
   const remoteUnAuthToaster = () => {
     router.push('/');
-  }
+  };
   return (
     <Box
       sx={{
@@ -236,11 +284,15 @@ export default function Login() {
           >
             <Box
               component="img"
-              src={`/assets/images/SG_Logo.jpg`}
+              src={
+                displayName === 'Shikshalokam'
+                  ? '/assets/images/SG_Logo.png'
+                  : '/assets/images/SG_Logo.jpg'
+              }
               alt="logo"
               sx={{
-                width: '70%',
-                height: '70%',
+                width: '50%',
+                height: '50%',
                 borderRadius: '50%',
                 objectFit: 'cover',
               }}
