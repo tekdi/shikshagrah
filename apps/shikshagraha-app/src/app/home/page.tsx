@@ -58,10 +58,10 @@ export default function Home() {
         if (!header['org-id']) return;
         try {
           const data = await readHomeListForm(token);
-          setCardData(data.result.data.fields.data);
+          setCardData(data.result);
           localStorage.setItem(
             'theme',
-            JSON.stringify(data.result.data.fields.data[0].theme)
+            JSON.stringify(data.result[1].meta.theme)
           );
         } catch (err) {
           setError((err as Error).message);
@@ -86,17 +86,12 @@ export default function Home() {
   };
 
   const handleCardClick = (card) => {
-    router.push(`${card.url}`);
-    // window.location.href = buildProgramUrl(card.url, card.sameOrigin);
+    window.location.href = buildProgramUrl(card.url, card.sameOrigin);
   };
 
   const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
     if (sameOrigin) {
-      const base = process.env.NEXT_PUBLIC_PROGRAM_BASE_URL;
-      if (!base) {
-        throw new Error('NEXT_PUBLIC_PROGRAM_BASE_URL is not defined');
-      }
-      return `${base}${path}`;
+      router.push(`${path}`);
     } else {
       return path + localStorage.getItem('accToken');
     }
@@ -132,22 +127,23 @@ export default function Home() {
             >
               {cardData.length > 0 &&
                 cardData.map((card, index) => (
+                  card.enabled == true ?
                   <DynamicCard
-                    key={index}
-                    title={card.title}
-                    icon={card.icon}
-                    sx={{
-                      borderRadius: 2,
-                      boxShadow: 3,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                        boxShadow: 6,
-                      },
-                      maxWidth: { xs: 280, sm: 350 },
-                    }}
-                    onClick={() => handleCardClick(card)}
-                  />
+                  key={index}
+                  title={card.meta.title}
+                  icon={card.meta.icon}
+                  sx={{
+                    borderRadius: 2,
+                    boxShadow: 3,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: 6,
+                    },
+                    maxWidth: { xs: 280, sm: 350 },
+                  }}
+                  onClick={() => handleCardClick(card.meta)}
+                /> : (null)
                 ))}
             </Box>
           ) : (
@@ -173,22 +169,23 @@ export default function Home() {
               >
                 {cardData.length > 0 &&
                   cardData.map((card, index) => (
+                    card.enabled == true ?
                     <DynamicCard
-                      key={index}
-                      title={card.title}
-                      icon={card.icon}
-                      sx={{
-                        borderRadius: 2,
-                        boxShadow: 3,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'scale(1.05)',
-                          boxShadow: 6,
-                        },
-                        maxWidth: { xs: 280, sm: 350 },
-                      }}
-                      onClick={() => handleCardClick(card)}
-                    />
+                    key={index}
+                    title={card.meta.title}
+                    icon={card.meta.icon}
+                    sx={{
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: 6,
+                      },
+                      maxWidth: { xs: 280, sm: 350 },
+                    }}
+                    onClick={() => handleCardClick(card.meta)}
+                  /> : (null)
                   ))}
               </Box>
             </>

@@ -67,14 +67,10 @@ export const readHomeListForm = async (token: string) => {
     throw new Error('NEXT_PUBLIC_BASE_URL is not defined');
   }
 
-  const apiUrl = `${baseUrl}/user/v1/form/read`;
-  const payloadData = {
-    type: 'solutionList',
-    sub_type: 'home',
-  };
+  const apiUrl = `${baseUrl}/user/v1/organization-feature/read`;
 
   try {
-    const { data } = await axios.post(apiUrl, payloadData, {
+    const { data } = await axios.get(apiUrl, {
       headers: {
         'X-Auth-Token': token,
       },
