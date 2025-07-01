@@ -212,7 +212,7 @@ export default function ProfileEdit() {
       >
         <Typography
           variant="h5"
-          color="#024F9D"
+          color="#582E92"
           fontWeight="bold"
           sx={{ textAlign: 'center', mb: 2 }}
         >
@@ -235,7 +235,7 @@ export default function ProfileEdit() {
                 onClick={handleSave}
                 disabled={!isFormValid()} // Disable button if form is invalid
                 sx={{
-                  bgcolor: isFormValid() ? '#024F9D' : '#ccc',
+                  bgcolor: isFormValid() ? '#582E92' : '#ccc',
                   '&:hover': { bgcolor: isFormValid() ? '#472273' : '#ccc' },
                 }}
               >
@@ -247,7 +247,7 @@ export default function ProfileEdit() {
                 onClick={handleBack} // Disable button if form is invalid
                 sx={{
                   marginLeft: '20px',
-                  bgcolor: '#024F9D',
+                  bgcolor: '#582E92',
                 }}
               >
                 Back

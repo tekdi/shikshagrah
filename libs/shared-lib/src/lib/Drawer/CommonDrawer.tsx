@@ -110,7 +110,7 @@ export const CommonDrawer: React.FC<CommonDrawerProps> = ({
         {/* All Categories */}
         <Typography
           fontSize={'14px'}
-          color="#024F9D"
+          color="#6750A4"
           sx={{ padding: '8px 16px', display: 'flex', alignItems: 'center' }}
         >
           {openDrawer !== 'main' && (

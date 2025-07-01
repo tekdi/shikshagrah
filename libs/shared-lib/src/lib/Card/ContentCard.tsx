@@ -7,10 +7,11 @@ import CardActions from '@mui/material/CardActions';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import { red } from '@mui/material/colors';
-import { Box } from '@mui/material';
-import { Progress } from '../Progress/Progress';
+import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import { CircularProgressWithLabel } from '../Progress/CircularProgressWithLabel';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 interface ContentItem {
   name: string;
   gradeLevel: string[];
@@ -23,7 +24,20 @@ interface ContentItem {
   description: string;
   posterImage: string;
   children: [{}];
+  leafNodes?: [{}];
+  link: string;
+  downloadUrl?: string;
 }
+
+interface TrackDataItem {
+  courseId: string;
+  completed_list: any[];
+  completed: boolean;
+  status?: string;
+  percentage?: number;
+  enrolled?: boolean;
+}
+
 interface CommonCardProps {
   title: string;
   avatarLetter?: string;
@@ -34,13 +48,19 @@ interface CommonCardProps {
   content?: React.ReactNode;
   actions?: React.ReactNode;
   children?: React.ReactNode;
-  orientation?: 'vertical' | 'horizontal';
+  orientation?: string;
   minheight?: string;
-
-  TrackData?: never[];
+  TrackData?: TrackDataItem[];
   item: ContentItem[];
   type: string;
   onClick?: () => void;
+  _card?: any;
+}
+
+interface StatusProps {
+  trackProgress?: number;
+  status?: string;
+  type?: string;
 }
 
 export const ContentCard: React.FC<CommonCardProps> = ({
@@ -51,32 +71,25 @@ export const ContentCard: React.FC<CommonCardProps> = ({
   image,
   imageAlt,
   content,
-  actions,
   children,
   orientation,
   minheight,
-
   TrackData,
-  item,
   type,
+  item,
   onClick,
+  _card,
 }) => {
-  const [trackCompleted, setTrackCompleted] = React.useState(0);
-  const [trackProgress, setTrackProgress] = React.useState(0);
+  const [statusBar, setStatusBar] = React.useState<StatusProps>();
 
-  React.useEffect(() => {
-    fetchDataTrack();
-  }, []);
   const getLeafNodes = (node: any) => {
-    let result = [];
+    const result = [];
 
-    // If the node has leafNodes, add them to the result array
-    if (node.leafNodes) {
+    if (node?.leafNodes) {
       result.push(...node.leafNodes);
     }
 
-    // If the node has children, iterate through them and recursively collect leaf nodes
-    if (node.children) {
+    if (node?.children) {
       node.children.forEach((child: any) => {
         result.push(...getLeafNodes(child));
       });
@@ -84,77 +97,68 @@ export const ContentCard: React.FC<CommonCardProps> = ({
 
     return result;
   };
-  const fetchDataTrack = async () => {
-    try {
-      //@ts-ignore
-      if (TrackData && item?.children) {
-        for (let i = 0; i < TrackData.length; i++) {
-          //@ts-ignore
-          if (TrackData[i]?.courseId) {
-            //merge offlien and online
-            //@ts-ignore
-            const mergedArray = [...TrackData[i]?.completed_list];
-            const uniqueArray = [...new Set(mergedArray)];
-            let completed_list = uniqueArray;
 
-            //merge offlien and online
-            //@ts-ignore
-            const mergedArray_progress = [...TrackData[i]?.in_progress_list];
-            const uniqueArray_progress = [...new Set(mergedArray_progress)];
-            let in_progress_list = uniqueArray_progress;
+  React.useEffect(() => {
+    const init = () => {
+      try {
+        if (TrackData) {
+          const result = TrackData?.find(
+            (e) => e.courseId === (item as any[])[0]?.identifier
+          );
 
-            //fetch all content in unit
-            let unit_content_list = getLeafNodes(item);
-            let unit_content_completed_list = [];
-            if (unit_content_list && completed_list) {
-              if (unit_content_list.length > 0 && completed_list.length > 0) {
-                for (let ii = 0; ii < unit_content_list.length; ii++) {
-                  let temp_item = unit_content_list[ii];
-                  if (completed_list.includes(temp_item)) {
-                    unit_content_completed_list.push(temp_item);
-                  }
-                }
-                let totalContent = unit_content_list.length;
-                let completed = unit_content_completed_list.length;
-                let percentageCompleted = (completed / totalContent) * 100;
-                percentageCompleted = Math.round(percentageCompleted);
+          const newObj = {
+            type,
+            status:
+              result?.status?.toLowerCase() === 'completed'
+                ? 'Completed'
+                : result?.status?.toLowerCase() === 'in progress'
+                ? 'In Progress'
+                : result?.enrolled === true
+                ? 'Enrolled, not started'
+                : 'Not Started',
+          };
+          console.log('newObj', type);
+          if (type === 'Course') {
+            console.log('item', item);
+            const leafNodes = getLeafNodes(item?.[0] ?? {});
+            const completedCount = result?.completed_list?.length ?? 0;
+            const percentage =
+              leafNodes.length > 0
+                ? Math.round((completedCount / leafNodes.length) * 100)
+                : result?.percentage ?? 0;
 
-                setTrackCompleted(percentageCompleted);
-              }
+            if (!_card?.isHideProgress) {
+              setStatusBar({
+                ...newObj,
+                trackProgress: percentage,
+              });
+            } else {
+              setStatusBar(newObj);
             }
-            let unit_content_in_progress_list = [];
-            if (unit_content_list && in_progress_list) {
-              if (unit_content_list.length > 0 && in_progress_list.length > 0) {
-                for (let ii = 0; ii < unit_content_list.length; ii++) {
-                  let temp_item = unit_content_list[ii];
-                  if (in_progress_list.includes(temp_item)) {
-                    unit_content_in_progress_list.push(temp_item);
-                  }
-                }
-                let totalContent = unit_content_list.length;
-                let in_progress = unit_content_in_progress_list.length;
-                let percentageInProgress = (in_progress / totalContent) * 100;
-                percentageInProgress = Math.round(percentageInProgress);
-                setTrackProgress(percentageInProgress);
-              }
-            }
+          } else {
+            setStatusBar({
+              ...newObj,
+              trackProgress: result?.completed ? 100 : 0,
+            });
           }
         }
+      } catch (e) {
+        console.log('error', e);
       }
-    } catch (e) {
-      console.log('error', e);
-    }
-  };
+    };
+    init();
+  }, [TrackData, item, type, _card?.isHideProgress]);
+
   return (
     <Card
       sx={{
         display: 'flex',
-        flexDirection: orientation === 'horizontal' ? 'column' : 'row',
-        height: minheight || 'auto',
+        flexDirection: orientation === 'horizontal' ? 'row' : 'column',
+        height: minheight ?? '100%',
         cursor: onClick ? 'pointer' : 'default',
-        borderRadius: '12px',
-        bgcolor: '#FEF7FF',
+        bgcolor: 'background.paper',
         boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+        borderRadius: '16px',
         overflow: 'hidden',
         '&:hover': {
           boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.2)',
@@ -162,220 +166,246 @@ export const ContentCard: React.FC<CommonCardProps> = ({
         '@media (max-width: 600px)': {
           flexDirection: 'column',
         },
+        ..._card?.sx,
       }}
       onClick={onClick}
     >
       {/* Image and Progress Overlay */}
       <Box sx={{ position: 'relative', width: '100%' }}>
-        {image && (
-          <CardMedia
-            component="img"
-            image={image || '/assets/images/default.png'}
-            alt={imageAlt || 'Image'}
-            sx={{
-              width: '100%',
-              height: orientation === 'horizontal' ? '297px' : 'auto',
-              objectFit: 'cover', //set contain
-              '@media (max-width: 600px)': {
-                height: '200px',
-              },
-            }}
-          />
-        )}
+        <CardMedia
+          component="img"
+          image={image ?? '/assets/images/default.png'}
+          alt={imageAlt || 'Image'}
+          sx={{
+            width: '100%',
+            height: orientation === 'horizontal' ? '140px' : 'auto',
+            aspectRatio: '176/118',
+            objectFit: 'cover',
+            borderBottom: '1px solid rgba(0,0,0,0.1)',
+            '@media (max-width: 600px)': {
+              height: '140px',
+            },
+            cursor: onClick ? 'pointer' : 'default',
+            ..._card?._cardMedia?.sx,
+          }}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent any bubbling
+            onClick?.(); // Trigger redirect only on image click
+          }}
+        />
 
-        {/* Progress Bar Overlay */}
-        {trackProgress >= 0 && (
-          <Box
-            sx={{
-              position: 'absolute',
-              height: '40px',
-              top: 0,
-              width: '100%',
-              display: 'flex',
-              // justifyContent: 'center',
-              alignItems: 'center',
-              background: 'rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            {type === 'course' ? (
-              <>
-                <Progress
-                  variant="determinate"
-                  value={100}
-                  size={30}
-                  thickness={5}
-                  sx={{
-                    color: '#fff8fb',
-                    position: 'absolute',
-                    left: '10px',
-                  }}
-                />
-                <Progress
-                  variant="determinate"
-                  value={trackCompleted}
-                  size={30}
-                  thickness={5}
-                  sx={{
-                    color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
-                    position: 'absolute',
-                    left: '10px',
-                  }}
-                />
-                <Typography
-                  sx={{
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    marginLeft: '12px',
-                    color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
-                    position: 'absolute',
-                    left: '50px',
-                  }}
-                >
-                  {trackCompleted >= 100
-                    ? 'Completed'
-                    : trackCompleted > 0
-                    ? 'Inprogress'
-                    : trackProgress > 0
-                    ? `${trackProgress}% progress`
-                    : `${trackProgress}% Enrolled`}
-                </Typography>
-              </>
-            ) : (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  height: '40px',
-                  top: 0,
-                  width: '100%',
-                  display: 'flex',
-                  // justifyContent: 'center',
-                  alignItems: 'center',
-                  background: 'rgba(0, 0, 0, 0.5)',
-                }}
-              >
-                {trackCompleted >= 100 ? (
-                  <>
-                    <CheckCircleIcon sx={{ color: '#21A400' }} />
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        marginLeft: '12px',
-                        color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
-                        position: 'absolute',
-                        left: '50px',
-                      }}
-                    >
-                      {' '}
-                      Completed
-                    </Typography>
-                  </>
-                ) : (
-                  <>
-                    <ErrorIcon sx={{ color: '#FFB74D' }} />
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        marginLeft: '12px',
-                        color: trackCompleted === 100 ? '#21A400' : '#FFB74D',
-                        position: 'absolute',
-                        left: '20px',
-                      }}
-                    >
-                      {' '}
-                      Inprogress
-                    </Typography>
-                  </>
-                )}
-              </Box>
-            )}
-          </Box>
+        {/* Status Bar */}
+        {statusBar && (
+          <StatusBar
+            trackProgress={statusBar.trackProgress}
+            status={statusBar.status}
+            type={statusBar.type}
+          />
         )}
       </Box>
 
-      <CardHeader
-        avatar={
-          avatarLetter && (
-            <Avatar sx={{ bgcolor: avatarColor }} aria-label="avatar">
-              {avatarLetter}
-            </Avatar>
-          )
-        }
-        title={
-          <Typography
-            sx={{
-              fontSize: '16px',
-              whiteSpace: 'wrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 1,
-              paddingLeft: '5px',
-            }}
-          >
-            {title}
-          </Typography>
-        }
-        subheader={
-          <Typography variant="h6" sx={{ fontSize: '14px' }}>
-            {subheader}
-          </Typography>
-        }
-      />
-      {content && (
-        <CardContent
+      <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+        <CardHeader
           sx={{
-            display: 'flex',
-            paddingBottom: 0,
-            overflow: 'hidden',
-            maxWidth: '100%',
-            // height: '50px',
+            pb: 0,
+            pt: 1,
+            ..._card?._cardHeader?.sx,
           }}
-        >
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          avatar={
+            avatarLetter && (
+              <Avatar
+                sx={{
+                  bgcolor: avatarColor,
+                  ..._card?._avatar?.sx,
+                }}
+                aria-label="avatar"
+              >
+                {avatarLetter}
+              </Avatar>
+            )
+          }
+          title={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                title={title}
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  lineHeight: '24px',
+                  whiteSpace: 'wrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  flex: 1, // allow title to take remaining space
+                  ..._card?._titleText?.sx,
+                }}
+              >
+                {title}
+              </Typography>
+              <Tooltip title="Copy link">
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering card onClick
+                    const urlToCopy =
+                      type === 'Learning Resource'
+                        ? item?.[0]?.artifactUrl
+                        : type === 'Course'
+                        ? item?.[0]?.downloadUrl
+                        : '';
+                    navigator.clipboard.writeText(urlToCopy || '');
+                  }}
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          }
+          subheader={
+            subheader && (
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: '14px',
+                  color: 'text.secondary',
+                  ..._card?._subheaderText?.sx,
+                }}
+              >
+                {subheader}
+              </Typography>
+            )
+          }
+        />
+
+        {content && (
+          <CardContent sx={{ pt: 0.5, pb: 0, ..._card?._cardContent?.sx }}>
             <Typography
+              variant="body2"
               sx={{
+                fontWeight: 400,
+                fontSize: '14px',
+                lineHeight: '20px',
+                color: 'text.secondary',
                 display: '-webkit-box',
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
+                ..._card?._contentText?.sx,
               }}
             >
-              <span style={{ fontSize: '14px', fontWeight: 700 }}>
-                Description:
-              </span>{' '}
               {content}
             </Typography>
-          </Box>
-        </CardContent>
-      )}
-      {children && <CardContent>{children}</CardContent>}
-      {actions && (
-        <CardActions
-          disableSpacing
-          sx={{
-            border: '1px solid #79747E',
-            borderRadius: '8px',
-            width: '80px',
-            display: 'flex',
-            justifyContent: 'center',
-            margin: '12px',
-          }}
-        >
+          </CardContent>
+        )}
+
+        {children && (
+          <CardContent sx={{ ..._card?._childrenContent?.sx }}>
+            {children}
+          </CardContent>
+        )}
+      </Box>
+    </Card>
+  );
+};
+
+const StatusBar: React.FC<StatusProps> = ({ trackProgress, status, type }) => {
+  const theme = useTheme();
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'Completed':
+        return (
+          <CheckCircleIcon
+            sx={{ color: theme.palette.success.main, fontSize: '16px' }}
+          />
+        );
+      case 'Enrolled, not started':
+      case 'Not Started':
+        return (
+          <ErrorIcon
+            sx={{ color: theme.palette.warning.main, fontSize: '16px' }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        ...(type === 'Course' ? { top: 0 } : { bottom: 0 }),
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        background: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(2px)',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          pl: type === 'Course' ? '6px' : '8px',
+          pr: '8px',
+          py: '6px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        {type === 'Course' ? (
+          <CircularProgressWithLabel
+            value={trackProgress ?? 0}
+            _text={{
+              sx: {
+                color: [
+                  'Completed',
+                  'In Progress',
+                  'Enrolled, not started',
+                ].includes(status ?? '')
+                  ? theme.palette.success.main
+                  : theme.palette.common.white,
+                fontSize: '10px',
+              },
+            }}
+            color={
+              ['Completed', 'In Progress', 'Enrolled, not started'].includes(
+                status ?? ''
+              )
+                ? 'success'
+                : 'inherit'
+            }
+            size={35}
+            thickness={2}
+          />
+        ) : null}
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {getStatusIcon()}
           <Typography
+            variant="caption"
             sx={{
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#024F9D',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              lineHeight: '16px',
+              letterSpacing: '0.1px',
+              color: [
+                'Completed',
+                'In Progress',
+                'Enrolled, not started',
+              ].includes(status ?? '')
+                ? theme.palette.success.main
+                : theme.palette.common.white,
             }}
           >
-            {actions}
+            {status}
           </Typography>
-        </CardActions>
-      )}
-    </Card>
+        </Box>
+      </Box>
+    </Box>
   );
 };

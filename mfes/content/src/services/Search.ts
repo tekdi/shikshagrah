@@ -111,12 +111,12 @@ export const ContentSearch = async (
   type: string,
   searchText?: string,
   filterValues?: object,
-  limit: number = 4,
+  limit: number = 10,
   offset: number = 0
 ): Promise<ContentSearchResponse[]> => {
   try {
     // Ensure the environment variable is defined
-    const searchApiUrl = process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL;
+    const searchApiUrl = process.env.NEXT_PUBLIC_CONTENT_BASE_URL;
     if (!searchApiUrl) {
       throw new Error('Search API URL environment variable is not configured');
     }
@@ -125,49 +125,28 @@ export const ContentSearch = async (
     const data = {
       request: {
         filters: {
+          // identifier: 'do_114228944942358528173',
+          // identifier: 'do_1141652605790289921389',
           ...filterValues,
-          // channel: process.env.NEXT_PUBLIC_ORGID,
-          primaryCategory: [
-            'Collection',
-            'Resource',
-            'Content Playlist',
-            'Digital Textbook',
-            'eTextbook',
-            'Explanation Content',
-            'Learning Resource',
-            'Teacher Resource',
-            'Textbook Unit',
-            'LessonPlan',
-            'FocusSpot',
-            'Learning Outcome Definition',
-            'MarkingSchemeRubric',
-            'ExplanationResource',
-            'ExperientialResource',
-            'Practice Resource',
-            'TVLesson',
-          ],
+          //need below after login user channel for dynamic load content
+          // channel: 'shikshalokam-channel',
+
+          primaryCategory: [type],
         },
-        fields: [
-          'name',
-          'appIcon',
-          'mimeType',
-          'gradeLevel',
-          'identifier',
-          'medium',
-          'pkgVersion',
-          'board',
-          'subject',
-          'resourceType',
-          'primaryCategory',
-          'contentType',
-          'channel',
-          'organisation',
-          'trackable',
-          'se_boards',
-          'se_subjects',
-          'se_mediums',
-          'se_gradeLevels',
-        ],
+        // fields: [
+        //   'name',
+        //   'appIcon',
+        //   'description',
+        //   'posterImage',
+        //   'mimeType',
+        //   'identifier',
+        //   'resourceType',
+        //   'primaryCategory',
+        //   'contentType',
+        //   'trackable',
+        //   'children',
+        //   'leafNodes',
+        // ],
         query: searchText,
         limit: limit,
         offset: offset,
@@ -176,7 +155,7 @@ export const ContentSearch = async (
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${searchApiUrl}/api/content/v1/search`,
+      url: `${searchApiUrl}/action/composite/v3/search`,
       data: data,
     };
 
