@@ -219,6 +219,7 @@ const NewUserWithStepper: React.FC = () => {
 
       if (newLocationData?.state) {
         setLocationData(newLocationData);
+        console.log(newLocationData, 'hello');
         setShowError(false);
       } else {
         setShowError(true);
@@ -248,102 +249,107 @@ const NewUserWithStepper: React.FC = () => {
       try {
         formData.contact = contact;
         formData.password = password;
-        const response = await generateOTP(formData.contact, contactType);
-        if (response.success == false) {
-          setError(response.message);
-          setShowError(true);
-          setErrorMessage(response.message);
-        } else {
-          setOtpSent(true);
-          setActiveStep(3);
+        // const response = await generateOTP(formData.contact, contactType);
+        const response = await registerUserService(
+          formData.contact,
+          contactType
+        );
 
-          // Prepare request data
-          const name = formData.username || '';
-          const nameParts = name.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
+        // if (response.success == false) {
+        //   setError(response.message);
+        //   setShowError(true);
+        //   setErrorMessage(response.message);
+        // } else {
+        //   setOtpSent(true);
+        //   setActiveStep(3);
 
-          const firstNameLower = firstName.toLowerCase();
-          const lastNameLower = lastName
-            .split(' ')
-            .map(
-              (part) =>
-                part.charAt(0).toLowerCase() + part.slice(1).toLowerCase()
-            )
-            .join('');
+        //   // Prepare request data
+        //   const name = formData.username || '';
+        //   const nameParts = name.split(' ');
+        //   const firstName = nameParts[0] || '';
+        //   const lastName = nameParts.slice(1).join(' ') || '';
 
-          const userName = `${firstNameLower}_${lastNameLower}`;
-          const dob = formData.yearOfBirth; // Assuming this is in YYYY format
+        //   const firstNameLower = firstName.toLowerCase();
+        //   const lastNameLower = lastName
+        //     .split(' ')
+        //     .map(
+        //       (part) =>
+        //         part.charAt(0).toLowerCase() + part.slice(1).toLowerCase()
+        //     )
+        //     .join('');
 
-          const profileLocation = [
-            locationData.state,
-            locationData.district,
-            locationData.block,
-            locationData.cluster,
-            locationData.school,
-          ].filter(Boolean);
+        //   const userName = `${firstNameLower}_${lastNameLower}`;
+        //   const dob = formData.yearOfBirth; // Assuming this is in YYYY format
 
-          const userTypes = [];
-          const userRole = selectedRole || '';
+        //   const profileLocation = [
+        //     locationData.state[0],
+        //     locationData.district[0],
+        //     locationData.block[0],
+        //     locationData.cluster[0],
+        //     locationData.school[0],
+        //   ].filter(Boolean);
 
-          if (userRole === 'administrator') {
-            selectedSubRole.forEach((role) => {
-              userTypes.push({
-                type: userRole,
-                subType: role.toLowerCase(),
-              });
-            });
-          } else if (userRole === 'youth' || userRole === 'teacher') {
-            userTypes.push({
-              type: userRole,
-              subType: '',
-            });
-          }
+        //   const userTypes = [];
+        //   const userRole = selectedRole || '';
 
-          if (contactType === 'email') {
-            setRequestData({
-              usercreate: {
-                request: {
-                  firstName,
-                  lastName,
-                  organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
-                  email: contact,
-                  emailVerified: true,
-                  userName,
-                  password: formData.password,
-                  dob,
-                  roles: ['PUBLIC'],
-                },
-              },
-              profileLocation,
-              profileUserTypes: userTypes,
-            });
-          } else {
-            setRequestData({
-              usercreate: {
-                request: {
-                  firstName,
-                  lastName,
-                  organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
-                  phone: contact,
-                  phoneVerified: true,
-                  userName,
-                  password: formData.password,
-                  dob,
-                  roles: ['PUBLIC'],
-                },
-              },
-              profileLocation,
-              profileUserTypes: userTypes,
-            });
-          }
+        //   if (userRole === 'administrator') {
+        //     selectedSubRole.forEach((role) => {
+        //       userTypes.push({
+        //         type: userRole,
+        //         subType: role.toLowerCase(),
+        //       });
+        //     });
+        //   } else if (userRole === 'youth' || userRole === 'teacher') {
+        //     userTypes.push({
+        //       type: userRole,
+        //       subType: '',
+        //     });
+        //   }
 
-          setUserData({
-            ...formData,
-            locationData,
-          });
-          localStorage.setItem('contact', contact);
-        }
+        //   if (contactType === 'email') {
+        //     setRequestData({
+        //       usercreate: {
+        //         request: {
+        //           firstName,
+        //           lastName,
+        //           organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
+        //           email: contact,
+        //           emailVerified: true,
+        //           userName,
+        //           password: formData.password,
+        //           dob,
+        //           roles: ['PUBLIC'],
+        //         },
+        //       },
+        //       profileLocation,
+        //       profileUserTypes: userTypes,
+        //     });
+        //   } else {
+        //     setRequestData({
+        //       usercreate: {
+        //         request: {
+        //           firstName,
+        //           lastName,
+        //           organisationId: process.env.NEXT_PUBLIC_ORGID, // Update to match your env variable
+        //           phone: contact,
+        //           phoneVerified: true,
+        //           userName,
+        //           password: formData.password,
+        //           dob,
+        //           roles: ['PUBLIC'],
+        //         },
+        //       },
+        //       profileLocation,
+        //       profileUserTypes: userTypes,
+        //     });
+        //   }
+
+        //   setUserData({
+        //     ...formData,
+        //     locationData,
+        //   });
+        //   localStorage.setItem('contact', contact);
+        // }
       } catch (error) {
         console.error('Error generating OTP:', error);
       }
@@ -357,54 +363,64 @@ const NewUserWithStepper: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (remainingAttempts <= 0) {
-      setShowError(true);
-      setErrorMessage(
-        'You have exceeded the maximum OTP attempts. Please request a new OTP.'
-      );
-      return;
-    }
+    console.log('OTP submitted');
+    // if (remainingAttempts <= 0) {
+    //   setShowError(true);
+    //   setErrorMessage(
+    //     'You have exceeded the maximum OTP attempts. Please request a new OTP.'
+    //   );
+    //   return;
+    // }
 
     setShowError(false);
-    if (otp.length < 5 || otp.length > 6) {
-      setInvalidOtp(true);
-      setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
-      return;
-    }
+    // if (otp.length < 5 || otp.length > 6) {
+    //   setInvalidOtp(true);
+    //   setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
+    //   return;
+    // }
 
     try {
       const email = contact;
-      const otpResponse = await verifyOtpService(email, otp, contactType);
-      const err = otpResponse?.response;
+      // const otpResponse = await verifyOtpService(email, otp, contactType);
+      // const err = otpResponse?.response;
 
-      if (
-        otpResponse ===
-          'OTP verification failed. Remaining attempt count is 0.' ||
-        otpResponse ===
-          'OTP verification failed. Remaining attempt count is 1.' ||
-        err?.data?.params?.status === 'FAILED'
-      ) {
+      // if (
+      //   otpResponse ===
+      //     'OTP verification failed. Remaining attempt count is 0.' ||
+      //   otpResponse ===
+      //     'OTP verification failed. Remaining attempt count is 1.' ||
+      //   err?.data?.params?.status === 'FAILED'
+      // ) {
+      //   setShowError(true);
+      //   setErrorMessage(err.data.params.errmsg);
+      //   setInvalidOtp(true);
+      //   setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
+      //   return;
+      // } else if (otpResponse.params.status === 'SUCCESS') {
+      // console.log('OTP verified successfully', requestData);
+      // formData.contact = contact;
+      // formData.password = password;
+      const contactValid =
+        contactType === 'email'
+          ? emailRegex.test(contact)
+          : phoneRegex.test(contact);
+      const registrationResponse = await registerUserService(
+        formData.contact,
+        contactType
+      );
+
+      if (registrationResponse.success === true) {
+        setErrorMessage(registrationResponse.message);
+        setDialogOpen(true);
+      } else {
         setShowError(true);
-        setErrorMessage(err.data.params.errmsg);
-        setInvalidOtp(true);
-        setRemainingAttempts((prev) => Math.max(0, prev - 1)); // Prevent negative values
-        return;
-      } else if (otpResponse.params.status === 'SUCCESS') {
-        console.log('OTP verified successfully', requestData);
-        const registrationResponse = await registerUserService({ requestData });
-
-        if (registrationResponse.success === true) {
-          setErrorMessage(registrationResponse.message);
-          setDialogOpen(true);
-        } else {
-          setShowError(true);
-          setErrorMessage(
-            registrationResponse.data
-              ? registrationResponse.data.error.params.errmsg
-              : registrationResponse.error.params.errmsg
-          );
-        }
+        setErrorMessage(
+          registrationResponse.data
+            ? registrationResponse.data.error.params.errmsg
+            : registrationResponse.error.params.errmsg
+        );
       }
+      // }
     } catch (error) {
       setShowError(true);
       setErrorMessage(error.message || 'An error occurred');
@@ -427,7 +443,7 @@ const NewUserWithStepper: React.FC = () => {
     setRemainingAttempts(3); // Reset attempts after resending OTP
 
     console.log('OTP resent');
-    handleStep3Continue();
+    // handleStep3Continue();
 
     if (resendCount + 1 >= 4) {
       setTimeout(() => {
@@ -508,9 +524,9 @@ const NewUserWithStepper: React.FC = () => {
         <Box
           sx={{
             p: 2,
-            borderBottom: '2px solid #FFC857', // Light shade of #FFC857 for the bottom border
+            borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
             boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-            backgroundColor: '#FFF7E6', // Light background derived from #FFC857
+            backgroundColor: '#FFF7E6', // Light background derived from #FF9911
             borderRadius: '0 0 25px 25px', // Rounded corners only on the bottom left and right
           }}
         >
@@ -521,7 +537,7 @@ const NewUserWithStepper: React.FC = () => {
                 <Button
                   onClick={handleBack}
                   sx={{
-                    color: '#024F9D',
+                    color: '#572E91',
                     display: 'flex',
                     alignItems: 'center',
                     fontWeight: 'bold',
@@ -550,7 +566,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: '#024F9D',
+                  color: '#572E91',
                   fontWeight: 'bold',
                   fontSize: '1.2rem',
                   textTransform: 'uppercase',
@@ -579,7 +595,7 @@ const NewUserWithStepper: React.FC = () => {
               >
                 <Box
                   component="img"
-                  src="assets/images/SG_Logo.png"
+                  src="assets/images/SG_Logo.jpg"
                   alt="logo"
                   sx={{
                     width: '50%',
@@ -592,13 +608,13 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 sx={{
-                  color: '#024F9D',
+                  color: '#572E91',
                   fontWeight: 'bold',
                   mb: 1,
                   textAlign: 'center',
                 }}
               >
-                Welcome to Shikshalokam
+                Welcome to Shikshagraha
               </Typography>
               <Typography
                 variant="body1"
@@ -650,7 +666,7 @@ const NewUserWithStepper: React.FC = () => {
               >
                 <Button
                   sx={{
-                    bgcolor: '#024F9D',
+                    bgcolor: '#582E92',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -658,7 +674,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontSize: '14px',
                     padding: '8px 16px',
                     '&:hover': {
-                      bgcolor: '#FFC857',
+                      bgcolor: '#543E98',
                     },
 
                     width: '50%', // Ensures it spans the width of its container
@@ -750,14 +766,14 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={handleFetchLocation}
                   sx={{
-                    bgcolor: '#024F9D',
+                    bgcolor: '#582E92',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#FFC857' },
+                    '&:hover': { bgcolor: '#543E98' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
                   disabled={
@@ -788,14 +804,20 @@ const NewUserWithStepper: React.FC = () => {
                   >
                     <Grid container spacing={2}>
                       {[
-                        { label: 'State', value: locationData.state?.name },
+                        { label: 'State', value: locationData.state[0]?.name },
                         {
                           label: 'District',
-                          value: locationData.district?.name,
+                          value: locationData.district[0]?.name,
                         },
-                        { label: 'Block', value: locationData.block?.name },
-                        { label: 'Cluster', value: locationData.cluster?.name },
-                        { label: 'School', value: locationData.school?.name },
+                        { label: 'Block', value: locationData.block[0]?.name },
+                        {
+                          label: 'Cluster',
+                          value: locationData.cluster[0]?.name,
+                        },
+                        {
+                          label: 'School',
+                          value: locationData.school[0]?.name,
+                        },
                       ].map((item, index) => (
                         <Grid item xs={12} key={index}>
                           {' '}
@@ -804,7 +826,7 @@ const NewUserWithStepper: React.FC = () => {
                             variant="body1"
                             sx={{ fontWeight: 'bold', color: '#333' }}
                           >
-                            <span style={{ color: '#FFC857' }}>
+                            <span style={{ color: '#FF9911' }}>
                               {item.label}:{' '}
                             </span>
                             {item.value}
@@ -822,14 +844,14 @@ const NewUserWithStepper: React.FC = () => {
                   variant="contained"
                   onClick={() => setActiveStep(2)}
                   sx={{
-                    bgcolor: '#024F9D',
+                    bgcolor: '#582E92',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#FFC857' },
+                    '&:hover': { bgcolor: '#543E98' },
                     width: { xs: '50%', sm: '50%' }, // Responsive width
                   }}
                   disabled={
@@ -851,7 +873,7 @@ const NewUserWithStepper: React.FC = () => {
               <Typography
                 variant="h5"
                 align="center"
-                sx={{ color: '#024F9D', fontWeight: 'bold', fontSize: '1rem' }}
+                sx={{ color: '#572E91', fontWeight: 'bold', fontSize: '1rem' }}
               >
                 Enter your Email or Mobile Number{' '}
                 <Typography component="span" sx={{ color: 'red' }}>
@@ -960,7 +982,9 @@ const NewUserWithStepper: React.FC = () => {
                 type={showConfirmPassword ? 'text' : 'password'}
                 error={error.confirmPassword}
                 helperText={
-                  error.confirmPassword ? 'Passwords do not match.' : ''
+                  error.confirmPassword
+                    ? 'Password and confirm password must be the same.'
+                    : ''
                 }
                 InputProps={{
                   endAdornment: (
@@ -991,9 +1015,10 @@ const NewUserWithStepper: React.FC = () => {
                 }}
               >
                 <Button
-                  onClick={handleStep3Continue}
+                  // onClick={handleStep3Continue}
+                  onClick={handleSubmit}
                   sx={{
-                    bgcolor: '#024F9D',
+                    bgcolor: '#582E92',
                     color: '#FFFFFF',
                     borderRadius: '30px',
                     textTransform: 'none',
@@ -1001,7 +1026,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontSize: '14px',
                     padding: '8px 16px',
                     '&:hover': {
-                      bgcolor: '#FFC857',
+                      bgcolor: '#543E98',
                     },
                     width: '50%',
                   }}
@@ -1047,7 +1072,7 @@ const NewUserWithStepper: React.FC = () => {
                   align="center"
                   sx={{
                     fontWeight: 'bold',
-                    color: '#024F9D',
+                    color: '#572E91',
                     marginBottom: '20px',
                   }}
                 >
@@ -1064,7 +1089,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>Name: </span>
+                      <span style={{ color: '#FF9911' }}>Name: </span>
                       {userData?.username || 'N/A'}
                     </Typography>
                     <Typography
@@ -1075,7 +1100,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>Year of Birth: </span>
+                      <span style={{ color: '#FF9911' }}>Year of Birth: </span>
                       {userData?.yearOfBirth || 'N/A'}
                     </Typography>
                     <Typography
@@ -1086,7 +1111,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>State: </span>
+                      <span style={{ color: '#FF9911' }}>State: </span>
                       {userData?.locationData?.state?.name || 'N/A'}
                     </Typography>
 
@@ -1098,7 +1123,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>District: </span>
+                      <span style={{ color: '#FF9911' }}>District: </span>
                       {userData?.locationData?.district?.name || 'N/A'}
                     </Typography>
 
@@ -1110,7 +1135,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>Block: </span>
+                      <span style={{ color: '#FF9911' }}>Block: </span>
                       {userData?.locationData?.block?.name || 'N/A'}
                     </Typography>
                     <Typography
@@ -1121,7 +1146,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>Cluster: </span>
+                      <span style={{ color: '#FF9911' }}>Cluster: </span>
                       {userData?.locationData?.cluster?.name || 'N/A'}
                     </Typography>
                     <Typography
@@ -1132,7 +1157,7 @@ const NewUserWithStepper: React.FC = () => {
                         paddingBottom: '10px',
                       }}
                     >
-                      <span style={{ color: '#FFC857' }}>School: </span>
+                      <span style={{ color: '#FF9911' }}>School: </span>
                       {userData?.locationData?.school?.name || 'N/A'}
                     </Typography>
                   </Grid>
@@ -1209,7 +1234,7 @@ const NewUserWithStepper: React.FC = () => {
                   sx={{
                     bgcolor:
                       otp.length >= 5 && remainingAttempts > 0
-                        ? '#024F9D'
+                        ? '#572e91'
                         : '#ddd',
                     color:
                       otp.length >= 5 && remainingAttempts > 0
@@ -1220,7 +1245,7 @@ const NewUserWithStepper: React.FC = () => {
                     fontWeight: 'bold',
                     fontSize: '14px',
                     padding: '8px 16px',
-                    '&:hover': { bgcolor: '#FFC857' },
+                    '&:hover': { bgcolor: '#543E98' },
                     width: '50%',
                   }}
                   disabled={otp.length < 5 || remainingAttempts <= 0}
@@ -1243,7 +1268,7 @@ const NewUserWithStepper: React.FC = () => {
                     disabled={!enableResend || resendCount >= 2}
                     sx={{
                       textTransform: 'none',
-                      color: '#024F9D',
+                      color: '#572E91',
                       fontWeight: 'bold',
                     }}
                   >
@@ -1267,7 +1292,7 @@ const NewUserWithStepper: React.FC = () => {
         left: 0,
         right: 0,
         backgroundColor: '#F8FAFC',
-        borderTop: '1px solid #FFC857',
+        borderTop: '1px solid #FF9911',
         py: 2,
         textAlign: 'center',
         zIndex: 1000, // Ensure the footer stays on top
@@ -1278,7 +1303,7 @@ const NewUserWithStepper: React.FC = () => {
         <Button
           sx={{
             textTransform: 'uppercase',
-            color: '#024F9D',
+            color: '#582E92',
             fontWeight: 'bold',
           }}
           onClick={() => router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`)}

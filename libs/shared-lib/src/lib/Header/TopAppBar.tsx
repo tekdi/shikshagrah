@@ -62,26 +62,27 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
   color = 'transparent',
   actionIcons = [],
   profileIcon = [],
-  bgcolor = '#FFC857',
+  bgcolor = '#FF9911',
 }) => {
   const accountIcon = actionIcons.find((icon) => icon.ariaLabel === 'Account');
-
+  console.log('showBackIcon', showBackIcon);
   return (
     <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ minHeight: '64px' }} />
       <AppBar
         component="nav"
         sx={{
-          borderBottom: '2px solid #FFD580', // Light shade of #FFC857 for the bottom border
+          borderBottom: '2px solid #FFD580', // Light shade of #FF9911 for the bottom border
           boxShadow: '0px 2px 4px rgba(255, 153, 17, 0.2)', // Subtle shadow
-          backgroundColor: '#FFF7E6', // Light background derived from #FFC857
+          backgroundColor: '#FFF7E6', // Light background derived from #FF9911
           borderRadius: '0 0 25px 25px',
-          color: '#024F9D', // Rounded corners only on the bottom left and right
+          color: '#572E91', // Rounded corners only on the bottom left and right
         }}
       >
         <Toolbar>
-          {showMenuIcon && (
-            <>
-              {/* <IconButton
+          {/* {showMenuIcon && ( */}
+          <>
+            {/* <IconButton
                 size="large"
                 edge="start"
                 color="inherit"
@@ -90,30 +91,30 @@ export const TopAppBar: React.FC<CommonAppBarProps> = ({
               >
                 <MenuIcon />
               </IconButton> */}
-              {showBackIcon && (
-                <IconButton
-                  size="large"
-                  edge="start"
-                  color="inherit"
-                  aria-label="back"
-                  onClick={backIconClick}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-              )}
-              <Typography
-                component="div"
-                sx={{
-                  flexGrow: 1,
-                  textAlign: 'center',
-                  fontSize: '22px',
-                  fontWeight: 700,
-                }}
+            {showBackIcon && (
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="back"
+                onClick={backIconClick}
               >
-                {title}
-              </Typography>
-            </>
-          )}
+                <ArrowBackIcon />
+              </IconButton>
+            )}
+            <Typography
+              component="div"
+              sx={{
+                flexGrow: 1,
+                textAlign: 'center',
+                fontSize: '22px',
+                fontWeight: 700,
+              }}
+            >
+              {title}
+            </Typography>
+          </>
+          {/* )} */}
 
           {profileIcon && profileIcon.length > 0 && (
             <IconButton

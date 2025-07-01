@@ -32,6 +32,7 @@ import {
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 interface LayoutProps {
   children: React.ReactNode;
+  isLoadingChildren?: boolean;
   isFooter?: boolean;
   showBack?: boolean;
   backTitle?: string;
@@ -251,9 +252,9 @@ const FilterDialog = ({
                       <MenuItem key={option.value} value={option.value}>
                         <Checkbox
                           sx={{
-                            color: '#024F9D', // Default checkbox color
+                            color: '#6750A4', // Default checkbox color
                             '&.Mui-checked': {
-                              color: '#024F9D', // Checked checkbox color
+                              color: '#6750A4', // Checked checkbox color
                             },
                           }}
                           checked={currentSelectedValues.includes(option.value)}
@@ -391,7 +392,7 @@ const FilterDialog = ({
               }}
               sx={{
                 borderRadius: '100px',
-                color: '#024F9D',
+                color: '#6750A4',
                 textTransform: 'none',
               }}
             >
@@ -405,7 +406,7 @@ const FilterDialog = ({
               }}
               sx={{
                 borderRadius: '100px',
-                bgcolor: '#024F9D',
+                bgcolor: '#6750A4',
                 color: '#FFFFFF',
                 marginLeft: 2,
                 textTransform: 'none',
@@ -445,6 +446,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onSortChange,
   onApply,
   filterValues,
+  isLoadingChildren = false,
   sx = {},
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -457,7 +459,8 @@ export const Layout: React.FC<LayoutProps> = ({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        overflowX: 'hidden',
+        // justifyContent: 'space-between',
         // alignItems: 'center',
         // bgcolor: 'grey',
         ...sx,
@@ -513,8 +516,8 @@ export const Layout: React.FC<LayoutProps> = ({
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
-            marginTop: '70px',
-            marginLeft: '10px',
+            marginTop: '20px',
+            padding: '0 16px',
           }}
         >
           <CommonSearch
@@ -554,7 +557,7 @@ export const Layout: React.FC<LayoutProps> = ({
               onClick={() => setFilterShow(true)}
             >
               <FilterAltOutlinedIcon
-                sx={{ color: '#024F9D', fontSize: '25px' }}
+                sx={{ color: '#6750A4', fontSize: '25px' }}
               />
             </Box>
           )}
@@ -597,6 +600,10 @@ export const Layout: React.FC<LayoutProps> = ({
           sx={{
             width: '100%',
             bgcolor: 'white',
+            position: 'fixed',
+            bottom: 0, // Anchors to the bottom
+            left: 0,
+            zIndex: 1200,
           }}
         >
           <Footer
