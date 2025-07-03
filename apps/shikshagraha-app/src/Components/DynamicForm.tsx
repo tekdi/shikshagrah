@@ -907,7 +907,7 @@ const DynamicForm = ({
         setIsUsernameValid(false);
         return;
       }
-
+      setIsUsernameValid(false);
       try {
         const response = await axios.get(
           `${API_ENDPOINTS.checkUser(username)}`,
@@ -929,11 +929,9 @@ const DynamicForm = ({
           }, 8000);
         } else {
           setErrorMessage('');
-          setErrorButton(true);
-          setShowError(true);
-          setTimeout(() => {
-            setShowError(false);
-          }, 8000);
+          setErrorButton(false);
+          setShowError(false);
+
           setIsUsernameValid(true);
         }
       } catch (error) {
@@ -1004,9 +1002,9 @@ const DynamicForm = ({
           );
         }
       }
-
+      setIsUsernameValid(false);
       // Check username availability if username changed
-      if (usernameChanged) {
+      if (formData.Username) {
         checkUsernameAvailability(formData.Username);
       }
 
@@ -1683,6 +1681,7 @@ const DynamicForm = ({
                 !formData.Role ||
                 !formData?.udise ||
                 !formData?.Udise ||
+                !formData.Username ||
                 !isUsernameValid ||
                 hasValidationErrors() ||
                 (formData.Role !== 'parents' &&

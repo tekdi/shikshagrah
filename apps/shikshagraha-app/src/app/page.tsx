@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -40,6 +40,7 @@ export default function Login() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const loginClickedRef = useRef(false);
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
@@ -263,11 +264,13 @@ export default function Login() {
           onSubmit={(e) => {
             e.preventDefault();
             if (window.matchMedia('(display-mode: standalone)').matches) {
-              // Only submit if the submit button was clearly clicked
-              const isActualSubmit =
-                e.nativeEvent.submitter?.className?.includes('MuiButton-root');
-              if (!isActualSubmit) return;
+              if (!loginClickedRef.current) return;
+              // // Only submit if the submit button was clearly clicked
+              // const isActualSubmit =
+              //   e.nativeEvent.submitter?.className?.includes('MuiButton-root');
+              // if (!isActualSubmit) return;
             }
+            loginClickedRef.current = false;
             handleButtonClick();
           }}
           onInput={(e) => {
@@ -423,6 +426,7 @@ export default function Login() {
                 },
                 width: { xs: '50%', sm: '50%' },
               }}
+              onClick={() => (loginClickedRef.current = true)}
             >
               Login
             </Button>
