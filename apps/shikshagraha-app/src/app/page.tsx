@@ -23,6 +23,7 @@ import {
   authenticateLoginUser,
   fetchTenantData,
   signin,
+  fetchBranding,
 } from '../services/LoginService';
 import AppConst from '../utils/AppConst/AppConst';
 export default function Login() {
@@ -58,8 +59,9 @@ export default function Login() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-
+      const origin = window.location.origin;
       const parts = hostname.split('.');
+      localStorage.setItem('origin', origin);
 
       const skipList = [
         'app',
@@ -83,24 +85,23 @@ export default function Login() {
         return name.endsWith(suffix) ? name.replace(suffix, '') : name;
       }, domainPart);
 
-      // Step 3: Map or format display name
-      const displayName = formatDisplayName(coreDomain);
-
-      setDisplayName(displayName);
+      fetchBranding(coreDomain).then((brandingData) => {
+        if (brandingData) {
+          console.log('Branding:', brandingData?.result);
+          const tenantCode = brandingData?.result?.code;
+          localStorage.setItem('tenantCode', tenantCode);
+        }
+      });
+      const displayName = (
+        localStorage.getItem('tenantCode') ?? ''
+      ).toUpperCase();
       if (coreDomain === 'shikshagrah') {
         coreDomain = 'shikshagraha';
       }
-      localStorage.setItem('origin', coreDomain);
+
+      // localStorage.setItem('origin', coreDomain);
     }
   }, []);
-  const formatDisplayName = (domain: string): string => {
-    // Custom rules per domain (if needed)
-    if (domain === 'shikshagraha') return 'Shikshagraha';
-    if (domain === 'shikshalokam') return 'Shikshalokam';
-    if (domain === 'shikshagrah') return 'Shikshagraha';
-    // Default: Capitalize first letter
-    return domain.charAt(0).toUpperCase() + domain.slice(1);
-  };
 
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {

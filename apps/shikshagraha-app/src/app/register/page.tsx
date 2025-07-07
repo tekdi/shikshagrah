@@ -38,7 +38,8 @@ export default function Register() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-
+      const origin = window.location.origin;
+      localStorage.setItem('origin', origin);
       const parts = hostname.split('.');
 
       const skipList = [
@@ -64,23 +65,34 @@ export default function Register() {
       }, domainPart);
 
       // Step 3: Map or format display name
-      const displayName = formatDisplayName(coreDomain);
+      const displayName = toPascalCase(
+        localStorage.getItem('tenantCode') ?? ''
+      );
+      setDisplayName(displayName);
+
+      setDisplayName(displayName ? displayName : '');
       if (coreDomain === 'shikshagrah') {
         coreDomain = 'shikshagraha';
       }
-      setDisplayName(displayName);
-      localStorage.setItem('origin', coreDomain);
+      // localStorage.setItem('origin', coreDomain);
     }
   }, []);
-
-  const formatDisplayName = (domain: string): string => {
-    // Custom rules per domain (if needed)
-    if (domain === 'shikshagraha') return 'Shikshagraha';
-    if (domain === 'shikshalokam') return 'Shikshalokam';
-    if (domain === 'shikshagrah') return 'Shikshagraha';
-    // Default: Capitalize first letter
-    return domain.charAt(0).toUpperCase() + domain.slice(1);
+  const toPascalCase = (str: string): string => {
+    return str
+      .toLowerCase()
+      .replace(/(^\w|[^a-zA-Z0-9]+(\w))/g, (_, first, second) =>
+        (first || second).toUpperCase()
+      );
   };
+
+  // const formatDisplayName = (domain: string): string => {
+  //   // Custom rules per domain (if needed)
+  //   if (domain === 'shikshagraha') return 'Shikshagraha';
+  //   if (domain === 'shikshalokam') return 'Shikshalokam';
+  //   if (domain === 'shikshagrah') return 'Shikshagraha';
+  //   // Default: Capitalize first letter
+  //   return domain.charAt(0).toUpperCase() + domain.slice(1);
+  // };
 
   useEffect(() => {
     const fetchSchema = async () => {
