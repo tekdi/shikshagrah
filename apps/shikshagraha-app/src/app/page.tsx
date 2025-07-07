@@ -310,7 +310,7 @@ export default function Login() {
             <Box
               component="img"
               src={
-                displayName === 'Shikshalokam'
+                displayName === 'shikshalokam'
                   ? '/assets/images/SG_Logo.png'
                   : '/assets/images/SG_Logo.jpg'
               }
