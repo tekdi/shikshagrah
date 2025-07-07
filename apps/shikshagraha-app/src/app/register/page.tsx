@@ -118,11 +118,15 @@ export default function Register() {
         if (selectedRoleObj) {
           const subrolesResponse = await getSubroles(selectedRoleObj._id);
           subrolesData = subrolesResponse.result ?? [];
-          setSubRoles(subrolesData);
+          // setSubRoles(subrolesData);
         }
 
         const { schema, uiSchema, fieldNameToFieldIdMapping } =
           generateRJSFSchema(fields, selectedRoleObj, rolesData, subrolesData);
+        if (subrolesData?.length === 0) {
+          delete schema.properties?.['Sub-Role'];
+          delete uiSchema?.['Sub-Role'];
+        }
 
         console.log('schema', schema);
         const registrationCodeConfig = meta.registration_code;
@@ -304,9 +308,10 @@ export default function Register() {
                   SubmitaFunction={handleSubmit}
                   hideSubmit={false}
                   onChange={({ formData }) => {
-                    if (formData.Role) {
-                      setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
-                    }
+                    // if (formData.Role) {
+                    //   setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
+                    // }
+                    setFormData(formData);
                   }}
                   fieldIdMapping={fieldNameToFieldIdMapping}
                 />
