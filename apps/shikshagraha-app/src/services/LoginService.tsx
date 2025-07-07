@@ -160,7 +160,7 @@ export const fetchTenantData = async ({
 
 export const fetchRoleData = async (): Promise<any> => {
   const apiUrl = `${API_ENDPOINTS.roleRead}`;
-  const tenantId = localStorage.getItem('origin');
+  const tenantId = localStorage.getItem('tenantCode');
 
   try {
     const response = await axios.get(apiUrl, {
@@ -388,5 +388,22 @@ export const resetPassword = async (payload: {
   } catch (error) {
     console.error('Error during resetPassword API call:', error);
     throw error;
+  }
+};
+
+// services/loginService.ts
+export const fetchBranding = async (origin: string) => {
+  const apiUrl = `${API_ENDPOINTS.tenantRead}`;
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        origin: localStorage.getItem('origin'),
+      },
+    });
+
+    return response?.data;
+  } catch (error: any) {
+    console.error('Error fetching tenant data:', error);
+    return error;
   }
 };
