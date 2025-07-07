@@ -161,7 +161,7 @@ export const fetchTenantData = async ({
 export const fetchRoleData = async (): Promise<any> => {
   const apiUrl = `${API_ENDPOINTS.roleRead}`;
   const tenantId = localStorage.getItem('tenantCode');
-
+  console.log('tenantId', tenantId);
   try {
     const response = await axios.get(apiUrl, {
       headers: {
@@ -176,7 +176,7 @@ export const fetchRoleData = async (): Promise<any> => {
   }
 };
 export const getSubroles = async (parentEntityId: string) => {
-  const tenantId = localStorage.getItem('origin') ?? '';
+  const tenantId = localStorage.getItem('tenantCode') ?? '';
 
   try {
     const response = await fetch(
