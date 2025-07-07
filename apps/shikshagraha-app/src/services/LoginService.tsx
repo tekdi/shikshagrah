@@ -272,7 +272,7 @@ export const registerUserService = async (requestData: any) => {
 
 export const fetchContentOnUdise = async (udise: string): Promise<any> => {
   const apiUrl = `${API_ENDPOINTS.udiseSearch(udise)}`;
-  const tenantId = localStorage.getItem('origin') ?? '';
+  const tenantId = localStorage.getItem('tenantCode') ?? '';
 
   try {
     const response = await axios.get(apiUrl, {
