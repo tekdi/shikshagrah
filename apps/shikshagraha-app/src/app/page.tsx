@@ -89,7 +89,7 @@ export default function Login() {
         if (brandingData) {
           console.log('Branding:', brandingData?.result);
           const tenantCode = brandingData?.result?.code;
-          // const tenantCode = 'shikshalokam';
+          //  const tenantCode = 'shikshalokam';
           localStorage.setItem('tenantCode', tenantCode);
         }
       });
@@ -309,11 +309,7 @@ export default function Login() {
           >
             <Box
               component="img"
-              src={
-                displayName == 'shikshalokam'
-                  ? '/assets/images/SG_Logo.png'
-                  : '/assets/images/SG_Logo.jpg'
-              }
+              src={'/assets/images/SG_Logo.png'}
               alt="logo"
               sx={{
                 width: '50%',
