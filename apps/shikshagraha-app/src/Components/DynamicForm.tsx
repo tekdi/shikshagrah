@@ -93,7 +93,12 @@ const DynamicForm = ({
   const [isUsernameValid, setIsUsernameValid] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
   const [errorButton, setErrorButton] = useState(false);
-
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [lastOtpAttemptTime, setLastOtpAttemptTime] = useState<number | null>(
+    null
+  );
+  const [otpDisabled, setOtpDisabled] = useState(false);
+  const [otpDisabledMessage, setOtpDisabledMessage] = useState('');
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -153,6 +158,35 @@ const DynamicForm = ({
     //   return field[valueKey] || '';
     // }
     // return field;
+  };
+  const checkOtpAttempts = () => {
+    const now = Date.now();
+    const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+    // Reset attempts if more than 10 minutes have passed since last attempt
+    if (lastOtpAttemptTime && now - lastOtpAttemptTime > tenMinutes) {
+      setOtpAttempts(0);
+      setLastOtpAttemptTime(null);
+      setOtpDisabled(false);
+      setOtpDisabledMessage('');
+      return true;
+    }
+
+    // Check if user has exceeded attempts
+    if (otpAttempts >= 3) {
+      setOtpDisabled(true);
+      const timeLeft = Math.ceil(
+        (tenMinutes - (now - (lastOtpAttemptTime || now))) / (60 * 1000)
+      );
+      setOtpDisabledMessage(
+        `You have reached the maximum number of OTP requests. Please try again in ${Math.ceil(
+          timeLeft
+        )} minutes.`
+      );
+      return false;
+    }
+
+    return true;
   };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
@@ -1311,6 +1345,9 @@ const DynamicForm = ({
     return isValid;
   };
   const handleSendOtp = async () => {
+    if (!checkOtpAttempts()) {
+      return;
+    }
     setErrorButton(false);
     const customFields = Object.entries(fieldIdMapping).flatMap(
       ([name, fieldId]) => {
@@ -1374,36 +1411,45 @@ const DynamicForm = ({
     };
 
     console.log('1331 payload', otpPayload);
-    const registrationResponse = await sendOtp(otpPayload);
-    if (registrationResponse?.responseCode === 'OK') {
-      setRequestData({
-        usercreate: {
-          request: {
-            userName: formData.username,
+    try {
+      const registrationResponse = await sendOtp(otpPayload);
+      setOtpAttempts((prev) => prev + 1);
+      setLastOtpAttemptTime(Date.now());
+      if (registrationResponse?.responseCode === 'OK') {
+        setRequestData({
+          usercreate: {
+            request: {
+              userName: formData.username,
+            },
           },
-        },
-      });
-      // setErrorMessage(registrationResponse.message);
-      // setAlertSeverity('success');
-      setIsOpenOTP(true);
-    } else {
-      if (registrationResponse?.message === 'INVALID_ORG_registration_code') {
-        setShowError(true);
-        setErrorButton(true);
-        setAlertSeverity('error');
-        setErrorMessage('Invalid Organisation');
-        setTimeout(() => {
-          setShowError(false);
-        }, 8000);
+        });
+        // setErrorMessage(registrationResponse.message);
+        // setAlertSeverity('success');
+        setIsOpenOTP(true);
       } else {
-        setShowError(true);
-        setErrorButton(true);
-        setAlertSeverity('error');
-        setErrorMessage(registrationResponse.message);
-        setTimeout(() => {
-          setShowError(false);
-        }, 8000);
+        if (registrationResponse?.message === 'INVALID_ORG_registration_code') {
+          setShowError(true);
+          setErrorButton(true);
+          setAlertSeverity('error');
+          setErrorMessage('Invalid Organisation');
+          setTimeout(() => {
+            setShowError(false);
+          }, 8000);
+        } else {
+          setShowError(true);
+          setErrorButton(true);
+          setAlertSeverity('error');
+          setErrorMessage(registrationResponse.message);
+          setTimeout(() => {
+            setShowError(false);
+          }, 8000);
+        }
       }
+    } catch (error) {
+      // Update OTP attempt tracking even on failure
+      setOtpAttempts((prev) => prev + 1);
+      setLastOtpAttemptTime(Date.now());
+      // ... existing error handling ...
     }
   };
   const handleRegister = async (otp) => {
@@ -1672,6 +1718,7 @@ const DynamicForm = ({
             <Button
               onClick={handleSendOtp}
               disabled={
+                otpDisabled ||
                 errorButton ||
                 !formData?.firstName ||
                 !formData?.password ||
