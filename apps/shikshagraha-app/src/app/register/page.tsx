@@ -16,6 +16,7 @@ import {
   fetchRoleData,
   getSubroles,
   schemaRead,
+  fetchBranding,
 } from '../../services/LoginService';
 import { useRouter } from 'next/navigation';
 
@@ -39,8 +40,8 @@ export default function Register() {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       const origin = window.location.origin;
-      localStorage.setItem('origin', origin);
       const parts = hostname.split('.');
+      localStorage.setItem('origin', origin);
 
       const skipList = [
         'app',
@@ -65,9 +66,20 @@ export default function Register() {
       }, domainPart);
 
       // Step 3: Map or format display name
+
+      fetchBranding(coreDomain).then((brandingData) => {
+        if (brandingData) {
+          console.log('Branding:', brandingData?.result);
+          const tenantCode = brandingData?.result?.code;
+          //  const tenantCode = 'shikshalokam';
+          localStorage.setItem('tenantCode', tenantCode);
+        }
+      });
+
       const displayName = toPascalCase(
         localStorage.getItem('tenantCode') ?? ''
       );
+      console.log('displayName', displayName);
       setDisplayName(displayName);
 
       setDisplayName(displayName ? displayName : '');
