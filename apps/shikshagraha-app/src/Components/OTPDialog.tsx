@@ -119,15 +119,26 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
       setExpirationTimer(expirationTime);
     }
   };
+
+  const handleDialogClose = (
+    event: {},
+    reason: 'backdropClick' | 'escapeKeyDown'
+  ) => {
+    if (reason === 'backdropClick') {
+      return; // Prevent closing on backdrop click
+    }
+    onClose(); // Allow closing on escape key or close button
+  };
   const isOTPComplete =
     otp.every((digit) => digit !== '') && otp.length === otpLength;
   const isExpired = expirationTimer <= 0;
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleDialogClose}
       maxWidth="xs"
       fullWidth
+      disableEscapeKeyDown={false}
       PaperProps={{
         sx: {
           bgcolor: 'background.paper',

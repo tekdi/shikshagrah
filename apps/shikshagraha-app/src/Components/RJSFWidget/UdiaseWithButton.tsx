@@ -26,7 +26,16 @@ const UdiaseWithButton = ({
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
-
+  const clearAllFields = () => {
+    onFetchData({
+      udise: '',
+      school: { _id: '', name: '', externalId: '' },
+      state: { _id: '', name: '', externalId: '' },
+      district: { _id: '', name: '', externalId: '' },
+      block: { _id: '', name: '', externalId: '' },
+      cluster: { _id: '', name: '', externalId: '' },
+    });
+  };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     setLocalValue(val);
