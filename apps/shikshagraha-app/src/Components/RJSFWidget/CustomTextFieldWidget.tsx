@@ -84,6 +84,10 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         if (val && !emailRegex.test(val)) {
           return 'Enter a valid email address';
         }
+      case 'registration code':
+        if (!usernameRegex.test(val))
+          return 'Registration code can contain only letters, numbers, hyphens, and underscores, and must be 3 to 30 characters long.';
+        break;
         // Don't require if mobile is provided
         if (!val && !formData.mobile) {
           return 'Either email or contact number is required';
@@ -171,9 +175,13 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
   const renderLabel = () => {
     if (
-      ['first name', 'username', 'password', 'confirm password'].includes(
-        lowerLabel ?? ''
-      )
+      [
+        'first name',
+        'username',
+        'password',
+        'confirm password',
+        'registration code',
+      ].includes(lowerLabel ?? '')
     ) {
       return (
         <>
