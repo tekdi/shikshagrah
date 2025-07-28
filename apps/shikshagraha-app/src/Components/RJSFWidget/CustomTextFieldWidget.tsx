@@ -67,7 +67,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         break;
       case 'username':
         if (!usernameRegex.test(val))
-          return 'Username can contain only letters, numbers, hyphens, and underscores, and must be 3 to 30 characters long.';
+          return 'Username can contain letters, numbers, hyphens, underscores, dots, and @ symbols. Must be 3 to 30 characters long.';
         break;
       case 'contact number':
         if (val && !contactRegex.test(val)) {
@@ -86,7 +86,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         }
       case 'registration code':
         if (!usernameRegex.test(val))
-          return 'Registration code can contain only letters, numbers, hyphens, and underscores, and must be 3 to 30 characters long.';
+          return 'Registration code can contain letters, numbers, hyphens, underscores, dots, and @ symbols. Must be 3 to 30 characters long.';
         break;
         // Don't require if mobile is provided
         if (!val && !formData.mobile) {
