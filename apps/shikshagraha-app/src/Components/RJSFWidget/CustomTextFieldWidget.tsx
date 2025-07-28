@@ -112,12 +112,20 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
   }, [formData.password]);
   const shouldShowHelperText = () => {
+    // Always show if there are validation errors
+    if (displayErrors.length > 0 || localError) {
+      return true;
+    }
+
     // Always show for non-email/mobile fields
     if (!isEmailField && !isMobileField) return true;
+
     // For email field - only show if mobile isn't entered
     if (isEmailField) return !formData.mobile || (value && localError);
+
     // For mobile field - only show if email isn't entered
     if (isMobileField) return !formData.email || (value && localError);
+
     return true;
   };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,7 +252,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         onBlur={handleBlur}
         onFocus={handleFocus}
         placeholder={placeholder}
-        error={displayErrors.length > 0}
+        error={displayErrors.length > 0 || !!localError}
         helperText={
           shouldShowHelperText()
             ? localError || (displayErrors.length > 0 ? displayErrors[0] : '')
@@ -257,7 +265,10 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         }
         FormHelperTextProps={{
           sx: {
-            color: 'red',
+            color:
+              displayErrors.length > 0 || localError
+                ? 'error.main'
+                : 'text.secondary',
             fontSize: '11px',
             marginLeft: '0px',
           },
@@ -275,13 +286,27 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           sx: {
             '& .MuiInputBase-input': {
               padding: '10px 12px',
-              fontSize: '12px',
+              fontSize: '16px !important', // Ensure 16px font size to prevent iOS zoom
               color: readonly ? '#000000' : undefined,
               backgroundColor: readonly ? '#f5f5f5' : undefined,
               WebkitTextFillColor: readonly ? '#000000' : undefined,
+              // iOS Safari zoom prevention
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
+              WebkitAppearance: 'none',
+              borderRadius: '0',
+              // Prevent zoom on focus
+              '@media screen and (-webkit-min-device-pixel-ratio: 0)': {
+                fontSize: '16px !important',
+              },
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: readonly ? 'rgba(0, 0, 0, 0.23)' : undefined,
+            },
+            // Additional iOS fixes
+            '& .MuiInputBase-root': {
+              WebkitTapHighlightColor: 'transparent',
+              WebkitTouchCallout: 'none',
             },
           },
           endAdornment: (isPasswordField || isConfirmPasswordField) && (
