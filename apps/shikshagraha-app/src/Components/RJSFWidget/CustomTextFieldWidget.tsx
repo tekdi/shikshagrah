@@ -87,15 +87,15 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         if (val && !emailRegex.test(val)) {
           return 'Enter a valid email address';
         }
-      case 'registration code':
-        if (!registrationCodeRegex.test(val))
-          return 'Each registration code must be alphanumeric with underscores only.';
-        break;
         // Don't require if mobile is provided
         if (!val && !formData.mobile) {
           return 'Either email or contact number is required';
         }
         return null;
+        break;
+      case 'registration code':
+        if (!registrationCodeRegex.test(val))
+          return 'Each registration code must be alphanumeric with underscores only.';
         break;
       case 'password':
         if (!passwordRegex.test(val))
