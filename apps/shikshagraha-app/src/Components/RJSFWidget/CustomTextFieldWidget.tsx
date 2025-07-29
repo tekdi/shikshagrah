@@ -41,6 +41,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const usernameRegex = /^[a-zA-Z0-9@._-]{3,30}$/; //add
+
+  const registrationCodeRegex = /^[a-zA-Z0-9_]+$/;
+
   const lowerLabel = label?.toLowerCase();
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
@@ -85,8 +88,8 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           return 'Enter a valid email address';
         }
       case 'registration code':
-        if (!usernameRegex.test(val))
-          return 'Registration code can contain letters, numbers, hyphens, underscores, dots, and @ symbols. Must be 3 to 30 characters long.';
+        if (!registrationCodeRegex.test(val))
+          return 'Each registration code must be alphanumeric with underscores only.';
         break;
         // Don't require if mobile is provided
         if (!val && !formData.mobile) {
