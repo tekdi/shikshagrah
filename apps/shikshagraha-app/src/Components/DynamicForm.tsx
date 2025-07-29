@@ -116,6 +116,11 @@ const DynamicForm = ({
   const isValidMobile = (mobile: string) => {
     return /^[6-9]\d{9}$/.test(mobile);
   };
+
+  const isValidUsername = (username: string) => {
+    // Username can contain letters, numbers, hyphens, underscores, dots, and @ symbols
+    return /^[a-zA-Z0-9@._-]{3,30}$/.test(username);
+  };
   const getRegistrationCode = (formData) => {
     const config = schema.meta?.registrationCodeConfig || {
       name: schema.meta?.registrationCodeConfig,
@@ -1118,6 +1123,9 @@ const DynamicForm = ({
           setShowEmailMobileError(
             "Mobile is optional since you've provided an email"
           );
+        } else if (isValidUsername(formData.Username)) {
+          // Username is valid format, no need to auto-fill email/mobile
+          setShowEmailMobileError('');
         } else {
           setShowEmailMobileError(
             'Username must be either a valid email or 10-digit mobile number'
@@ -1756,11 +1764,19 @@ const DynamicForm = ({
       (formData.email && isValidEmail(formData.email)) ||
       (formData.mobile && isValidMobile(formData.mobile));
 
+    // Check if username format is valid (if username is provided)
+    const hasValidUsernameFormat = formData.Username
+      ? isValidEmail(formData.Username) ||
+        isValidMobile(formData.Username) ||
+        isValidUsername(formData.Username)
+      : true;
+
     return (
       hasFieldErrors ||
       hasFormErrors ||
       !hasValidContact ||
-      (!isUsernameValid && formData.Username)
+      (!isUsernameValid && formData.Username) ||
+      !hasValidUsernameFormat
     );
   };
 
