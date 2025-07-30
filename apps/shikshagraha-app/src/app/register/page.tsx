@@ -71,21 +71,19 @@ export default function Register() {
         if (brandingData) {
           console.log('Branding:', brandingData?.result);
           const tenantCode = brandingData?.result?.code;
-          //  const tenantCode = 'shikshalokam';
+          // const tenantCode = 'shikshalokam';
           localStorage.setItem('tenantCode', tenantCode);
+          setDisplayName(toPascalCase(tenantCode));
         }
       });
-
-      const displayName = toPascalCase(
-        localStorage.getItem('tenantCode') ?? ''
-      );
-      console.log('displayName', displayName);
-      setDisplayName(displayName);
-
-      setDisplayName(displayName ? displayName : '');
+      const displayName = localStorage.getItem('tenantCode');
+      if (displayName) {
+        setDisplayName(toPascalCase(displayName));
+      }
       if (coreDomain === 'shikshagrah') {
         coreDomain = 'shikshagraha';
       }
+      console.log('tenantCode', displayName);
       // localStorage.setItem('origin', coreDomain);
     }
   }, []);
@@ -319,7 +317,7 @@ export default function Register() {
                   uiSchema={uiSchema}
                   SubmitaFunction={handleSubmit}
                   hideSubmit={false}
-                  onChange={({ formData }) => {
+                  onChange={({ formData }: { formData: any }) => {
                     // if (formData.Role) {
                     //   setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
                     // }
