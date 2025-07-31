@@ -315,7 +315,13 @@ export default function Profile({ params }: { params: { id: string } }) {
     if (name === 'newPassword') {
       const passwordRegex =
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
-      if (!passwordRegex.test(value)) {
+      // Check for leading or trailing whitespace
+      if (value !== value.trim()) {
+        setErrors({
+          ...errors,
+          newPassword: 'Password cannot contain leading or trailing spaces.',
+        });
+      } else if (!passwordRegex.test(value)) {
         setErrors({
           ...errors,
           newPassword:
@@ -365,7 +371,12 @@ export default function Profile({ params }: { params: { id: string } }) {
     } else {
       const passwordRegex =
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
-      if (!passwordRegex.test(passwords.newPassword)) {
+      // Check for leading or trailing whitespace
+      if (passwords.newPassword !== passwords.newPassword.trim()) {
+        newErrors.newPassword =
+          'Password cannot contain leading or trailing spaces.';
+        hasErrors = true;
+      } else if (!passwordRegex.test(passwords.newPassword)) {
         newErrors.newPassword =
           'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
         hasErrors = true;

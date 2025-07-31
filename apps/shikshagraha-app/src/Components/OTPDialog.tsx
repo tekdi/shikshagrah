@@ -342,7 +342,7 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
                 },
                 // Cross-platform styles to prevent zoom and improve UX
                 '& .MuiInputBase-input': {
-                  fontSize: '16px !important',
+                  fontSize: '12px !important',
                   transform: 'translateZ(0)',
                   WebkitTransform: 'translateZ(0)',
                   WebkitAppearance: 'none',

@@ -229,8 +229,8 @@ export default function Register() {
               color: '#572E91',
               fontWeight: 'bold',
               fontSize: {
-                xs: '1rem',
-                sm: '1.25rem',
+                xs: '20px',
+                sm: '20px',
               },
             }}
           >
@@ -246,7 +246,7 @@ export default function Register() {
       MuiInputBase: {
         styleOverrides: {
           input: {
-            fontSize: '16px',
+            fontSize: '14px',
           },
         },
       },
@@ -305,8 +305,8 @@ export default function Register() {
                     mb: 2,
                     textAlign: 'center',
                     fontSize: {
-                      xs: '1.2rem',
-                      sm: '1.5rem',
+                      xs: '20px',
+                      sm: '20px',
                     },
                   }}
                 >
