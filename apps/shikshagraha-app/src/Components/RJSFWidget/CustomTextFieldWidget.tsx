@@ -69,7 +69,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         break;
       case 'username':
         if (!usernameRegex.test(val))
-          return 'Please enter a valid username (3–40 characters, lowercase only). It can be an email, phone number, or a custom name that starts and ends with a letter or number. Hyphens (-) and underscores (_) are allowed, but not consecutively or at the start/end';
+          return 'Please enter a valid username. It can be either a valid email address or a custom username (3-40 characters, lowercase letters and numbers only, with hyphens and underscores allowed)';
         break;
       case 'contact number':
         if (val && !contactRegex.test(val)) {
