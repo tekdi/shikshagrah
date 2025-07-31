@@ -41,7 +41,7 @@ export default function RootLayout({
             __html: `
             /* Prevent iOS Safari zoom on input focus */
             input, select, textarea {
-              font-size: 16px !important;
+              font-size: 12px !important;
               transform: translateZ(0);
               -webkit-transform: translateZ(0);
             }
@@ -66,7 +66,7 @@ export default function RootLayout({
               select,
               textarea,
               input {
-                font-size: 16px !important;
+                font-size: 12px !important;
               }
             }
             
@@ -84,7 +84,7 @@ export default function RootLayout({
             input[type="url"],
             textarea,
             select {
-              font-size: 16px !important;
+              font-size: 12px !important;
               -webkit-appearance: none;
               border-radius: 0;
             }

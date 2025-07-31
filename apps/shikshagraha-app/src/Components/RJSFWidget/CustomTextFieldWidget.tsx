@@ -35,13 +35,13 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     label?.toLowerCase() === 'mobile' ||
     label?.toLowerCase() === 'contact number';
   const passwordRegex =
-    /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
+    /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\])(?!.*\s).{8,}$/;
   const nameRegex = /^[a-zA-Z]+$/;
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const usernameRegex =
-    /^(?:[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/;
+    /^(?:[a-z0-9_-]{3,40}|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/;
   const registrationCodeRegex = /^[a-zA-Z0-9_]+$/;
   const lowerLabel = label?.toLowerCase();
   const isOptional = () => {
@@ -69,7 +69,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         break;
       case 'username':
         if (!usernameRegex.test(val))
-          return 'Username must start and end with alphanumeric characters. Can contain letters, numbers, hyphens, and underscores. Special characters cannot be consecutive.';
+          return 'Please enter a valid username (3–40 characters, lowercase only). It can be an email, phone number, or a custom name that starts and ends with a letter or number. Hyphens (-) and underscores (_) are allowed, but not consecutively or at the start/end';
         break;
       case 'contact number':
         if (val && !contactRegex.test(val)) {
@@ -94,13 +94,21 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         break;
       case 'registration code':
         if (!registrationCodeRegex.test(val))
-          return 'Each registration code must be alphanumeric with underscores only.';
+          return 'Registration code may only contain letters, numbers and underscore.';
         break;
       case 'password':
+        // Check for any whitespace
+        if (val.includes(' ')) {
+          return 'Password cannot contain spaces.';
+        }
         if (!passwordRegex.test(val))
           return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
         break;
       case 'confirm password':
+        // Check for any whitespace
+        if (val.includes(' ')) {
+          return 'Confirm password cannot contain spaces.';
+        }
         if (val !== formData.password)
           return 'Password and confirm password must be the same.';
         break;
@@ -155,17 +163,34 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       }
       return;
     }
+
+    // Handle username field - limit to 40 characters
+    if (lowerLabel === 'username') {
+      const limitedValue = val.slice(0, 40);
+      const error = validateField(label ?? '', limitedValue);
+      setLocalError(error);
+      onChange(limitedValue === '' ? undefined : limitedValue);
+      if (props.onErrorChange) {
+        props.onErrorChange(!!error);
+      }
+      return;
+    }
+
+    // Handle password fields - remove all spaces and validate
+    if (isPasswordField || isConfirmPasswordField) {
+      const noSpaceVal = val.replace(/\s/g, '');
+      const error = validateField(label ?? '', noSpaceVal);
+      setLocalError(error);
+      // Store the value without spaces to prevent spaces in form data
+      onChange(noSpaceVal === '' ? undefined : noSpaceVal);
+      if (props.onErrorChange) {
+        props.onErrorChange(!!error);
+      }
+      return;
+    }
+
     const error = validateField(label ?? '', val);
     setLocalError(error);
-    // if (isPasswordField) {
-    //   if (!passwordRegex.test(val)) {
-    //     setLocalError(
-    //       'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.'
-    //     );
-    //   } else {
-    //     setLocalError(null);
-    //   }
-    // }
     onChange(val === '' ? undefined : val);
     if (props.onErrorChange) {
       props.onErrorChange(!!error);
@@ -288,7 +313,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           sx: {
             '& .MuiInputBase-input': {
               padding: '10px 12px',
-              fontSize: '16px !important', // Ensure 16px font size to prevent iOS zoom
+              fontSize: '12px !important', // Ensure 16px font size to prevent iOS zoom
               color: readonly ? '#000000' : undefined,
               backgroundColor: readonly ? '#f5f5f5' : undefined,
               WebkitTextFillColor: readonly ? '#000000' : undefined,
@@ -299,7 +324,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
               borderRadius: '0',
               // Prevent zoom on focus
               '@media screen and (-webkit-min-device-pixel-ratio: 0)': {
-                fontSize: '16px !important',
+                fontSize: '12px !important',
               },
             },
             '& .MuiOutlinedInput-notchedOutline': {

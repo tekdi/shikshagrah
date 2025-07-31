@@ -191,7 +191,7 @@ const CustomSingleSelectWidget = ({
         sx={{
           '& .MuiSelect-select': {
             padding: '10px 12px',
-            fontSize: '16px !important', // Ensure 16px font size to prevent iOS zoom
+            fontSize: '12px !important', // Ensure 16px font size to prevent iOS zoom
             // iOS Safari zoom prevention
             transform: 'translateZ(0)',
             WebkitTransform: 'translateZ(0)',
@@ -199,7 +199,7 @@ const CustomSingleSelectWidget = ({
             borderRadius: '0',
             // Prevent zoom on focus
             '@media screen and (-webkit-min-device-pixel-ratio: 0)': {
-              fontSize: '16px !important',
+              fontSize: '12px !important',
             },
           },
           // Additional iOS fixes

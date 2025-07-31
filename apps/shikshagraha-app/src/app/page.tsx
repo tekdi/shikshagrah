@@ -113,7 +113,7 @@ export default function Login() {
         ...prev,
         [field]:
           field === 'password'
-            ? !passwordRegex.test(value)
+            ? value !== value.trim() || !passwordRegex.test(value)
             : value.trim() === '',
       }));
     };
