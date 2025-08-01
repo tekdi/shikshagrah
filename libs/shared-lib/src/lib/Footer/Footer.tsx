@@ -34,32 +34,45 @@ export const Footer: React.FC = () => {
       return;
     }
 
-    // Fallback to startsWith check for nested routes
+    // Check for home-related paths first (highest priority)
+    if (
+      normalizedPath === '/' ||
+      normalizedPath === '' ||
+      normalizedPath.startsWith('/home') ||
+      normalizedPath === '/home'
+    ) {
+      setValue(0);
+      return;
+    }
+
+    // Check for content-related paths
     if (
       normalizedPath.startsWith('/content') ||
       normalizedPath.startsWith('/player')
     ) {
       setValue(1);
-    } else if (
+      return;
+    }
+
+    // Check for downloads-related paths (more specific matching)
+    if (
       normalizedPath.startsWith('/ml/project-downloads') ||
       normalizedPath.startsWith('/downloads') ||
-      normalizedPath.includes('download') ||
-      normalizedPath.includes('project-downloads')
+      normalizedPath === '/ml/project-downloads' ||
+      normalizedPath === '/downloads'
     ) {
       setValue(2);
-    } else if (normalizedPath.startsWith('/profile')) {
-      setValue(3);
-    } else if (
-      normalizedPath === '/' ||
-      normalizedPath === '' ||
-      normalizedPath.startsWith('/home')
-    ) {
-      // Default to home for root path and home-related paths
-      setValue(0);
-    } else {
-      // For any other path, default to home
-      setValue(0);
+      return;
     }
+
+    // Check for profile-related paths
+    if (normalizedPath.startsWith('/profile')) {
+      setValue(3);
+      return;
+    }
+
+    // For any other path, default to home
+    setValue(0);
   };
 
   // Initial check on component mount
