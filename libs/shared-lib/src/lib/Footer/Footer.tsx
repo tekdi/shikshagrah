@@ -7,12 +7,10 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { useRouter, usePathname } from 'next/navigation';
-
 export const Footer: React.FC = () => {
   const [value, setValue] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
-
   // Map paths to their corresponding tab values
   const pathToValueMap = {
     '/home': 0,
@@ -20,87 +18,50 @@ export const Footer: React.FC = () => {
     '/ml/project-downloads': 2,
     '/profile': 3,
   };
-
   const updateTabValue = (currentPath: string) => {
-    // Normalize the path to handle edge cases
-    const normalizedPath = currentPath?.toLowerCase()?.trim() || '';
-
     // Find the current value based on exact path matches first
     const currentValue =
       pathToValueMap[currentPath as keyof typeof pathToValueMap];
-
     if (currentValue !== undefined) {
       setValue(currentValue);
-      return;
+    } else {
+      // Fallback to startsWith check for nested routes
+      if (
+        currentPath.startsWith('/content') ||
+        currentPath?.startsWith('/player')
+      ) {
+        setValue(1);
+      } else if (currentPath.startsWith('/ml/project-downloads')) {
+        setValue(2);
+      } else if (currentPath.startsWith('/profile')) {
+        setValue(3);
+      } else if (currentPath === '/' || currentPath === '') {
+        // Default to home for root path
+        setValue(0);
+      }
     }
-
-    // Check for home-related paths first (highest priority)
-    if (
-      normalizedPath === '/' ||
-      normalizedPath === '' ||
-      normalizedPath.startsWith('/home') ||
-      normalizedPath === '/home'
-    ) {
-      setValue(0);
-      return;
-    }
-
-    // Check for content-related paths
-    if (
-      normalizedPath.startsWith('/content') ||
-      normalizedPath.startsWith('/player')
-    ) {
-      setValue(1);
-      return;
-    }
-
-    // Check for downloads-related paths (more specific matching)
-    if (
-      normalizedPath.startsWith('/ml/project-downloads') ||
-      normalizedPath.startsWith('/downloads') ||
-      normalizedPath === '/ml/project-downloads' ||
-      normalizedPath === '/downloads'
-    ) {
-      setValue(2);
-      return;
-    }
-
-    // Check for profile-related paths
-    if (normalizedPath.startsWith('/profile')) {
-      setValue(3);
-      return;
-    }
-
-    // For any other path, default to home
-    setValue(0);
   };
-
   // Initial check on component mount
   useEffect(() => {
     const currentPath = window.location.pathname;
     updateTabValue(currentPath);
   }, []);
-
   useEffect(() => {
     // Update based on Next.js pathname
     updateTabValue(pathname);
-
     // Also listen to actual browser URL changes for external navigation
     const handleUrlChange = () => {
       const currentPath = window.location.pathname;
       updateTabValue(currentPath);
     };
-
     // Listen to popstate events (back/forward navigation)
     window.addEventListener('popstate', handleUrlChange);
-
     // Listen to window focus events (when user comes back from external page)
     const handleWindowFocus = () => {
       const currentPath = window.location.pathname;
       updateTabValue(currentPath);
     };
     window.addEventListener('focus', handleWindowFocus);
-
     // Also check URL on mount and periodically to catch external navigation
     const checkUrlInterval = setInterval(() => {
       const currentPath = window.location.pathname;
@@ -108,26 +69,20 @@ export const Footer: React.FC = () => {
         updateTabValue(currentPath);
       }
     }, 500);
-
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('focus', handleWindowFocus);
       clearInterval(checkUrlInterval);
     };
   }, [pathname]);
-
   const handleNavigation = (path: string) => {
     const absolutePath = path.startsWith('/') ? path : `/${path}`;
-    // Use Next.js router for better navigation handling
-    router.push(absolutePath);
+    // router.replace(absolutePath);
+    window.location.href = absolutePath;
   };
-
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    // Always update the value and navigate, regardless of current state
-    setValue(newValue);
-
-    // Add a small delay to ensure state is properly synchronized
-    setTimeout(() => {
+    if (value !== newValue) {
+      setValue(newValue);
       switch (newValue) {
         case 0:
           handleNavigation('/home');
@@ -144,7 +99,7 @@ export const Footer: React.FC = () => {
         default:
           break;
       }
-    }, 0);
+    }
   };
   return (
     <Box
