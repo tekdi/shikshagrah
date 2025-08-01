@@ -55,11 +55,12 @@ const PasswordReset = ({ name }: { name: string }) => {
     password: '',
     confirmPassword: '',
   });
-  const usernameRegex = /^[a-zA-Z0-9_]+$/; //add
+  const usernameRegex =
+    /^(?:[a-z0-9_-]{3,40}|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/;
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex =
-    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
+    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\])(?!.*\s).{8,}$/;
   const [timer, setTimer] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(605);
   const [lastResendTime, setLastResendTime] = useState<number | null>(null);
@@ -83,7 +84,8 @@ const PasswordReset = ({ name }: { name: string }) => {
     return isMobile || isEmail || isUsername;
   };
 
-  const handleRateLimit = (retrySeconds: number = 60) => {
+  const handleRateLimit = (retrySeconds: number = 120) => {
+    console.log('Rate limiting triggered with retry seconds:', retrySeconds);
     setIsRateLimited(true);
     setRateLimitTimer(retrySeconds);
     setRateLimitMessage(
@@ -99,6 +101,7 @@ const PasswordReset = ({ name }: { name: string }) => {
           clearInterval(interval);
           setIsRateLimited(false);
           setRateLimitMessage('');
+          console.log('Rate limiting expired');
           return 0;
         }
         return prev - 1;
@@ -172,7 +175,7 @@ const PasswordReset = ({ name }: { name: string }) => {
           ...prev,
           [name]: usernameRegex.test(newValue)
             ? ''
-            : 'Username can only contain letters, numbers, and underscores',
+            : 'Please enter a valid username. It can be either a valid email address or a custom username (3-40 characters, lowercase letters and numbers only, with hyphens and underscores allowed)',
         }));
       } else {
         // Reset identifier error if empty
@@ -239,6 +242,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           response?.params?.errmsg ||
           response?.params?.err;
 
+        console.log('Received error message:', errorMessage);
+
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
           errorMessage?.toLowerCase().includes('not found') ||
@@ -250,16 +255,21 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorMessage?.toLowerCase().includes('invalid identifier')
         ) {
           setError(
-            'The identifier format is invalid. Please enter a valid email or phone number.'
+            'The identifier format is invalid. Please enter a valid email, mobile number, or username (3-40 characters, lowercase letters, numbers, hyphens, underscores).'
           );
         } else if (
+          errorMessage === 'Too many requests. Please try again later.' ||
           errorMessage?.toLowerCase().includes('too many requests') ||
           errorMessage?.toLowerCase().includes('rate limit') ||
-          errorMessage?.toLowerCase().includes('request limit')
+          errorMessage?.toLowerCase().includes('request limit') ||
+          errorMessage?.toLowerCase().includes('please try again later') ||
+          errorMessage?.toLowerCase().includes('too many attempts') ||
+          errorMessage?.toLowerCase().includes('rate exceeded') ||
+          errorMessage?.toLowerCase().includes('throttled')
         ) {
-          // Extract retry time from error message if available, default to 60 seconds
+          // Extract retry time from error message if available, default to 120 seconds
           const retryMatch = errorMessage.match(/(\d+)/);
-          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 60;
+          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 120;
           handleRateLimit(retrySeconds);
           setError(
             `You've reached the request limit. Please try again in ${formatRateLimitTime(
@@ -282,6 +292,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorData?.params?.errmsg ||
           errorData?.params?.err;
 
+        console.log('Received error message:', errorMessage);
+
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
           errorMessage?.toLowerCase().includes('not found') ||
@@ -293,7 +305,26 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorMessage?.toLowerCase().includes('invalid identifier')
         ) {
           setError(
-            'The identifier format is invalid. Please enter a valid email or phone number.'
+            'The identifier format is invalid. Please enter a valid email, mobile number, or username (3-40 characters, lowercase letters, numbers, hyphens, underscores).'
+          );
+        } else if (
+          errorMessage === 'Too many requests. Please try again later.' ||
+          errorMessage?.toLowerCase().includes('too many requests') ||
+          errorMessage?.toLowerCase().includes('rate limit') ||
+          errorMessage?.toLowerCase().includes('request limit') ||
+          errorMessage?.toLowerCase().includes('please try again later') ||
+          errorMessage?.toLowerCase().includes('too many attempts') ||
+          errorMessage?.toLowerCase().includes('rate exceeded') ||
+          errorMessage?.toLowerCase().includes('throttled')
+        ) {
+          // Extract retry time from error message if available, default to 120 seconds
+          const retryMatch = errorMessage.match(/(\d+)/);
+          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 120;
+          handleRateLimit(retrySeconds);
+          setError(
+            `You've reached the request limit. Please try again in ${formatRateLimitTime(
+              retrySeconds
+            )}.`
           );
         } else {
           setError(errorMessage || 'Failed to send OTP. Please try again.');
@@ -353,6 +384,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           response?.params?.errmsg ||
           response?.params?.err;
 
+        console.log('Received error message:', errorMessage);
+
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
           errorMessage?.toLowerCase().includes('not found') ||
@@ -364,16 +397,21 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorMessage?.toLowerCase().includes('invalid identifier')
         ) {
           setError(
-            'The identifier format is invalid. Please enter a valid email or phone number.'
+            'The identifier format is invalid. Please enter a valid email, mobile number, or username (3-40 characters, lowercase letters, numbers, hyphens, underscores).'
           );
         } else if (
+          errorMessage === 'Too many requests. Please try again later.' ||
           errorMessage?.toLowerCase().includes('too many requests') ||
           errorMessage?.toLowerCase().includes('rate limit') ||
-          errorMessage?.toLowerCase().includes('request limit')
+          errorMessage?.toLowerCase().includes('request limit') ||
+          errorMessage?.toLowerCase().includes('please try again later') ||
+          errorMessage?.toLowerCase().includes('too many attempts') ||
+          errorMessage?.toLowerCase().includes('rate exceeded') ||
+          errorMessage?.toLowerCase().includes('throttled')
         ) {
-          // Extract retry time from error message if available, default to 60 seconds
+          // Extract retry time from error message if available, default to 120 seconds
           const retryMatch = errorMessage.match(/(\d+)/);
-          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 60;
+          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 120;
           handleRateLimit(retrySeconds);
           setError(
             `You've reached the request limit. Please try again in ${formatRateLimitTime(
@@ -397,6 +435,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorData?.params?.errmsg ||
           errorData?.params?.err;
 
+        console.log('Received error message:', errorMessage);
+
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
           errorMessage?.toLowerCase().includes('not found') ||
@@ -408,7 +448,26 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorMessage?.toLowerCase().includes('invalid identifier')
         ) {
           setError(
-            'The identifier format is invalid. Please enter a valid email or phone number.'
+            'The identifier format is invalid. Please enter a valid email, mobile number, or username (3-40 characters, lowercase letters, numbers, hyphens, underscores).'
+          );
+        } else if (
+          errorMessage === 'Too many requests. Please try again later.' ||
+          errorMessage?.toLowerCase().includes('too many requests') ||
+          errorMessage?.toLowerCase().includes('rate limit') ||
+          errorMessage?.toLowerCase().includes('request limit') ||
+          errorMessage?.toLowerCase().includes('please try again later') ||
+          errorMessage?.toLowerCase().includes('too many attempts') ||
+          errorMessage?.toLowerCase().includes('rate exceeded') ||
+          errorMessage?.toLowerCase().includes('throttled')
+        ) {
+          // Extract retry time from error message if available, default to 120 seconds
+          const retryMatch = errorMessage.match(/(\d+)/);
+          const retrySeconds = retryMatch ? parseInt(retryMatch[1]) : 120;
+          handleRateLimit(retrySeconds);
+          setError(
+            `You've reached the request limit. Please try again in ${formatRateLimitTime(
+              retrySeconds
+            )}.`
           );
         } else {
           setError(errorMessage || 'Failed to resend OTP');
@@ -452,6 +511,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           response?.params?.errmsg ||
           response?.params?.err;
 
+        console.log('Received error message:', errorMessage);
+
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
           errorMessage?.toLowerCase().includes('incorrect') ||
@@ -475,6 +536,8 @@ const PasswordReset = ({ name }: { name: string }) => {
           errorData?.message ||
           errorData?.params?.errmsg ||
           errorData?.params?.err;
+
+        console.log('Received error message:', errorMessage);
 
         if (
           errorMessage?.toLowerCase().includes('invalid') ||
@@ -544,7 +607,7 @@ const PasswordReset = ({ name }: { name: string }) => {
     if (name === 'password') {
       setNewPassword(val);
       if (!passwordRegex.test(val)) {
-        return 'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
+        return 'Password must contain at least 8 characters, one uppercase, one lowercase, one number, one special character, and no spaces';
       }
     } else if (name === 'confirmPassword') {
       setConfirmPassword(val);
@@ -558,6 +621,11 @@ const PasswordReset = ({ name }: { name: string }) => {
   const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     const name = event.target.name;
+
+    // Prevent spaces from being entered
+    if (val.includes(' ')) {
+      return;
+    }
 
     let errorMsg: string | null | undefined;
 
@@ -686,12 +754,12 @@ const PasswordReset = ({ name }: { name: string }) => {
     }
 
     // For email, allow normal paste behavior
-    // For username, allow alphanumeric and underscore
+    // For username, allow lowercase letters, numbers, hyphens, and underscores
     if (
       !/^[6-9]/.test(formData.identifier) &&
       !formData.identifier.includes('@')
     ) {
-      if (!/^[a-zA-Z0-9_]+$/.test(pasteData)) {
+      if (!/^[a-z0-9_-]+$/.test(pasteData)) {
         e.preventDefault();
         return;
       }
@@ -923,17 +991,27 @@ const PasswordReset = ({ name }: { name: string }) => {
                 ) {
                   e.preventDefault();
                 }
+                // For usernames (not mobile or email), only allow lowercase letters, numbers, hyphens, and underscores
+                if (
+                  !/^[6-9]/.test(formData.identifier) &&
+                  !formData.identifier.includes('@') &&
+                  !/^[a-z0-9_-]$/.test(e.key) &&
+                  e.key !== 'Backspace' &&
+                  e.key !== 'Delete' &&
+                  e.key !== 'Tab' &&
+                  e.key !== 'ArrowLeft' &&
+                  e.key !== 'ArrowRight' &&
+                  e.key !== 'ArrowUp' &&
+                  e.key !== 'ArrowDown'
+                ) {
+                  e.preventDefault();
+                }
               }}
               onPaste={handlePasteIdentifier}
               onInput={handleInputIdentifier}
               margin="normal"
               error={!!formErrors.identifier}
-              helperText={
-                formErrors.identifier ||
-                (!formData.identifier
-                  ? 'Enter your email, mobile number (starting with 6-9), or username'
-                  : '')
-              }
+              helperText={formErrors.identifier || ''}
               FormHelperTextProps={{
                 sx: {
                   color: formErrors.identifier ? 'red' : 'text.secondary',
@@ -977,6 +1055,11 @@ const PasswordReset = ({ name }: { name: string }) => {
               label="New Password"
               value={formData.password}
               onChange={handleChangePassword}
+              onKeyDown={(e) => {
+                if (e.key === ' ') {
+                  e.preventDefault();
+                }
+              }}
               helperText={formErrors.password ?? ''}
               margin="normal"
               FormHelperTextProps={{
@@ -1026,6 +1109,11 @@ const PasswordReset = ({ name }: { name: string }) => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChangePassword}
+              onKeyDown={(e) => {
+                if (e.key === ' ') {
+                  e.preventDefault();
+                }
+              }}
               helperText={formErrors.confirmPassword ?? ''}
               margin="normal"
               FormHelperTextProps={{
