@@ -222,9 +222,25 @@ const DynamicForm = ({
     let timer: NodeJS.Timeout;
 
     if (isRateLimited && rateLimitExpiry) {
+      // Initial update
+      setCurrentTime(Date.now());
+
       timer = setInterval(() => {
-        setCountdownUpdate((prev) => prev + 1);
-        setCurrentTime(Date.now());
+        const now = Date.now();
+        if (now >= rateLimitExpiry) {
+          clearInterval(timer);
+          setIsRateLimited(false);
+          setRateLimitExpiry(null);
+          setTooManyRequests(false);
+          setOtpDisabled(false);
+          setOtpDisabledMessage('');
+          if (isErrorButtonFromRateLimit) {
+            setErrorButton(false);
+            setIsErrorButtonFromRateLimit(false);
+          }
+        } else {
+          setCurrentTime(now);
+        }
       }, 1000);
     }
 
@@ -233,7 +249,7 @@ const DynamicForm = ({
         clearInterval(timer);
       }
     };
-  }, [isRateLimited, rateLimitExpiry]);
+  }, [isRateLimited, rateLimitExpiry, isErrorButtonFromRateLimit]);
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     // Remove this line that was clearing error state on every formData change
@@ -1541,9 +1557,11 @@ const DynamicForm = ({
           registrationResponse?.message ===
           'Too many requests. Please try again later.'
         ) {
+          const now = Date.now();
           setTooManyRequests(true);
           setIsRateLimited(true);
-          setRateLimitExpiry(Date.now() + 2 * 60 * 1000); // 2 minutes from now
+          setRateLimitExpiry(now + 2 * 60 * 1000); // 2 minutes from now
+          setCurrentTime(now); // Set initial current time
           setShowError(true);
           setErrorButton(true);
           setIsErrorButtonFromRateLimit(true);
@@ -1877,10 +1895,12 @@ const DynamicForm = ({
                 sx={{ mt: 1, textAlign: 'center' }}
               >
                 Too many requests. Please wait{' '}
-                {Math.floor((rateLimitExpiry - currentTime) / 60000)}:
-                {Math.floor(((rateLimitExpiry - currentTime) % 60000) / 1000)
-                  .toString()
-                  .padStart(2, '0')}{' '}
+                {(() => {
+                  const timeLeft = Math.max(0, rateLimitExpiry - currentTime);
+                  const minutes = Math.floor(timeLeft / 60000);
+                  const seconds = Math.floor((timeLeft % 60000) / 1000);
+                  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                })()}{' '}
                 before trying again.
               </Typography>
             )}

@@ -86,25 +86,31 @@ const PasswordReset = ({ name }: { name: string }) => {
 
   const handleRateLimit = (retrySeconds: number = 120) => {
     console.log('Rate limiting triggered with retry seconds:', retrySeconds);
+    const now = Date.now();
     setIsRateLimited(true);
     setRateLimitTimer(retrySeconds);
     setRateLimitMessage(
-      `You've reached the request limit. Please try again in ${formatRateLimitTime(
-        retrySeconds
-      )}.`
+      "You've reached the request limit. Please try again later."
     );
 
     // Start countdown timer
     const interval = setInterval(() => {
       setRateLimitTimer((prev) => {
-        if (prev <= 1) {
+        const remaining = prev - 1;
+        if (remaining <= 0) {
           clearInterval(interval);
           setIsRateLimited(false);
           setRateLimitMessage('');
           console.log('Rate limiting expired');
           return 0;
         }
-        return prev - 1;
+        // Update message with current countdown
+        setRateLimitMessage(
+          `You've reached the request limit. Please try again in ${formatRateLimitTime(
+            remaining
+          )}.`
+        );
+        return remaining;
       });
     }, 1000);
   };
@@ -710,12 +716,9 @@ const PasswordReset = ({ name }: { name: string }) => {
   };
 
   const formatRateLimitTime = (secs: number) => {
-    if (secs >= 60) {
-      const minutes = Math.floor(secs / 60);
-      const seconds = secs % 60;
-      return `${minutes}m ${seconds}s`;
-    }
-    return `${secs}s`;
+    const minutes = Math.floor(secs / 60);
+    const seconds = secs % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const handleKeyDown = (e: any, index: number) => {
@@ -753,13 +756,16 @@ const PasswordReset = ({ name }: { name: string }) => {
       }
     }
 
-    // For email, allow normal paste behavior
-    // For username, allow lowercase letters, numbers, hyphens, and underscores
-    if (
-      !/^[6-9]/.test(formData.identifier) &&
-      !formData.identifier.includes('@')
-    ) {
-      if (!/^[a-z0-9_-]+$/.test(pasteData)) {
+    // For email or username, validate against the appropriate regex
+    if (!/^[6-9]/.test(formData.identifier)) {
+      // If current value or paste data contains @, treat as email
+      if (formData.identifier.includes('@') || pasteData.includes('@')) {
+        // Allow paste - will be validated in handleInputChange
+        return;
+      }
+
+      // For username, allow letters, numbers, hyphens, underscores, dots
+      if (!/^[a-zA-Z0-9._-]+$/.test(pasteData)) {
         e.preventDefault();
         return;
       }
@@ -778,6 +784,14 @@ const PasswordReset = ({ name }: { name: string }) => {
       // Limit to 10 digits
       if (cleanedValue.length > 10) {
         target.value = cleanedValue.slice(0, 10);
+      }
+    } else if (value.includes('@')) {
+      // For email, allow full input - validation happens in handleInputChange
+      return;
+    } else {
+      // For username, enforce max length of 40 characters
+      if (value.length > 40) {
+        target.value = value.slice(0, 40);
       }
     }
   };
@@ -991,11 +1005,10 @@ const PasswordReset = ({ name }: { name: string }) => {
                 ) {
                   e.preventDefault();
                 }
-                // For usernames (not mobile or email), only allow lowercase letters, numbers, hyphens, and underscores
+                // For usernames (not mobile), allow email characters or username characters
                 if (
                   !/^[6-9]/.test(formData.identifier) &&
-                  !formData.identifier.includes('@') &&
-                  !/^[a-z0-9_-]$/.test(e.key) &&
+                  !/^[a-zA-Z0-9@._+-]$/.test(e.key) &&
                   e.key !== 'Backspace' &&
                   e.key !== 'Delete' &&
                   e.key !== 'Tab' &&
