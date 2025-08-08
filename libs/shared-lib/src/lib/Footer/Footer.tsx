@@ -76,10 +76,15 @@ export const Footer: React.FC = () => {
     };
   }, [pathname]);
   const handleNavigation = (path: string) => {
+    // Check if it's a full URL
+    if (path.startsWith('http')) {
+      window.location.href = path;
+      return;
+    }
     const absolutePath = path.startsWith('/') ? path : `/${path}`;
-    // router.replace(absolutePath);
     window.location.href = absolutePath;
   };
+
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     if (value !== newValue) {
       setValue(newValue);
