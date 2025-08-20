@@ -73,6 +73,8 @@ const CustomSingleSelectWidget = ({
     (error) => !error.toLowerCase().includes('required')
   );
 
+  const [open, setOpen] = useState(false);
+
   const handleChange = async (event: any) => {
     const selected = event.target.value;
     const selectedOption = enumOptions.find(
@@ -142,24 +144,41 @@ const CustomSingleSelectWidget = ({
     return getHelperText() !== '';
   };
 
+  const shouldShrinkLabel = open || Boolean(value);
+
   return (
     <FormControl
       fullWidth
       size="small"
       disabled={isDisabled}
       error={rawErrors && rawErrors.length > 0}
+      sx={{
+        '& .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '0.01px',
+          transition: 'max-width 150ms ease',
+        },
+        '& .MuiInputLabel-shrink + .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '1000px',
+        },
+      }}
     >
       <InputLabel
         id={`${id}-label`}
+        shrink={shouldShrinkLabel}
         sx={{
           fontSize: '12px',
-          '&.Mui-focused': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
+          '@supports (-webkit-touch-callout: none)': {
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(12px, -9px) scale(0.75) !important',
+              backgroundColor: '#fff',
+              padding: '0 4px',
+            },
           },
-          '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
+          '&.Mui-focused': {
+            color: '#000000 !important',
+          },
+          '&.Mui-focused.MuiInputLabel-shrink': {
+            color: '#000000 !important',
           },
         }}
       >
@@ -178,6 +197,8 @@ const CustomSingleSelectWidget = ({
         labelId={`${id}-label`}
         value={value ?? ''}
         onChange={handleChange}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         displayEmpty
         label={label}
         MenuProps={{

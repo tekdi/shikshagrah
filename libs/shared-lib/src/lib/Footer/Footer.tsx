@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
@@ -11,6 +11,9 @@ export const Footer: React.FC = () => {
   const [value, setValue] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
+  const downloadsUrl =
+    process.env.NEXT_PUBLIC_DOWNLOADS_URL || '/ml/project-downloads';
+  const prevPathRef = useRef<string>('');
   // Map paths to their corresponding tab values
   const pathToValueMap = {
     '/home': 0,
@@ -44,37 +47,46 @@ export const Footer: React.FC = () => {
   // Initial check on component mount
   useEffect(() => {
     const currentPath = window.location.pathname;
+    prevPathRef.current = currentPath;
     updateTabValue(currentPath);
   }, []);
   useEffect(() => {
-    // Update based on Next.js pathname
-    updateTabValue(pathname);
-    // Also listen to actual browser URL changes for external navigation
-    const handleUrlChange = () => {
+    const syncFromLocation = () => {
       const currentPath = window.location.pathname;
-      updateTabValue(currentPath);
-    };
-    // Listen to popstate events (back/forward navigation)
-    window.addEventListener('popstate', handleUrlChange);
-    // Listen to window focus events (when user comes back from external page)
-    const handleWindowFocus = () => {
-      const currentPath = window.location.pathname;
-      updateTabValue(currentPath);
-    };
-    window.addEventListener('focus', handleWindowFocus);
-    // Also check URL on mount and periodically to catch external navigation
-    const checkUrlInterval = setInterval(() => {
-      const currentPath = window.location.pathname;
-      if (currentPath !== pathname) {
-        updateTabValue(currentPath);
+      if (currentPath !== prevPathRef.current) {
+        prevPathRef.current = currentPath;
       }
-    }, 500);
+      updateTabValue(currentPath);
+    };
+
+    const handlePopState = () => syncFromLocation();
+    const handleFocus = () => syncFromLocation();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncFromLocation();
+      }
+    };
+    const handlePageShow = () => syncFromLocation();
+
+    // Initial sync
+    syncFromLocation();
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pageshow', handlePageShow);
+
+    // Periodic sync as a fallback for PWA resume cases
+    const checkUrlInterval = setInterval(syncFromLocation, 500);
+
     return () => {
-      window.removeEventListener('popstate', handleUrlChange);
-      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pageshow', handlePageShow);
       clearInterval(checkUrlInterval);
     };
-  }, [pathname]);
+  }, []);
   const handleNavigation = (path: string) => {
     // Check if it's a full URL
     if (path.startsWith('http')) {
@@ -86,24 +98,21 @@ export const Footer: React.FC = () => {
   };
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    if (value !== newValue) {
-      setValue(newValue);
-      switch (newValue) {
-        case 0:
-          handleNavigation('/home');
-          break;
-        case 1:
-          handleNavigation('/content/content');
-          break;
-        case 2:
-          handleNavigation('/ml/project-downloads');
-          break;
-        case 3:
-          handleNavigation('/profile');
-          break;
-        default:
-          break;
-      }
+    switch (newValue) {
+      case 0:
+        handleNavigation('/home');
+        break;
+      case 1:
+        handleNavigation('/content/content');
+        break;
+      case 2:
+        handleNavigation(downloadsUrl);
+        break;
+      case 3:
+        handleNavigation('/profile');
+        break;
+      default:
+        break;
     }
   };
   return (
