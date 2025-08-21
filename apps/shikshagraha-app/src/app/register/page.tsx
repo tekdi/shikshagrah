@@ -272,9 +272,11 @@ export default function Register() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+
             paddingLeft: { xs: '4px', sm: '16px' },
             paddingRight: { xs: '4px', sm: '16px' },
             minWidth: 0, // Add this to ensure text truncation works
+
           }}
         >
           <Typography
