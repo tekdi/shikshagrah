@@ -159,7 +159,6 @@ export default function Register() {
         const origin = localStorage.getItem('origin') || '';
         const isShikshalokam = origin.includes('shikshalokam');
         console.log('isShikshalokam', isShikshalokam);
-
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
@@ -291,7 +290,6 @@ export default function Register() {
                 md: '20px',
               },
               textAlign: 'center',
-
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

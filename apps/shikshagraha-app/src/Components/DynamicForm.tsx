@@ -1815,7 +1815,6 @@ const DynamicForm = ({
       )}
       {!isCallSubmitInHandle ? (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-
           <Form
             ref={formRef}
             schema={formSchema}
