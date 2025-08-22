@@ -14,12 +14,7 @@ const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
   if (!identifier) {
     return <div>Loading...</div>;
   }
-  console.log(
-    'URL=>>>',
-    `${process.env.NEXT_PUBLIC_LEARNER_SBPLAYER}?identifier=${identifier}${
-      courseId && unitId ? `&courseId=${courseId}&unitId=${unitId}` : ''
-    }`
-  );
+
   const onBackClick = () => {
     router.back();
   };
