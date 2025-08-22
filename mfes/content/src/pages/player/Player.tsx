@@ -31,9 +31,7 @@ const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
     >
       <Box sx={{ mt: '6%', mb: '15%' }}>
         <iframe
-          src={`${
-            process.env.NEXT_PUBLIC_LEARNER_SBPLAYER
-          }?identifier=${identifier}${
+          src={`/sbplayer?identifier=${identifier}${
             courseId && unitId ? `&courseId=${courseId}&unitId=${unitId}` : ''
           }`}
           style={{

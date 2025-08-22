@@ -507,7 +507,7 @@ const NewUserWithStepper: React.FC = () => {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    router.push(`/`);
     localStorage.clear();
   };
 
@@ -1308,7 +1308,7 @@ const NewUserWithStepper: React.FC = () => {
             color: '#582E92',
             fontWeight: 'bold',
           }}
-          onClick={() => router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`)}
+          onClick={() => router.push(`/`)
         >
           Sign In
         </Button>
