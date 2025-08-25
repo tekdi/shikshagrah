@@ -36,8 +36,7 @@ export async function generateMetadata() {
         const data = await res.json();
         const code = data?.result?.code || core;
         const logo =
-          data?.result?.logoUrl ||
-          data?.result?.logoUrl ||
+          data?.result?.logo ||
           `/icons/icon-192x192.png`;
         return {
           title: `Welcome to ${code}`,
@@ -45,7 +44,10 @@ export async function generateMetadata() {
         };
       }
     }
-  } catch (e) {}
+  } catch (error) {
+    // Log and fall back to default metadata below
+    console.error('generateMetadata: failed to fetch branding', error);
+  }
 
   const fallbackIcon = '/icons/icon-192x192.png';
   return {

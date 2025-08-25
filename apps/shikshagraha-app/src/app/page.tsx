@@ -112,7 +112,7 @@ export default function Login() {
       const displayName = localStorage.getItem('tenantCode');
       if (displayName) {
         setDisplayName(displayName);
-        const normalized = (displayName || '').toLowerCase();
+        const normalized = displayName.toLowerCase();
         const TENANT_LOGOS: Record<string, string> = {
           shikshalokam: '/assets/images/SG_Logo.png',
           shikshagraha: '/assets/images/SG_Logo.jpg',
