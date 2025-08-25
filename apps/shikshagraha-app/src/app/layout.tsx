@@ -1,22 +1,58 @@
 import Head from 'next/head';
 
-export const metadata = {
-  title: 'Welcome to Shikshagraha',
-  description: 'Welcome to Shikshalokam',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    // move themeColor here
-    themeColor: '#000000',
-  },
-  icons: {
-    icon: '/icons/icon-192x192.png',
-    apple: '/icons/icon-192x192.png',
-  },
-  manifest: '/manifest.json',
-};
+import { headers } from 'next/headers';
+
+export async function generateMetadata() {
+  const hdrs = headers();
+  const host = (hdrs.get('host') || '').toLowerCase();
+  const skipList = [
+    'app',
+    'www',
+    'dev',
+    'staging',
+    'tekdinext',
+    'org',
+    'com',
+    'net',
+  ];
+  const parts = host.split('.');
+  const domainPart =
+    parts.find((p) => p && !skipList.includes(p)) || 'shikshagraha';
+  const knownSuffixes = ['-qa', '-dev', '-staging'];
+  let core = knownSuffixes.reduce(
+    (name, suf) => (name.endsWith(suf) ? name.slice(0, -suf.length) : name),
+    domainPart
+  );
+  if (core === 'shikshagrah') core = 'shikshagraha';
+
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL;
+    if (base) {
+      const res = await fetch(`${base}/user/v1/public/branding`, {
+        headers: { Origin: `https://${host}` },
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const code = data?.result?.code || core;
+        const logo =
+          data?.result?.logoUrl ||
+          data?.result?.logoUrl ||
+          `/icons/icon-192x192.png`;
+        return {
+          title: `Welcome to ${code}`,
+          icons: { icon: logo, apple: logo },
+        };
+      }
+    }
+  } catch (e) {}
+
+  const fallbackIcon = '/icons/icon-192x192.png';
+  return {
+    title: `Welcome to ${core}`,
+    icons: { icon: fallbackIcon, apple: fallbackIcon },
+  };
+}
 
 export default function RootLayout({
   children,
