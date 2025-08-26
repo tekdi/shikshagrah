@@ -42,6 +42,9 @@ export default function Login() {
   const [displayName, setDisplayName] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
   const loginClickedRef = useRef(false);
+  const [logoSrc, setLogoSrc] = useState<string>('');
+  const TRANSPARENT_PX =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
@@ -85,17 +88,38 @@ export default function Login() {
         if (brandingData) {
           console.log('Branding:', brandingData?.result);
           const tenantCode = brandingData?.result?.code;
-          // const tenantCode = 'shikshalokam';
+          const apiLogo =
+            brandingData?.result?.logo ||
+            brandingData?.result?.logoUrl ||
+            brandingData?.result?.branding?.logo;
           localStorage.setItem('tenantCode', tenantCode);
           setDisplayName(tenantCode);
+          // Determine logo dynamically; persist for next load
+          const normalized = (tenantCode || '').toLowerCase();
+          const TENANT_LOGOS: Record<string, string> = {
+            shikshalokam: '/assets/images/SG_Logo.png',
+            shikshagraha: '/assets/images/SG_Logo.jpg',
+          };
+          if (apiLogo && typeof apiLogo === 'string') {
+            setLogoSrc(apiLogo);
+            localStorage.setItem('brandingLogoUrl', apiLogo);
+          } else if (TENANT_LOGOS[normalized]) {
+            setLogoSrc(TENANT_LOGOS[normalized]);
+            localStorage.setItem('brandingLogoUrl', TENANT_LOGOS[normalized]);
+          }
         }
       });
       const displayName = localStorage.getItem('tenantCode');
       if (displayName) {
         setDisplayName(displayName);
-      }
-      if (coreDomain === 'shikshagrah') {
-        coreDomain = 'shikshagraha';
+        const normalized = (displayName || '').toLowerCase();
+        const TENANT_LOGOS: Record<string, string> = {
+          shikshalokam: '/assets/images/SG_Logo.png',
+          shikshagraha: '/assets/images/SG_Logo.jpg',
+        };
+        if (TENANT_LOGOS[normalized]) {
+          setLogoSrc((prev) => prev || TENANT_LOGOS[normalized]);
+        }
       }
       console.log('tenantCode', displayName);
       // localStorage.setItem('origin', coreDomain);
@@ -305,15 +329,12 @@ export default function Login() {
           >
             <Box
               component="img"
-              src={
-                displayName == 'shikshalokam'
-                  ? '/assets/images/SG_Logo.png'
-                  : '/assets/images/SG_Logo.jpg'
-              }
+              src={logoSrc || TRANSPARENT_PX}
               alt="logo"
               sx={{
-                width: '50%',
-                height: '50%',
+                width: '30%',
+                height: '30%',
+                borderRadius: '50%',
                 objectFit: 'cover',
               }}
             />
