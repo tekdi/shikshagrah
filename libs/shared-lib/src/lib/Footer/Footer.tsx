@@ -1,22 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import Fab from '@mui/material/Fab';
 import HomeIcon from '@mui/icons-material/Home';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import { useRouter, usePathname } from 'next/navigation';
+
+const isMobile = () => {
+  return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
+};
+
 export const Footer: React.FC = () => {
   const [value, setValue] = useState(0);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const downloadsUrl =
+    process.env.NEXT_PUBLIC_DOWNLOADS_URL || '/ml/project-downloads';
+  const prevPathRef = useRef<string>('');
   // Map paths to their corresponding tab values
   const pathToValueMap = {
     '/home': 0,
     '/content': 1,
-    '/ml/project-downloads': 2,
-    '/profile': 3,
+    '/observations/downloads': 3,
+    '/profile': 4,
   };
   const updateTabValue = (currentPath: string) => {
     // Find the current value based on exact path matches first
@@ -31,7 +42,7 @@ export const Footer: React.FC = () => {
         currentPath?.startsWith('/player')
       ) {
         setValue(1);
-      } else if (currentPath.startsWith('/ml/project-downloads')) {
+      } else if (currentPath.startsWith('/observations/downloads')) {
         setValue(2);
       } else if (currentPath.startsWith('/profile')) {
         setValue(3);
@@ -44,37 +55,46 @@ export const Footer: React.FC = () => {
   // Initial check on component mount
   useEffect(() => {
     const currentPath = window.location.pathname;
+    prevPathRef.current = currentPath;
     updateTabValue(currentPath);
   }, []);
   useEffect(() => {
-    // Update based on Next.js pathname
-    updateTabValue(pathname);
-    // Also listen to actual browser URL changes for external navigation
-    const handleUrlChange = () => {
+    const syncFromLocation = () => {
       const currentPath = window.location.pathname;
-      updateTabValue(currentPath);
-    };
-    // Listen to popstate events (back/forward navigation)
-    window.addEventListener('popstate', handleUrlChange);
-    // Listen to window focus events (when user comes back from external page)
-    const handleWindowFocus = () => {
-      const currentPath = window.location.pathname;
-      updateTabValue(currentPath);
-    };
-    window.addEventListener('focus', handleWindowFocus);
-    // Also check URL on mount and periodically to catch external navigation
-    const checkUrlInterval = setInterval(() => {
-      const currentPath = window.location.pathname;
-      if (currentPath !== pathname) {
-        updateTabValue(currentPath);
+      if (currentPath !== prevPathRef.current) {
+        prevPathRef.current = currentPath;
       }
-    }, 500);
+      updateTabValue(currentPath);
+    };
+
+    const handlePopState = () => syncFromLocation();
+    const handleFocus = () => syncFromLocation();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncFromLocation();
+      }
+    };
+    const handlePageShow = () => syncFromLocation();
+
+    // Initial sync
+    syncFromLocation();
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pageshow', handlePageShow);
+
+    // Periodic sync as a fallback for PWA resume cases
+    const checkUrlInterval = setInterval(syncFromLocation, 500);
+
     return () => {
-      window.removeEventListener('popstate', handleUrlChange);
-      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pageshow', handlePageShow);
       clearInterval(checkUrlInterval);
     };
-  }, [pathname]);
+  }, []);
   const handleNavigation = (path: string) => {
     // Check if it's a full URL
     if (path.startsWith('http')) {
@@ -86,24 +106,21 @@ export const Footer: React.FC = () => {
   };
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    if (value !== newValue) {
-      setValue(newValue);
-      switch (newValue) {
-        case 0:
-          handleNavigation('/home');
-          break;
-        case 1:
-          handleNavigation('/content/content');
-          break;
-        case 2:
-          handleNavigation('/ml/project-downloads');
-          break;
-        case 3:
-          handleNavigation('/profile');
-          break;
-        default:
-          break;
-      }
+    switch (newValue) {
+      case 0:
+        handleNavigation('/home');
+        break;
+      case 1:
+        handleNavigation('/content/content');
+        break;
+      case 2:
+        handleNavigation(downloadsUrl);
+        break;
+      case 3:
+        handleNavigation('/profile');
+        break;
+      default:
+        break;
     }
   };
   return (
@@ -118,6 +135,33 @@ export const Footer: React.FC = () => {
         borderRadius: '25px 25px 0 0',
       }}
     >
+      {/* FAB Scanner Button */}
+      {isMobileDevice && (
+        <Fab
+          color="primary"
+          aria-label="scanner"
+          onClick={() => handleNavigation('/qr-scanner')}
+          sx={{
+            position: 'fixed',
+            bottom: 35,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#582E92',
+            color: '#fff',
+            zIndex: 20,
+            width: 64,
+            height: 64,
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+            '&:hover': {
+              backgroundColor: '#6b3ab6',
+            },
+          }}
+        >
+          <QrCodeScannerIcon sx={{ fontSize: '2rem' }} />
+        </Fab>
+      )}
+
+      {/* Bottom Navigation */}
       <BottomNavigation
         showLabels
         value={value}
@@ -132,6 +176,8 @@ export const Footer: React.FC = () => {
           },
           '& .MuiBottomNavigationAction-root': {
             color: 'black',
+            minWidth: 'auto',
+            paddingX: '12px',
           },
         }}
       >
@@ -161,6 +207,7 @@ export const Footer: React.FC = () => {
             />
           }
         />
+        {isMobileDevice && <Box sx={{ width: 54 }} />}
         <BottomNavigationAction
           label="Downloads"
           icon={

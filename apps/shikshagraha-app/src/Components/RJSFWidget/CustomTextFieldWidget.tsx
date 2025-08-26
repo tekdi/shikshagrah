@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+
 const CustomTextFieldWidget = (props: WidgetProps) => {
   const {
     id,
@@ -25,6 +26,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   } = props;
   const [localError, setLocalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const formData = formContext?.formData || {};
   const isPasswordField = label?.toLowerCase() === 'password';
   const isConfirmPasswordField = label
@@ -44,16 +46,20 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     /^(?:[a-z0-9_-]{3,40}|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/;
   const registrationCodeRegex = /^[a-zA-Z0-9_]+$/;
   const lowerLabel = label?.toLowerCase();
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
     if (isMobileField && formData.email) return true;
     return false;
   };
+
   const isActuallyRequired = () => {
     if (isEmailField) return !formData.mobile && required;
     if (isMobileField) return !formData.email && required;
     return required;
   };
+
   const validateField = (field: string, val: string): string | null => {
     if (isOptional() && !val) return null;
     console.log('field', field);
@@ -80,7 +86,6 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           return 'Either contact number or email is required';
         }
         return null;
-        break;
         break;
       case 'email':
         if (val && !emailRegex.test(val)) {
@@ -115,12 +120,35 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return null;
   };
+
+  useEffect(() => {
+    if (isIOS) {
+      // Prevent zoom on focus by setting viewport meta tag
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        const originalContent = viewportMeta.getAttribute('content');
+        viewportMeta.setAttribute(
+          'content',
+          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+        );
+
+        // Restore original viewport on unmount
+        return () => {
+          if (originalContent) {
+            viewportMeta.setAttribute('content', originalContent);
+          }
+        };
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (isConfirmPasswordField && value) {
       const error = validateField(label ?? '', value);
       setLocalError(error);
     }
   }, [formData.password]);
+
   const shouldShowHelperText = () => {
     // Always show if there are validation errors
     if (displayErrors.length > 0 || localError) {
@@ -138,6 +166,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
 
     return true;
   };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     if (isMobileField) {
@@ -196,18 +225,26 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       props.onErrorChange(!!error);
     }
   };
+
   const handleBlur = () => {
+    setIsFocused(false);
     if (onBlur) onBlur(id, value);
   };
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) =>
+
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
     onFocus(id, event.target.value);
+  };
+
   // Filter out 'is a required property' messages
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
+
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
+
   const renderLabel = () => {
     if (
       [
@@ -248,6 +285,10 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return label;
   };
+
+  // Determine if the label should be shrunk (for proper positioning)
+  const shouldShrinkLabel = isFocused || Boolean(value);
+
   return (
     <>
       {/* Hidden fields to prevent autofill */}
@@ -301,6 +342,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           },
         }}
         InputProps={{
+          notched: shouldShrinkLabel,
           readOnly: readonly,
           inputMode: isMobileField ? 'numeric' : 'text',
           pattern: isMobileField ? '[0-9]*' : undefined,
@@ -313,24 +355,21 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           sx: {
             '& .MuiInputBase-input': {
               padding: '10px 12px',
-              fontSize: '12px !important', // Ensure 16px font size to prevent iOS zoom
+              fontSize: isIOS ? '16px !important' : '12px !important',
               color: readonly ? '#000000' : undefined,
               backgroundColor: readonly ? '#f5f5f5' : undefined,
               WebkitTextFillColor: readonly ? '#000000' : undefined,
-              // iOS Safari zoom prevention
               transform: 'translateZ(0)',
               WebkitTransform: 'translateZ(0)',
               WebkitAppearance: 'none',
               borderRadius: '0',
-              // Prevent zoom on focus
               '@media screen and (-webkit-min-device-pixel-ratio: 0)': {
-                fontSize: '12px !important',
+                fontSize: isIOS ? '16px !important' : '12px !important',
               },
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: readonly ? 'rgba(0, 0, 0, 0.23)' : undefined,
             },
-            // Additional iOS fixes
             '& .MuiInputBase-root': {
               WebkitTapHighlightColor: 'transparent',
               WebkitTouchCallout: 'none',
@@ -345,16 +384,30 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           ),
         }}
         InputLabelProps={{
+          shrink: shouldShrinkLabel, // This is the key fix
           sx: {
-            fontSize: '12px',
+            fontSize: isIOS ? '16px' : '12px',
+            backgroundColor: shouldShrinkLabel ? '#fefefe' : 'transparent',
+            padding: shouldShrinkLabel ? '0 4px' : '0',
             '&.Mui-focused': {
-              transform: 'translate(14px, -6px) scale(0.75)',
-              color: '#582E92',
+              color: '#000000 !important',
             },
             '&.MuiInputLabel-shrink': {
-              transform: 'translate(14px, -6px) scale(0.75)',
-              color: '#582E92',
+              transform: 'translate(12px, -9px) scale(0.75) !important',
             },
+          },
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            // Collapse notch when label isn't shrunk; expand when shrunk
+            '& .MuiOutlinedInput-notchedOutline > legend': {
+              maxWidth: '0.01px',
+              transition: 'max-width 150ms ease',
+            },
+            '& .MuiInputLabel-shrink + .MuiOutlinedInput-notchedOutline > legend':
+              {
+                maxWidth: '1000px',
+              },
           },
         }}
       />
@@ -382,4 +435,5 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     </>
   );
 };
+
 export default CustomTextFieldWidget;

@@ -170,13 +170,18 @@ const UdiaseWithButton = ({
             InputLabelProps={{
               sx: {
                 fontSize: '12px',
-                '&.Mui-focused': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  color: '#582E92',
+                '@supports (-webkit-touch-callout: none)': {
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(12px, -9px) scale(0.75) !important',
+                    backgroundColor: '#fff',
+                    padding: '0 4px',
+                  },
                 },
-                '&.MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  color: '#582E92',
+                '&.Mui-focused': {
+                  color: '#000000 !important',
+                },
+                '&.Mui-focused.MuiInputLabel-shrink': {
+                  color: '#000000 !important',
                 },
               },
             }}

@@ -87,13 +87,20 @@ export default function Home() {
 
   const handleCardClick = (card) => {
     // router.push(`${card.url}`);
-    buildProgramUrl(card.url, card.sameOrigin);
+    buildProgramUrl(card.url, card.sameOrigin, card.title);
   };
 
-  const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
+  const buildProgramUrl = (path: string, sameOrigin: boolean, title?: string): string => {
     if (sameOrigin) {
       router.push(`${path}`);
     } else {
+      if(title == 'MITRA'){
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        const encodedUrl = encodeURIComponent(url.toString());
+        const accessToken = localStorage.getItem('accToken');
+        window.location.href = `${path}${accessToken}&rerouteUrl=${encodedUrl}`;
+      }
       window.location.href = path + localStorage.getItem('accToken');
     }
   };
