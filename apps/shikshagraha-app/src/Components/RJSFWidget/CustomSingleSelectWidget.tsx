@@ -145,6 +145,7 @@ const CustomSingleSelectWidget = ({
   };
 
   const shouldShrinkLabel = open || Boolean(value);
+  const labelId = `${id}-label`;
 
   return (
     <FormControl
@@ -163,10 +164,15 @@ const CustomSingleSelectWidget = ({
       }}
     >
       <InputLabel
-        id={`${id}-label`}
+        id={labelId}
         shrink={shouldShrinkLabel}
         sx={{
           fontSize: '12px',
+          zIndex: 1,
+          '&.MuiInputLabel-shrink': {
+            backgroundColor: '#fff',
+            padding: '0 4px',
+          },
           '@supports (-webkit-touch-callout: none)': {
             '&.MuiInputLabel-shrink': {
               transform: 'translate(12px, -9px) scale(0.75) !important',
@@ -194,7 +200,7 @@ const CustomSingleSelectWidget = ({
 
       <Select
         id={id}
-        labelId={`${id}-label`}
+        labelId={labelId}
         value={value ?? ''}
         onChange={handleChange}
         onOpen={() => setOpen(true)}

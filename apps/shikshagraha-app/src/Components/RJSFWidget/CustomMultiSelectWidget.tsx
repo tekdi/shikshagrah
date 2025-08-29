@@ -64,6 +64,7 @@ WidgetProps) => {
   };
 
   const shouldShrinkLabel = open || (Array.isArray(value) && value.length > 0);
+  const labelId = `${id}-label`;
 
   return (
     <FormControl
@@ -83,12 +84,17 @@ WidgetProps) => {
       }}
     >
       <InputLabel
-        id="demo-multiple-checkbox-label"
+        id={labelId}
         shrink={shouldShrinkLabel}
         sx={{
           fontSize: '12px',
           display: 'flex',
           alignItems: 'center',
+          zIndex: 1,
+          '&.MuiInputLabel-shrink': {
+            backgroundColor: '#fff',
+            padding: '0 4px',
+          },
           '@supports (-webkit-touch-callout: none)': {
             '&.MuiInputLabel-shrink': {
               transform: 'translate(12px, -9px) scale(0.75) !important',
@@ -112,7 +118,7 @@ WidgetProps) => {
         id={id}
         multiple
         label={label}
-        labelId="demo-multiple-checkbox-label"
+        labelId={labelId}
         value={selectedValues}
         open={open}
         onOpen={() => setOpen(true)}
