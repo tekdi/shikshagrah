@@ -36,8 +36,20 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const isMobileField =
     label?.toLowerCase() === 'mobile' ||
     label?.toLowerCase() === 'contact number';
-  const passwordRegex =
-    /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\])(?!.*\s).{8,}$/;
+  // Password policy: prefer env-provided regex/message; fallback to strict defaults
+  const defaultPasswordPolicyRegex =
+    '^(?=(?:.*[A-Z]){2})(?=(?:.*[0-9]){2})(?=(?:.*[!@#%$&()\\-`.+,]){3}).{11,}$';
+  const envPasswordRegexString =
+    process.env.NEXT_PUBLIC_PASSWORD_POLICY_REGEX || defaultPasswordPolicyRegex;
+  let passwordRegex: RegExp;
+  try {
+    passwordRegex = new RegExp(envPasswordRegexString);
+  } catch {
+    passwordRegex = new RegExp(defaultPasswordPolicyRegex);
+  }
+  const passwordPolicyMessage =
+    process.env.NEXT_PUBLIC_PASSWORD_POLICY_MESSAGE ||
+    'Password must have at least two uppercase letters, two numbers, three special characters, and be at least 11 characters long.';
   const nameRegex = /^[a-zA-Z]+$/;
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
@@ -106,8 +118,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         if (val.includes(' ')) {
           return 'Password cannot contain spaces.';
         }
-        if (!passwordRegex.test(val))
-          return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
+        if (!passwordRegex.test(val)) return passwordPolicyMessage;
         break;
       case 'confirm password':
         // Check for any whitespace
