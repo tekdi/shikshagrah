@@ -130,16 +130,13 @@ const DynamicForm = ({
     const field = formData[config.name];
     formData['registration_code'] = formData[config.name];
     if (isShikshalokam) {
-      formData.registration_code = formData['Registration Code'];
-      formData['Registration Code'] = formData.registration_code;
-      formData.registration_code = {
-        externalId: formData['Registration Code'],
-      };
-
-      if (!formData.registration_code) {
+      // Always resolve to a string value for registration code
+      const regValue = formData['Registration Code'];
+      formData.registration_code = regValue;
+      if (!regValue) {
         throw new Error('Registration code is required for shikshalokam');
       }
-      return formData.registration_code;
+      return String(regValue);
     } else {
       const regConfig = schema.meta?.registrationCodeConfig;
 
@@ -149,9 +146,39 @@ const DynamicForm = ({
 
       const fieldValue = formData[regConfig.name];
       const valueKey = regConfig.value_ref || 'externalId';
+      // Resolve across snake_case/camelCase variants
+      const pickValue = (obj, key) => {
+        if (!obj || typeof obj !== 'object') return undefined;
+        if (obj[key] != null && obj[key] !== '') return obj[key];
+        const toSnake = (s) =>
+          s
+            .replace(/([a-z])([A-Z])/g, '$1_$2')
+            .replace(/-/g, '_')
+            .toLowerCase();
+        const toCamel = (s) =>
+          s.replace(/[_-](\w)/g, (_, c) => c.toUpperCase());
+        const snake = toSnake(key);
+        const camel = toCamel(key);
+        if (obj[snake] != null && obj[snake] !== '') return obj[snake];
+        if (obj[camel] != null && obj[camel] !== '') return obj[camel];
+        const altKeys = [
+          'external_id',
+          'externalId',
+          'externalID',
+          'externalid',
+          '_id',
+          'id',
+          'value',
+        ];
+        for (const k of altKeys) {
+          if (obj[k] != null && obj[k] !== '') return obj[k];
+        }
+        return undefined;
+      };
 
       if (typeof fieldValue === 'object') {
-        return fieldValue[valueKey];
+        const resolved = pickValue(fieldValue, valueKey);
+        return resolved != null ? String(resolved) : '';
       }
       return fieldValue;
     }
@@ -1522,8 +1549,7 @@ const DynamicForm = ({
       ...(hasMobile && { phone: formData.mobile.trim() }),
       ...(hasMobile && { phone_code: '+91' }),
       password: formData.password,
-      // registration_code: 'blr',
-      registration_code: formData.registration_code.externalId, // Using default value as per your curl example
+      registration_code: registrationCode,
     };
 
     try {
@@ -1629,7 +1655,7 @@ const DynamicForm = ({
       block: formData.Block?._id ?? '',
       cluster: formData.Cluster?._id ?? '',
       school: formData.School?._id ?? '',
-      registration_code: formData.registration_code.externalId ?? '',
+      registration_code: registrationCode ?? '',
       professional_role: localStorage.getItem('role'),
       professional_subroles: getSubRoleExternalIds(),
       otp: Number(otp),
@@ -1815,7 +1841,6 @@ const DynamicForm = ({
       )}
       {!isCallSubmitInHandle ? (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-
           <Form
             ref={formRef}
             schema={formSchema}
