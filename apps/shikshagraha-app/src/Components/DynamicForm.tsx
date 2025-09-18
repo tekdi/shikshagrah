@@ -124,57 +124,33 @@ const DynamicForm = ({
   const getRegistrationCode = (formData) => {
     const regConfig = schema.meta?.registrationCodeConfig;
 
-    // Helper to resolve value across snake_case/camelCase variants
-    const pickValue = (obj, key) => {
-      if (!obj || typeof obj !== 'object') return undefined;
-      if (key && obj[key] != null && obj[key] !== '') return obj[key];
-      const toSnake = (s) =>
-        s
-          .replace(/([a-z])([A-Z])/g, '$1_$2')
-          .replace(/-/g, '_')
-          .toLowerCase();
-      const toCamel = (s) => s.replace(/[_-](\w)/g, (_, c) => c.toUpperCase());
-      if (key) {
-        const snake = toSnake(key);
-        const camel = toCamel(key);
-        if (obj[snake] != null && obj[snake] !== '') return obj[snake];
-        if (obj[camel] != null && obj[camel] !== '') return obj[camel];
-      }
-      const altKeys = [
-        'external_id',
-        'external_Id',
-        'externalId',
-        'externalID',
-        'externalid',
-        '_id',
-        'id',
-        'value',
-      ];
-      for (const k of altKeys) {
-        if (obj[k] != null && obj[k] !== '') return obj[k];
-      }
-      return undefined;
-    };
-
     // If meta has a registration_code config with a name
     if (regConfig && regConfig.name) {
       const fieldValue = formData[regConfig.name];
-      const valueKey = regConfig.value_ref || 'externalId';
+      const valueRef = regConfig.value_ref || 'external_id';
+      if (!fieldValue) return '';
+
       if (typeof fieldValue === 'object') {
-        const resolved = pickValue(fieldValue, valueKey);
-        return resolved != null ? String(resolved) : '';
+        // // API specifies value_ref as external_id (snake); our objects commonly use externalId (camel)
+        // if (valueRef === 'external_id') {
+        //   return String(fieldValue.externalId ?? fieldValue.external_id ?? '');
+        // }
+        // // Any other explicit key
+        return String(fieldValue[valueRef] ?? '');
       }
-      return fieldValue != null ? String(fieldValue) : '';
+      // If it's a primitive, return as-is
+      return String(fieldValue ?? '');
     }
 
-    // Fallback: read directly from form using label "Registration Code"
-    const fallback =
-      formData['Registration Code'] ?? formData.registration_code;
-    if (fallback && typeof fallback === 'object') {
-      const resolved = pickValue(fallback, 'external_id');
-      return resolved != null ? String(resolved) : '';
+    // Fallback: take user-entered code from form (lowercase key as per requirement)
+    const manual =
+      formData.registrationcode ??
+      formData['Registration Code'] ??
+      formData.registration_code;
+    if (manual && typeof manual === 'object') {
+      return String(manual.externalId ?? manual.external_id ?? '');
     }
-    return fallback != null ? String(fallback) : '';
+    return manual != null ? String(manual) : '';
   };
   const checkOtpAttempts = () => {
     const now = Date.now();
