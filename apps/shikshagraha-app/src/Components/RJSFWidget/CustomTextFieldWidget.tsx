@@ -38,7 +38,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     label?.toLowerCase() === 'contact number';
   // Password policy: prefer env-provided regex/message; fallback to strict defaults
   const defaultPasswordPolicyRegex =
-    '^(?=(?:.*[A-Z]){2})(?=(?:.*[0-9]){2})(?=(?:.*[!@#%$&()\\-`.+,]){3}).{11,}$';
+    '^(?=(?:.*[A-Z]){2})(?=(?:.*[0-9]){2})(?=(?:.*[!@#%$&()\\-`.+,]){3}).{11,}$'; // NOSONAR - password policy regex (not a credential)
   const envPasswordRegexString =
     process.env.NEXT_PUBLIC_PASSWORD_POLICY_REGEX || defaultPasswordPolicyRegex;
   let passwordRegex: RegExp;
