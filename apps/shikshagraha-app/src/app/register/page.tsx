@@ -97,13 +97,10 @@ export default function Register() {
             console.warn(
               'Branding data not available, using fallback tenant configuration'
             );
-        
-
           }
         } catch (error) {
           console.error('Error fetching branding:', error);
           // Fallback for incognito mode or when branding fails
-        
         }
       }
     };
@@ -251,7 +248,6 @@ export default function Register() {
             paddingLeft: { xs: '4px', sm: '16px' },
             paddingRight: { xs: '4px', sm: '16px' },
             minWidth: 0, // Add this to ensure text truncation works
-
           }}
         >
           <Typography
@@ -265,7 +261,6 @@ export default function Register() {
                 md: '20px',
               },
               textAlign: 'center',
-
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
