@@ -50,7 +50,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     registrationCode: /^\w+$/,
     // Simplified to reduce cognitive complexity while enforcing the same policy
     password:
-      /^(?=.*[A-Z].*[A-Z])(?=.*\d.*\d)(?=.*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,]).{11,}$/,
+      /^(?=.*[A-Z].*[A-Z])(?=.*\d.*\d)(?=.*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,]).{11,}$/, // NOSONAR - validation pattern, not a credential
   };
 
   // Default error messages (fallback when no policyMsg is provided)
