@@ -89,8 +89,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     if (!patternStr) return null;
     try {
       return new RegExp(patternStr);
-    } catch (e) {
-      console.warn('Invalid regex pattern in schema:', patternStr);
+    } catch {
       return null;
     }
   };
@@ -107,17 +106,19 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
 
   const validateField = (field: string, val: string): string | null => {
-    // Optional dependencies
-    if (isOptional() && !val) return null;
+    const input = val ?? '';
     const fieldKey = field.toLowerCase();
 
-    // "Last name" can be empty
-    if (fieldKey === 'last name' && !val) return null;
+    // Early exits for optional/required cases
+    if (isOptional() && input === '') return null;
+    if (isActuallyRequired() && input === '')
+      return defaultErrorMessages.requiredField;
+    if (fieldKey === 'last name' && input === '') return null;
 
     // Schema pattern applies to ALL fields when provided
     const schemaRegex = buildSchemaRegex(fieldPatternString);
-    if (val && schemaRegex) {
-      const schemaErr = validateWithPattern(val, schemaRegex, fieldPolicyMsg);
+    if (input && schemaRegex) {
+      const schemaErr = validateWithPattern(input, schemaRegex, fieldPolicyMsg);
       if (schemaErr) return schemaErr;
       // If schema pattern passes, short-circuit for complex fields below
       if (
@@ -130,23 +131,17 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
           'confirm password',
         ].includes(fieldKey)
       ) {
-        // Still handle special cases where required-ness matters
-        if (isActuallyRequired() && !val)
-          return defaultErrorMessages.requiredField;
         if (fieldKey === 'confirm password') {
-          if (val.includes(' '))
+          if (input.includes(' '))
             return 'Confirm password cannot contain spaces.';
-          if (val !== formData.password)
+          if (input !== formData.password)
             return defaultErrorMessages.confirmPassword;
         }
-        if (fieldKey === 'password' && val.includes(' '))
+        if (fieldKey === 'password' && input.includes(' '))
           return 'Password cannot contain spaces.';
         return null;
       }
     }
-
-    // Required check
-    if (isActuallyRequired() && !val) return defaultErrorMessages.requiredField;
 
     // Field-specific fallbacks when no (or invalid) schema pattern
     const validators: Record<string, () => string | null> = {
