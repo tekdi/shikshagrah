@@ -56,7 +56,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   // Default error messages (fallback when no policyMsg is provided)
   const defaultErrorMessages = {
     password:
-      'Password must have at least two uppercase letters, two numbers, three special characters, and be at least 11 characters long.',
+      'Password must have at least two uppercase letters, two numbers, three special characters, and be at least 11 characters long.', // NOSONAR
     name: 'Only letters are allowed.',
     contact: 'Enter a valid 10-digit mobile number',
     email: 'Enter a valid email address',
@@ -105,104 +105,119 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     return null;
   };
 
+  const validateRequired = (fieldKey: string, input: string): string | null => {
+    if (isOptional() && !input) return null;
+    if (isActuallyRequired() && !input)
+      return defaultErrorMessages.requiredField;
+    if (fieldKey === 'last name' && !input) return null;
+    return null;
+  };
+
+  const validateSchema = (
+    input: string,
+    fieldKey: string,
+    schemaRegex: RegExp | null
+  ): string | null => {
+    if (!input || !schemaRegex) return null;
+
+    const schemaErr = validateWithPattern(input, schemaRegex, fieldPolicyMsg);
+    if (schemaErr) return schemaErr;
+
+    // Short-circuit for complex fields
+    if (
+      [
+        'first name',
+        'last name',
+        'username',
+        'registration code',
+        'password',
+        'confirm password',
+      ].includes(fieldKey)
+    ) {
+      return validatePasswordFields(fieldKey, input);
+    }
+
+    return null;
+  };
+
+  const validatePasswordFields = (
+    fieldKey: string,
+    input: string
+  ): string | null => {
+    if (fieldKey === 'confirm password') {
+      if (input.includes(' ')) return 'Confirm password cannot contain spaces.';
+      if (input !== formData.password)
+        return defaultErrorMessages.confirmPassword;
+    }
+
+    if (fieldKey === 'password' && input.includes(' ')) {
+      return 'Password cannot contain spaces.';
+    }
+
+    return null;
+  };
+
+  const fieldValidators: Record<string, (val: string) => string | null> = {
+    'first name': (val) =>
+      validateWithPattern(val, defaultPatterns.name, defaultErrorMessages.name),
+    'last name': (val) =>
+      val && !defaultPatterns.name.test(val) ? defaultErrorMessages.name : null,
+    username: (val) =>
+      validateWithPattern(
+        val,
+        defaultPatterns.username,
+        defaultErrorMessages.username
+      ),
+    'registration code': (val) =>
+      validateWithPattern(
+        val,
+        defaultPatterns.registrationCode,
+        defaultErrorMessages.registrationCode
+      ),
+    password: (val) => {
+      if (val.includes(' ')) return 'Password cannot contain spaces.';
+      return validateWithPattern(
+        val,
+        defaultPatterns.password,
+        defaultErrorMessages.password
+      );
+    },
+    'confirm password': (val) =>
+      validatePasswordFields('confirm password', val),
+    'contact number': (val) => {
+      if (val && !defaultPatterns.contact.test(val))
+        return defaultErrorMessages.contact;
+      return null;
+    },
+    email: (val) => {
+      if (val && !defaultPatterns.email.test(val))
+        return defaultErrorMessages.email;
+      if (!val && !formData.mobile) return defaultErrorMessages.eitherRequired;
+      return null;
+    },
+  };
+
   const validateField = (field: string, val: string): string | null => {
     const input = val ?? '';
     const fieldKey = field.toLowerCase();
 
-    // Early exits for optional/required cases
-    if (isOptional() && input === '') return null;
-    if (isActuallyRequired() && input === '')
-      return defaultErrorMessages.requiredField;
-    if (fieldKey === 'last name' && input === '') return null;
+    // Step 1: Required checks
+    const requiredError = validateRequired(fieldKey, input);
+    if (requiredError) return requiredError;
 
-    // Schema pattern applies to ALL fields when provided
+    // Step 2: Schema checks
     const schemaRegex = buildSchemaRegex(fieldPatternString);
-    if (input && schemaRegex) {
-      const schemaErr = validateWithPattern(input, schemaRegex, fieldPolicyMsg);
-      if (schemaErr) return schemaErr;
-      // If schema pattern passes, short-circuit for complex fields below
-      if (
-        [
-          'first name',
-          'last name',
-          'username',
-          'registration code',
-          'password',
-          'confirm password',
-        ].includes(fieldKey)
-      ) {
-        if (fieldKey === 'confirm password') {
-          if (input.includes(' '))
-            return 'Confirm password cannot contain spaces.';
-          if (input !== formData.password)
-            return defaultErrorMessages.confirmPassword;
-        }
-        if (fieldKey === 'password' && input.includes(' '))
-          return 'Password cannot contain spaces.';
-        return null;
-      }
+    const schemaError = validateSchema(input, fieldKey, schemaRegex);
+    if (schemaError) return schemaError;
+
+    // Step 3: Field-specific fallback
+    if (fieldValidators[fieldKey]) {
+      return fieldValidators[fieldKey](val);
     }
 
-    // Field-specific fallbacks when no (or invalid) schema pattern
-    const validators: Record<string, () => string | null> = {
-      'first name': () =>
-        validateWithPattern(
-          val,
-          defaultPatterns.name,
-          defaultErrorMessages.name
-        ),
-      'last name': () =>
-        val && !defaultPatterns.name.test(val)
-          ? defaultErrorMessages.name
-          : null,
-      username: () =>
-        validateWithPattern(
-          val,
-          defaultPatterns.username,
-          defaultErrorMessages.username
-        ),
-      'registration code': () =>
-        validateWithPattern(
-          val,
-          defaultPatterns.registrationCode,
-          defaultErrorMessages.registrationCode
-        ),
-      password: () => {
-        if (val.includes(' ')) return 'Password cannot contain spaces.';
-        return validateWithPattern(
-          val,
-          defaultPatterns.password,
-          defaultErrorMessages.password
-        );
-      },
-      'confirm password': () => {
-        if (val.includes(' ')) return 'Confirm password cannot contain spaces.';
-        if (val !== formData.password)
-          return defaultErrorMessages.confirmPassword;
-        return null;
-      },
-      'contact number': () => {
-        if (val && !defaultPatterns.contact.test(val))
-          return defaultErrorMessages.contact;
-        // Either email or contact is required – if user typed something here but it's not a valid email in email field,
-        // we don't block; the email field handles its own rule. So return null here.
-        return null;
-      },
-      email: () => {
-        if (val && !defaultPatterns.email.test(val))
-          return defaultErrorMessages.email;
-        if (!val && !formData.mobile)
-          return defaultErrorMessages.eitherRequired;
-        return null;
-      },
-    };
-
-    if (validators[fieldKey]) {
-      return validators[fieldKey]();
-    }
-
-    // Generic default
+    // Step 4: Generic fallback
     if (required && !val) return defaultErrorMessages.requiredField;
+
     return null;
   };
 
