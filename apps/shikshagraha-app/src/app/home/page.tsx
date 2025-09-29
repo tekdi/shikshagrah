@@ -64,7 +64,7 @@ export default function Home() {
           // Normalize API-provided content tile if present
           cards = cards.map((c: any) => {
             if (c?.feature_code === 'content' && c?.meta) {
-              const meta = { ...(c.meta || {}) };
+              const meta = { ...c.meta };
               // Resolve meta.url if it's provided as an env string literal
               if (
                 typeof meta.url === 'string' &&

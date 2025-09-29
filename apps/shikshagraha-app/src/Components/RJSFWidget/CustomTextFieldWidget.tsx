@@ -47,9 +47,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     udise: /^\d{11}$/,
     email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
     username: /^(?:[a-z0-9_-]{3,40}|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/,
-    registrationCode: /^[a-zA-Z0-9_]+$/,
+    registrationCode: /^\w+$/,
     password:
-      /^(?=(?:.*[A-Z]){2})(?=(?:.*[0-9]){2})(?=(?:.*[!@#%$&()\-`.+,]){3}).{11,}$/,
+      /^(?=(?:.*[A-Z]){2})(?=(?:.*\d){2})(?=(?:.*[!@#%$&()\-`.+,]){3}).{11,}$/,
   };
 
   // Default error messages (fallback when no policyMsg is provided)
@@ -120,6 +120,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       } catch (e) {
         console.warn('Invalid regex pattern in schema:', fieldPatternString);
         // Fall through to default validation if pattern is invalid
+        throw new Error(`Invalid regex pattern: ${fieldPatternString}`, {
+          cause: e,
+        });
       }
     }
 

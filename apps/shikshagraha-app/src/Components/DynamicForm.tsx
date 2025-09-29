@@ -145,7 +145,7 @@ const DynamicForm = ({
     if (manual && typeof manual === 'object') {
       return String(manual.externalId ?? manual.external_id ?? '');
     }
-    return manual != null ? String(manual) : '';
+    return manual == null ? '' : String(manual);
   };
   const checkOtpAttempts = () => {
     const now = Date.now();
