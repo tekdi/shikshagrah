@@ -48,8 +48,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
     username: /^(?:[a-z0-9_-]{3,40}|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/,
     registrationCode: /^\w+$/,
+    // Simplified to reduce cognitive complexity while enforcing the same policy
     password:
-      /^(?=(?:.*[A-Z]){2})(?=(?:.*\d){2})(?=(?:.*[!@#%$&()\-`.+,]){3}).{11,}$/,
+      /^(?=.*[A-Z].*[A-Z])(?=.*\d.*\d)(?=.*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,].*[!@#%$&()\-`.+,]).{11,}$/,
   };
 
   // Default error messages (fallback when no policyMsg is provided)
@@ -83,6 +84,17 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     return required;
   };
 
+  // Helpers
+  const buildSchemaRegex = (patternStr?: string): RegExp | null => {
+    if (!patternStr) return null;
+    try {
+      return new RegExp(patternStr);
+    } catch (e) {
+      console.warn('Invalid regex pattern in schema:', patternStr);
+      return null;
+    }
+  };
+
   const validateWithPattern = (
     val: string,
     pattern: RegExp,
@@ -95,139 +107,108 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
 
   const validateField = (field: string, val: string): string | null => {
+    // Optional dependencies
     if (isOptional() && !val) return null;
+    const fieldKey = field.toLowerCase();
 
-    if (field.toLowerCase() === 'last name' && !val) {
-      return null;
-    }
+    // "Last name" can be empty
+    if (fieldKey === 'last name' && !val) return null;
 
-    // PRIMARY VALIDATION: Use pattern from schema if available (applies to ALL fields)
-    let schemaPatternApplied = false;
-    if (val && fieldPatternString) {
-      try {
-        const schemaPattern = new RegExp(fieldPatternString);
-        const patternError = validateWithPattern(
-          val,
-          schemaPattern,
-          fieldPolicyMsg
-        );
-        if (patternError) {
-          return patternError;
+    // Schema pattern applies to ALL fields when provided
+    const schemaRegex = buildSchemaRegex(fieldPatternString);
+    if (val && schemaRegex) {
+      const schemaErr = validateWithPattern(val, schemaRegex, fieldPolicyMsg);
+      if (schemaErr) return schemaErr;
+      // If schema pattern passes, short-circuit for complex fields below
+      if (
+        [
+          'first name',
+          'last name',
+          'username',
+          'registration code',
+          'password',
+          'confirm password',
+        ].includes(fieldKey)
+      ) {
+        // Still handle special cases where required-ness matters
+        if (isActuallyRequired() && !val)
+          return defaultErrorMessages.requiredField;
+        if (fieldKey === 'confirm password') {
+          if (val.includes(' '))
+            return 'Confirm password cannot contain spaces.';
+          if (val !== formData.password)
+            return defaultErrorMessages.confirmPassword;
         }
-        // If pattern validation passes, no need for further validation
-        // return null;
-        schemaPatternApplied = true;
-      } catch (e) {
-        console.warn('Invalid regex pattern in schema:', fieldPatternString);
-        // Fall through to default validation if pattern is invalid
-        throw new Error(`Invalid regex pattern: ${fieldPatternString}`, {
-          cause: e,
-        });
+        if (fieldKey === 'password' && val.includes(' '))
+          return 'Password cannot contain spaces.';
+        return null;
       }
     }
 
-    // Handle required field validation
-    if (isActuallyRequired() && !val) {
-      return defaultErrorMessages.requiredField;
-    }
+    // Required check
+    if (isActuallyRequired() && !val) return defaultErrorMessages.requiredField;
 
-    // Field-specific validation (only when no pattern is provided)
-    switch (field.toLowerCase()) {
-      case 'first name':
-        if (schemaPatternApplied) {
-          return null;
-        }
-        return validateWithPattern(
+    // Field-specific fallbacks when no (or invalid) schema pattern
+    const validators: Record<string, () => string | null> = {
+      'first name': () =>
+        validateWithPattern(
           val,
           defaultPatterns.name,
           defaultErrorMessages.name
-        );
-
-      case 'last name':
-        if (schemaPatternApplied) {
-          return null;
-        }
-        if (val && !defaultPatterns.name.test(val)) {
-          return defaultErrorMessages.name;
-        }
-        return null;
-
-      case 'username':
-        if (schemaPatternApplied) {
-          return null;
-        }
-        return validateWithPattern(
+        ),
+      'last name': () =>
+        val && !defaultPatterns.name.test(val)
+          ? defaultErrorMessages.name
+          : null,
+      username: () =>
+        validateWithPattern(
           val,
           defaultPatterns.username,
           defaultErrorMessages.username
-        );
-
-      case 'contact number':
-        if (
-          !schemaPatternApplied &&
-          val &&
-          !defaultPatterns.contact.test(val)
-        ) {
-          return defaultErrorMessages.contact;
-        }
-        if (!schemaPatternApplied && val && !defaultPatterns.email.test(val)) {
-          return defaultErrorMessages.eitherRequired;
-        }
-        return null;
-
-      case 'email':
-        if (val && !defaultPatterns.email.test(val)) {
-          return defaultErrorMessages.email;
-        }
-        if (!val && !formData.mobile) {
-          return defaultErrorMessages.eitherRequired;
-        }
-        return null;
-
-      case 'registration code':
-        if (schemaPatternApplied) {
-          return null;
-        }
-        return validateWithPattern(
+        ),
+      'registration code': () =>
+        validateWithPattern(
           val,
           defaultPatterns.registrationCode,
           defaultErrorMessages.registrationCode
-        );
-
-      case 'password':
-        // Check for whitespace first
-        if (val.includes(' ')) {
-          return 'Password cannot contain spaces.';
-        }
-        // Use default password pattern (since no schema pattern was provided)
-        if (schemaPatternApplied) {
-          return null;
-        }
+        ),
+      password: () => {
+        if (val.includes(' ')) return 'Password cannot contain spaces.';
         return validateWithPattern(
           val,
           defaultPatterns.password,
           defaultErrorMessages.password
         );
-
-      case 'confirm password':
-        if (val.includes(' ')) {
-          return 'Confirm password cannot contain spaces.';
-        }
-        if (val !== formData.password) {
+      },
+      'confirm password': () => {
+        if (val.includes(' ')) return 'Confirm password cannot contain spaces.';
+        if (val !== formData.password)
           return defaultErrorMessages.confirmPassword;
-        }
-        if (schemaPatternApplied) {
-          return null;
-        }
         return null;
+      },
+      'contact number': () => {
+        if (val && !defaultPatterns.contact.test(val))
+          return defaultErrorMessages.contact;
+        // Either email or contact is required – if user typed something here but it's not a valid email in email field,
+        // we don't block; the email field handles its own rule. So return null here.
+        return null;
+      },
+      email: () => {
+        if (val && !defaultPatterns.email.test(val))
+          return defaultErrorMessages.email;
+        if (!val && !formData.mobile)
+          return defaultErrorMessages.eitherRequired;
+        return null;
+      },
+    };
 
-      default:
-        // For any other field without a pattern, just check if it's required
-        if (required && !val) {
-          return defaultErrorMessages.requiredField;
-        }
-        return null;
+    if (validators[fieldKey]) {
+      return validators[fieldKey]();
     }
+
+    // Generic default
+    if (required && !val) return defaultErrorMessages.requiredField;
+    return null;
   };
 
   useEffect(() => {
