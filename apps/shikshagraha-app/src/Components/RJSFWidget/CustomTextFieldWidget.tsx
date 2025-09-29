@@ -64,7 +64,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       'Please enter a valid username. It can be either a valid email address or a custom username (3-40 characters, lowercase letters and numbers only, with hyphens and underscores allowed)',
     registrationCode:
       'Registration code may only contain letters, numbers and underscore.',
-    confirmPassword: 'Password and confirm password must be the same.',
+    confirmPassword: 'Password and confirm password must be the same.', // NOSONAR
     requiredField: 'This field is required.',
     eitherRequired: 'Either email or contact number is required',
   };
