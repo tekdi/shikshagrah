@@ -129,8 +129,6 @@ export default function Register() {
       try {
         setLoading(true);
         const origin = localStorage.getItem('origin') || '';
-        // const isShikshalokam = origin.includes('shikshalokam');
-        // console.log('isShikshalokam', isShikshalokam);
 
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];

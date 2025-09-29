@@ -1042,7 +1042,15 @@ export default function Profile({ params }: { params: { id: string } }) {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog
+          open={open}
+          onClose={(event, reason) => {
+            // Only allow close with explicit button, not backdrop click
+            if (reason !== 'backdropClick') {
+              handleClose();
+            }
+          }}
+        >
           <Box
             sx={{
               display: 'flex',

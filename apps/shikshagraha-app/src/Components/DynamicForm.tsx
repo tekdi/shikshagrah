@@ -125,17 +125,12 @@ const DynamicForm = ({
     const regConfig = schema.meta?.registrationCodeConfig;
 
     // If meta has a registration_code config with a name
-    if (regConfig && regConfig.name) {
+    if (regConfig?.name) {
       const fieldValue = formData[regConfig.name];
       const valueRef = regConfig.value_ref || 'external_id';
       if (!fieldValue) return '';
 
       if (typeof fieldValue === 'object') {
-        // // API specifies value_ref as external_id (snake); our objects commonly use externalId (camel)
-        // if (valueRef === 'external_id') {
-        //   return String(fieldValue.externalId ?? fieldValue.external_id ?? '');
-        // }
-        // // Any other explicit key
         return String(fieldValue[valueRef] ?? '');
       }
       // If it's a primitive, return as-is
