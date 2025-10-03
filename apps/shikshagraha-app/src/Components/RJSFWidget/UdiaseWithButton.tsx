@@ -4,7 +4,118 @@ import { TextField, Button, Box, Typography } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { fetchContentOnUdise } from '../../services/LoginService';
 
-const UdiaseWithButton = ({
+// Type definitions
+interface LocationEntity {
+  _id?: string;
+  name?: string;
+  externalId?: string;
+}
+
+interface ParentInformation {
+  state?: LocationEntity[];
+  district?: LocationEntity[];
+  block?: LocationEntity[];
+  cluster?: LocationEntity[];
+}
+
+interface MetaInformation {
+  externalId?: string;
+  name?: string;
+}
+
+interface RegistryDetails {
+  code?: string;
+  locationId?: string;
+}
+
+interface LocationInfo {
+  _id?: string;
+  entityType?: string;
+  metaInformation?: MetaInformation;
+  registryDetails?: RegistryDetails;
+  parentInformation?: ParentInformation;
+}
+
+interface FetchDataResponse {
+  udise: string;
+  school: LocationEntity;
+  state: LocationEntity;
+  district: LocationEntity;
+  block: LocationEntity;
+  cluster: LocationEntity;
+}
+
+interface UdiaseWithButtonProps extends WidgetProps {
+  onFetchData: (data: FetchDataResponse) => void;
+}
+
+// Helper functions
+const validateSchoolEntity = (
+  locationInfo: LocationInfo | undefined,
+  inputValue: string
+): { isValid: boolean; schoolCode: string } => {
+  const inputLower = String(inputValue || '').toLowerCase();
+  const isSchool = locationInfo?.entityType === 'school';
+
+  const schoolCode = String(
+    locationInfo?.metaInformation?.externalId ||
+      locationInfo?.registryDetails?.code ||
+      locationInfo?.registryDetails?.locationId ||
+      ''
+  ).toLowerCase();
+
+  const hasParentInfo =
+    Array.isArray(locationInfo?.parentInformation?.state) &&
+    locationInfo.parentInformation.state.length > 0 &&
+    Array.isArray(locationInfo?.parentInformation?.district) &&
+    locationInfo.parentInformation.district.length > 0 &&
+    Array.isArray(locationInfo?.parentInformation?.block) &&
+    locationInfo.parentInformation.block.length > 0 &&
+    Array.isArray(locationInfo?.parentInformation?.cluster) &&
+    locationInfo.parentInformation.cluster.length > 0;
+
+  return {
+    isValid: isSchool && schoolCode === inputLower && hasParentInfo,
+    schoolCode,
+  };
+};
+
+const getEmptyLocationData = (): FetchDataResponse => ({
+  udise: '',
+  school: { _id: '', name: '', externalId: '' },
+  state: { _id: '', name: '', externalId: '' },
+  district: { _id: '', name: '', externalId: '' },
+  block: { _id: '', name: '', externalId: '' },
+  cluster: { _id: '', name: '', externalId: '' },
+});
+
+const extractLocationData = (
+  locationInfo: LocationInfo,
+  udiseCode: string
+): FetchDataResponse => {
+  const getFirstEntity = (
+    entities: LocationEntity[] | undefined
+  ): LocationEntity => ({
+    _id: entities?.[0]?._id || '',
+    name: entities?.[0]?.name || '',
+    externalId: entities?.[0]?.externalId || '',
+  });
+
+  return {
+    udise: udiseCode,
+    school: {
+      _id: locationInfo?._id || '',
+      name: locationInfo?.metaInformation?.name || '',
+      externalId: udiseCode,
+    },
+    state: getFirstEntity(locationInfo?.parentInformation?.state),
+    district: getFirstEntity(locationInfo?.parentInformation?.district),
+    block: getFirstEntity(locationInfo?.parentInformation?.block),
+    cluster: getFirstEntity(locationInfo?.parentInformation?.cluster),
+  };
+};
+
+const UdiaseWithButton: React.FC<UdiaseWithButtonProps> = ({
   id,
   label,
   value,
@@ -17,25 +128,21 @@ const UdiaseWithButton = ({
   rawErrors = [],
   placeholder,
   onFetchData,
-}: WidgetProps & { onFetchData: (data: any) => void }) => {
-  const [localValue, setLocalValue] = useState(value ?? '');
-  const [errorMessage, setErrorMessage] = useState('');
+}) => {
+  const [localValue, setLocalValue] = useState<string>(value ?? '');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
   // Sync local value when prop changes
+  useEffect(() => {
+    setLocalValue(value ?? '');
+  }, [value]);
 
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
   );
-  const clearAllFields = () => {
-    onFetchData({
-      udise: '',
-      school: { _id: '', name: '', externalId: '' },
-      state: { _id: '', name: '', externalId: '' },
-      district: { _id: '', name: '', externalId: '' },
-      block: { _id: '', name: '', externalId: '' },
-      cluster: { _id: '', name: '', externalId: '' },
-    });
-  };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
     setLocalValue(val);
@@ -46,115 +153,66 @@ const UdiaseWithButton = ({
   };
 
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    if (onBlur) onBlur(id, value);
+    onBlur?.(id, value);
   };
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-    onFocus(id, event.target.value);
+    onFocus?.(id, event.target.value);
   };
 
-  const handleClick = async () => {
-    if (!localValue) {
+  const handleFetch = async (): Promise<void> => {
+    if (!localValue.trim()) {
       setErrorMessage('Please enter a UDISE Code.');
       return;
     }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
     try {
       const response = await fetchContentOnUdise(localValue);
 
-      if (
-        !response ||
-        response?.status === 500 ||
-        !response?.result ||
-        response?.result.length === 0
-      ) {
-        setErrorMessage('No school found. Please enter a valid UDISE Code.');
-        onFetchData({
-          udise: '',
-          school: { _id: '', name: '', externalId: '' },
-          state: { _id: '', name: '', externalId: '' },
-          district: { _id: '', name: '', externalId: '' },
-          block: { _id: '', name: '', externalId: '' },
-          cluster: { _id: '', name: '', externalId: '' },
-        });
+      // Handle API response errors
+      if (!response || response?.status === 500) {
+        setErrorMessage('Server error. Please try again later.');
+        onFetchData(getEmptyLocationData());
         return;
       }
 
-      const locationInfo = response.result[0];
-      const inputLower = String(localValue || '').toLowerCase();
-
-      // Validate required structure for SCHOOL entity
-      const isSchool = locationInfo?.entityType === 'school';
-      const schoolCode = String(
-        locationInfo?.metaInformation?.externalId ||
-          locationInfo?.registryDetails?.code ||
-          locationInfo?.registryDetails?.locationId ||
-          ''
-      ).toLowerCase();
-      const hasParentInfo =
-        Array.isArray(locationInfo?.parentInformation?.state) &&
-        Array.isArray(locationInfo?.parentInformation?.district) &&
-        Array.isArray(locationInfo?.parentInformation?.block) &&
-        Array.isArray(locationInfo?.parentInformation?.cluster);
-
-      // If not a school code or structure missing, show error
-      if (!isSchool || schoolCode !== inputLower || !hasParentInfo) {
+      if (!response?.result || response.result.length === 0) {
         setErrorMessage('No school found. Please enter a valid UDISE Code.');
-        onFetchData({
-          udise: '',
-          school: { _id: '', name: '', externalId: '' },
-          state: { _id: '', name: '', externalId: '' },
-          district: { _id: '', name: '', externalId: '' },
-          block: { _id: '', name: '', externalId: '' },
-          cluster: { _id: '', name: '', externalId: '' },
-        });
+        onFetchData(getEmptyLocationData());
         return;
       }
 
-      const sampleResponse = {
-        udise: localValue,
-        School: {
-          // Keep capitalized to match your form's expected structure
-          _id: locationInfo?._id || '',
-          name: locationInfo?.metaInformation?.name || '',
-          externalId: localValue ?? '',
-        },
-        state: {
-          _id: locationInfo?.parentInformation?.state?.[0]?._id || '',
-          name: locationInfo?.parentInformation?.state?.[0]?.name || '',
-          externalId:
-            locationInfo?.parentInformation?.state?.[0]?.externalId ?? '',
-        },
-        district: {
-          _id: locationInfo?.parentInformation?.district?.[0]?._id || '',
-          name: locationInfo?.parentInformation?.district?.[0]?.name || '',
-          externalId:
-            locationInfo?.parentInformation?.district?.[0]?.externalId ?? '',
-        },
-        block: {
-          _id: locationInfo?.parentInformation?.block?.[0]?._id || '',
-          name: locationInfo?.parentInformation?.block?.[0]?.name || '',
-          externalId:
-            locationInfo?.parentInformation?.block?.[0]?.externalId ?? '',
-        },
-        cluster: {
-          _id: locationInfo?.parentInformation?.cluster?.[0]?._id || '',
-          name: locationInfo?.parentInformation?.cluster?.[0]?.name || '',
-          externalId:
-            locationInfo?.parentInformation?.cluster?.[0]?.externalId ?? '',
-        },
-      };
+      const locationInfo: LocationInfo = response.result[0];
+      const validation = validateSchoolEntity(locationInfo, localValue);
 
-      onFetchData(sampleResponse);
+      if (!validation.isValid) {
+        setErrorMessage('No school found. Please enter a valid UDISE Code.');
+        onFetchData(getEmptyLocationData());
+        return;
+      }
+
+      // Success case - extract and send location data
+      const locationData = extractLocationData(locationInfo, localValue);
+      onFetchData(locationData);
       setErrorMessage('');
-    } catch (e: any) {
-      setErrorMessage('Something went wrong. Please try again later.');
+    } catch (error: any) {
+      console.error('UDISE fetch error:', error);
+      setErrorMessage(
+        error?.message || 'Something went wrong. Please try again later.'
+      );
+      onFetchData(getEmptyLocationData());
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Box>
       <Box display="flex" flexDirection="row" alignItems="flex-start" gap={1}>
-        {/* TextField (without helper text pushing layout) */}
+        {/* TextField */}
         <Box sx={{ flex: 1 }}>
           <TextField
             fullWidth
@@ -166,7 +224,7 @@ const UdiaseWithButton = ({
             }
             value={localValue}
             required={required}
-            disabled={disabled || readonly}
+            disabled={disabled || readonly || isLoading}
             onChange={handleChange}
             onBlur={handleBlur}
             onFocus={handleFocus}
@@ -174,22 +232,20 @@ const UdiaseWithButton = ({
             error={displayErrors.length > 0 || !!errorMessage}
             variant="outlined"
             size="small"
+            inputRef={inputRef}
             InputProps={{
               sx: {
                 '& .MuiInputBase-input': {
                   padding: '10px 12px',
-                  fontSize: '12px !important', // Ensure 16px font size to prevent iOS zoom
-                  // iOS Safari zoom prevention
+                  fontSize: '12px !important',
                   transform: 'translateZ(0)',
                   WebkitTransform: 'translateZ(0)',
                   WebkitAppearance: 'none',
                   borderRadius: '0',
-                  // Prevent zoom on focus
                   '@media screen and (-webkit-min-device-pixel-ratio: 0)': {
                     fontSize: '12px !important',
                   },
                 },
-                // Additional iOS fixes
                 '& .MuiInputBase-root': {
                   WebkitTapHighlightColor: 'transparent',
                   WebkitTouchCallout: 'none',
@@ -217,12 +273,12 @@ const UdiaseWithButton = ({
           />
         </Box>
 
-        {/* Button */}
+        {/* Fetch Button */}
         <Button
           variant="contained"
           size="small"
-          onClick={handleClick}
-          disabled={!localValue}
+          onClick={handleFetch}
+          disabled={!localValue.trim() || isLoading}
           sx={{
             whiteSpace: 'nowrap',
             bgcolor: '#582E92',
@@ -236,14 +292,15 @@ const UdiaseWithButton = ({
               bgcolor: '#543E98',
             },
             height: '40px',
-            mt: '1px', // slight vertical alignment tweak
+            minWidth: '80px',
+            mt: '1px',
           }}
         >
-          Fetch
+          {isLoading ? '...' : 'Fetch'}
         </Button>
       </Box>
-      {/* Show helper/error text below both elements */}
 
+      {/* Error/Helper Text */}
       {(displayErrors.length > 0 || errorMessage) && (
         <Box mt={0.5} ml={0.5}>
           <Typography variant="caption" color="error" sx={{ fontSize: '11px' }}>

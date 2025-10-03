@@ -86,7 +86,6 @@ export default function Login() {
       }, domainPart);
       fetchBranding(coreDomain).then((brandingData) => {
         if (brandingData) {
-          console.log('Branding:', brandingData?.result);
           const tenantCode = brandingData?.result?.code;
           const apiLogo =
             brandingData?.result?.logo ||
@@ -121,8 +120,6 @@ export default function Login() {
           setLogoSrc((prev) => prev || TENANT_LOGOS[normalized]);
         }
       }
-      console.log('tenantCode', displayName);
-      // localStorage.setItem('origin', coreDomain);
     }
   }, []);
   const handleChange =
@@ -172,7 +169,6 @@ export default function Login() {
         password,
         ...(isMobile ? { phone_code: '+91' } : {}),
       };
-      console.log('Signin payload:', payload);
       const response = await signin(payload);
       const accessToken = response?.result?.access_token;
       const refreshToken = response?.result?.refresh_token;
