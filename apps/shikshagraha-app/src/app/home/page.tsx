@@ -4,6 +4,7 @@
 'use client';
 import { Layout, DynamicCard } from '@shared-lib';
 import LogoutIcon from '@mui/icons-material/Logout';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { useRouter } from 'next/navigation';
 import { fetchProfileData } from '../../services/ProfileService';
 import { readHomeListForm } from '../../services/LoginService';
@@ -58,7 +59,77 @@ export default function Home() {
         if (!header['org-id']) return;
         try {
           const data = await readHomeListForm(token);
-          setCardData(data.result);
+          let cards = Array.isArray(data?.result) ? [...data.result] : [];
+
+          // Normalize API-provided content tile if present
+          cards = cards.map((c: any) => {
+            if (c?.feature_code === 'content' && c?.meta) {
+              const meta = { ...c.meta };
+              // Resolve meta.url if it's provided as an env string literal
+              if (
+                typeof meta.url === 'string' &&
+                meta.url.startsWith('process.env.')
+              ) {
+                if (meta.url.includes('NEXT_PUBLIC_CONTENT_TILE_URL')) {
+                  meta.url =
+                    process.env.NEXT_PUBLIC_CONTENT_TILE_URL ||
+                    '/content/content';
+                }
+              }
+              if (!meta.url) {
+                meta.url =
+                  process.env.NEXT_PUBLIC_CONTENT_TILE_URL ||
+                  '/content/content';
+              }
+              // Ensure icon exists: prefer API image path; else fallback to MUI icon
+              if (!meta.icon) {
+                meta.icon = (
+                  <DescriptionOutlinedIcon
+                    sx={{ fontSize: { xs: 48, sm: 64 }, color: '#582E92' }}
+                  />
+                );
+              }
+              // Ensure title and sameOrigin
+              meta.title = meta.title || c.feature_name || 'Content';
+              meta.sameOrigin =
+                typeof meta.sameOrigin === 'boolean' ? meta.sameOrigin : true;
+              return { ...c, meta };
+            }
+            return c;
+          });
+
+          // Configurable Content tile (enabled by default; set NEXT_PUBLIC_SHOW_CONTENT_TILE=false to disable)
+          const showContentTile =
+            (process.env.NEXT_PUBLIC_SHOW_CONTENT_TILE ?? 'true') !== 'false';
+          if (showContentTile) {
+            const contentTitle =
+              process.env.NEXT_PUBLIC_CONTENT_TILE_TITLE || 'Content';
+            const contentUrl =
+              process.env.NEXT_PUBLIC_CONTENT_TILE_URL || '/content/content';
+            const alreadyExists = cards.some(
+              (c) =>
+                c?.feature_code === 'content' ||
+                c?.meta?.url === contentUrl ||
+                c?.meta?.title === contentTitle
+            );
+            if (!alreadyExists) {
+              cards.push({
+                enabled: true,
+                meta: {
+                  title: contentTitle,
+                  icon: (
+                    <DescriptionOutlinedIcon
+                      sx={{ fontSize: { xs: 48, sm: 64 }, color: '#582E92' }}
+                    />
+                  ),
+                  url: contentUrl,
+                  sameOrigin: true,
+                },
+              });
+            }
+          }
+
+          setCardData(cards);
           localStorage.setItem(
             'theme',
             JSON.stringify(data.result[1].meta.theme)

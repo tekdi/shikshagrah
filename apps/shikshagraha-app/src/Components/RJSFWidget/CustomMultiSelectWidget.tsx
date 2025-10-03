@@ -63,6 +63,9 @@ WidgetProps) => {
     }
   };
 
+  const shouldShrinkLabel = open || (Array.isArray(value) && value.length > 0);
+  const labelId = `${id}-label`;
+
   return (
     <FormControl
       fullWidth
@@ -70,20 +73,40 @@ WidgetProps) => {
       // required={required}
       disabled={isDisabled}
       error={false}
+      sx={{
+        '& .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '0.01px',
+          transition: 'max-width 150ms ease',
+        },
+        '& .MuiInputLabel-shrink + .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '1000px',
+        },
+      }}
     >
       <InputLabel
-        id="demo-multiple-checkbox-label"
+        id={labelId}
+        shrink={shouldShrinkLabel}
         sx={{
           fontSize: '12px',
           display: 'flex',
           alignItems: 'center',
-          '&.Mui-focused': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
-          },
+          zIndex: 1,
           '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
+            backgroundColor: '#fff',
+            padding: '0 4px',
+          },
+          '@supports (-webkit-touch-callout: none)': {
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(12px, -9px) scale(0.75) !important',
+              backgroundColor: '#fff',
+              padding: '0 4px',
+            },
+          },
+          '&.Mui-focused': {
+            color: '#000000 !important',
+          },
+          '&.Mui-focused.MuiInputLabel-shrink': {
+            color: '#000000 !important',
           },
         }}
       >
@@ -95,7 +118,7 @@ WidgetProps) => {
         id={id}
         multiple
         label={label}
-        labelId="demo-multiple-checkbox-label"
+        labelId={labelId}
         value={selectedValues}
         open={open}
         onOpen={() => setOpen(true)}

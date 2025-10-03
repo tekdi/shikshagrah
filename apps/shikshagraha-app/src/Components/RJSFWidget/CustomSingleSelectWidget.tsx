@@ -73,6 +73,8 @@ const CustomSingleSelectWidget = ({
     (error) => !error.toLowerCase().includes('required')
   );
 
+  const [open, setOpen] = useState(false);
+
   const handleChange = async (event: any) => {
     const selected = event.target.value;
     const selectedOption = enumOptions.find(
@@ -142,24 +144,47 @@ const CustomSingleSelectWidget = ({
     return getHelperText() !== '';
   };
 
+  const shouldShrinkLabel = open || Boolean(value);
+  const labelId = `${id}-label`;
+
   return (
     <FormControl
       fullWidth
       size="small"
       disabled={isDisabled}
       error={rawErrors && rawErrors.length > 0}
+      sx={{
+        '& .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '0.01px',
+          transition: 'max-width 150ms ease',
+        },
+        '& .MuiInputLabel-shrink + .MuiOutlinedInput-notchedOutline > legend': {
+          maxWidth: '1000px',
+        },
+      }}
     >
       <InputLabel
-        id={`${id}-label`}
+        id={labelId}
+        shrink={shouldShrinkLabel}
         sx={{
           fontSize: '12px',
-          '&.Mui-focused': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
-          },
+          zIndex: 1,
           '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-            color: '#582E92',
+            backgroundColor: '#fff',
+            padding: '0 4px',
+          },
+          '@supports (-webkit-touch-callout: none)': {
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(12px, -9px) scale(0.75) !important',
+              backgroundColor: '#fff',
+              padding: '0 4px',
+            },
+          },
+          '&.Mui-focused': {
+            color: '#000000 !important',
+          },
+          '&.Mui-focused.MuiInputLabel-shrink': {
+            color: '#000000 !important',
           },
         }}
       >
@@ -175,9 +200,11 @@ const CustomSingleSelectWidget = ({
 
       <Select
         id={id}
-        labelId={`${id}-label`}
+        labelId={labelId}
         value={value ?? ''}
         onChange={handleChange}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         displayEmpty
         label={label}
         MenuProps={{

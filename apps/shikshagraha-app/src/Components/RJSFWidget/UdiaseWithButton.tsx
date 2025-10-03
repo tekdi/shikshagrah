@@ -80,6 +80,35 @@ const UdiaseWithButton = ({
       }
 
       const locationInfo = response.result[0];
+      const inputLower = String(localValue || '').toLowerCase();
+
+      // Validate required structure for SCHOOL entity
+      const isSchool = locationInfo?.entityType === 'school';
+      const schoolCode = String(
+        locationInfo?.metaInformation?.externalId ||
+          locationInfo?.registryDetails?.code ||
+          locationInfo?.registryDetails?.locationId ||
+          ''
+      ).toLowerCase();
+      const hasParentInfo =
+        Array.isArray(locationInfo?.parentInformation?.state) &&
+        Array.isArray(locationInfo?.parentInformation?.district) &&
+        Array.isArray(locationInfo?.parentInformation?.block) &&
+        Array.isArray(locationInfo?.parentInformation?.cluster);
+
+      // If not a school code or structure missing, show error
+      if (!isSchool || schoolCode !== inputLower || !hasParentInfo) {
+        setErrorMessage('No school found. Please enter a valid UDISE Code.');
+        onFetchData({
+          udise: '',
+          school: { _id: '', name: '', externalId: '' },
+          state: { _id: '', name: '', externalId: '' },
+          district: { _id: '', name: '', externalId: '' },
+          block: { _id: '', name: '', externalId: '' },
+          cluster: { _id: '', name: '', externalId: '' },
+        });
+        return;
+      }
 
       const sampleResponse = {
         udise: localValue,
@@ -170,13 +199,18 @@ const UdiaseWithButton = ({
             InputLabelProps={{
               sx: {
                 fontSize: '12px',
-                '&.Mui-focused': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  color: '#582E92',
+                '@supports (-webkit-touch-callout: none)': {
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(12px, -9px) scale(0.75) !important',
+                    backgroundColor: '#fff',
+                    padding: '0 4px',
+                  },
                 },
-                '&.MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  color: '#582E92',
+                '&.Mui-focused': {
+                  color: '#000000 !important',
+                },
+                '&.Mui-focused.MuiInputLabel-shrink': {
+                  color: '#000000 !important',
                 },
               },
             }}
