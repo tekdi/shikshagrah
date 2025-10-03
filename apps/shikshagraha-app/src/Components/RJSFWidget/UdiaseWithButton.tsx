@@ -80,6 +80,35 @@ const UdiaseWithButton = ({
       }
 
       const locationInfo = response.result[0];
+      const inputLower = String(localValue || '').toLowerCase();
+
+      // Validate required structure for SCHOOL entity
+      const isSchool = locationInfo?.entityType === 'school';
+      const schoolCode = String(
+        locationInfo?.metaInformation?.externalId ||
+          locationInfo?.registryDetails?.code ||
+          locationInfo?.registryDetails?.locationId ||
+          ''
+      ).toLowerCase();
+      const hasParentInfo =
+        Array.isArray(locationInfo?.parentInformation?.state) &&
+        Array.isArray(locationInfo?.parentInformation?.district) &&
+        Array.isArray(locationInfo?.parentInformation?.block) &&
+        Array.isArray(locationInfo?.parentInformation?.cluster);
+
+      // If not a school code or structure missing, show error
+      if (!isSchool || schoolCode !== inputLower || !hasParentInfo) {
+        setErrorMessage('No school found. Please enter a valid UDISE Code.');
+        onFetchData({
+          udise: '',
+          school: { _id: '', name: '', externalId: '' },
+          state: { _id: '', name: '', externalId: '' },
+          district: { _id: '', name: '', externalId: '' },
+          block: { _id: '', name: '', externalId: '' },
+          cluster: { _id: '', name: '', externalId: '' },
+        });
+        return;
+      }
 
       const sampleResponse = {
         udise: localValue,

@@ -97,38 +97,10 @@ export default function Register() {
             console.warn(
               'Branding data not available, using fallback tenant configuration'
             );
-            const fallbackTenantCode = 'shikshagraha';
-            const fallbackTenantId =
-              process.env.NEXT_PUBLIC_TENANT_ID ||
-              'fbe108db-e236-48a7-8230-80d34c370800';
-
-            localStorage.setItem('tenantCode', fallbackTenantCode);
-            localStorage.setItem('tenantId', fallbackTenantId);
-
-            setDisplayName(toPascalCase(fallbackTenantCode));
-            setTenantConfigured(true);
-            console.log('Fallback tenant configured:', {
-              fallbackTenantCode,
-              fallbackTenantId,
-            });
           }
         } catch (error) {
           console.error('Error fetching branding:', error);
           // Fallback for incognito mode or when branding fails
-          const fallbackTenantCode = 'shikshagraha';
-          const fallbackTenantId =
-            process.env.NEXT_PUBLIC_TENANT_ID ||
-            'fbe108db-e236-48a7-8230-80d34c370800';
-
-          localStorage.setItem('tenantCode', fallbackTenantCode);
-          localStorage.setItem('tenantId', fallbackTenantId);
-
-          setDisplayName(toPascalCase(fallbackTenantCode));
-          setTenantConfigured(true);
-          console.log('Error fallback tenant configured:', {
-            fallbackTenantCode,
-            fallbackTenantId,
-          });
         }
       }
     };
@@ -157,8 +129,7 @@ export default function Register() {
       try {
         setLoading(true);
         const origin = localStorage.getItem('origin') || '';
-        const isShikshalokam = origin.includes('shikshalokam');
-        console.log('isShikshalokam', isShikshalokam);
+
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
@@ -192,7 +163,6 @@ export default function Register() {
           ...schema,
           meta: {
             ...schema.meta,
-            isShikshalokam,
             registrationCodeConfig,
           },
         });
@@ -276,7 +246,6 @@ export default function Register() {
             paddingLeft: { xs: '4px', sm: '16px' },
             paddingRight: { xs: '4px', sm: '16px' },
             minWidth: 0, // Add this to ensure text truncation works
-
           }}
         >
           <Typography

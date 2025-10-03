@@ -157,7 +157,7 @@ export const Footer: React.FC = () => {
             />
           }
         />
-        <BottomNavigationAction
+        {/* <BottomNavigationAction
           label="Content"
           icon={
             <DescriptionIcon
@@ -169,7 +169,7 @@ export const Footer: React.FC = () => {
               }}
             />
           }
-        />
+        /> */}
         <BottomNavigationAction
           label="Downloads"
           icon={
