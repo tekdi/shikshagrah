@@ -40,6 +40,7 @@ export const generateRJSFSchema = (
         isRequired,
         placeholder,
         pattern,
+        policyMsg,
         options,
         isMultiSelect,
         fieldId,
@@ -141,7 +142,9 @@ export const generateRJSFSchema = (
       if (pattern) {
         fieldSchema.pattern = pattern;
       }
-
+      if (policyMsg) {
+        fieldSchema.policyMsg = policyMsg;
+      }
       schema.properties[name] = fieldSchema;
 
       // Configure UI widget

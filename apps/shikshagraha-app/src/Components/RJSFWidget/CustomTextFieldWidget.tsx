@@ -100,7 +100,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     customMessage?: string
   ): string | null => {
     if (!pattern.test(val)) {
-      return customMessage || 'Invalid format.';
+      return customMessage;
     }
     return null;
   };
