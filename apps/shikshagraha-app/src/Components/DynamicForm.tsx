@@ -1361,7 +1361,7 @@ const DynamicForm = ({
       District: response.district ?? { _id: '', name: '', externalId: '' },
       Block: response.block ?? { _id: '', name: '', externalId: '' },
       Cluster: response.cluster ?? { _id: '', name: '', externalId: '' },
-      School: response.School ?? { _id: '', name: '', externalId: '' }, // Note the capitalization here
+      School: response.school ?? { _id: '', name: '', externalId: '' }, // Note the capitalization here
       udise: response.udise ?? '',
     }));
   }, []);
