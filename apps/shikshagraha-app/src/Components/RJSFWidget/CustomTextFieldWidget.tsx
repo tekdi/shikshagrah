@@ -72,6 +72,64 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const lowerLabel = label?.toLowerCase();
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
+  // Helper function to get the appropriate pattern for a field
+  const getFieldPattern = (fieldKey: string): RegExp | null => {
+    // If form config has a pattern, use it
+    if (fieldPatternString) {
+      try {
+        return new RegExp(fieldPatternString);
+      } catch (error) {
+        console.warn(
+          `Invalid regex pattern in form config: ${fieldPatternString}`,
+          error
+        );
+        // Fall back to default pattern if form config pattern is invalid
+      }
+    }
+
+    // Fall back to default patterns based on field type
+    const defaultPatternMap: Record<string, RegExp> = {
+      'first name': defaultPatterns.name,
+      'last name': defaultPatterns.name,
+      username: defaultPatterns.username,
+      'registration code': defaultPatterns.registrationCode,
+      password: defaultPatterns.password,
+      email: defaultPatterns.email,
+      'contact number': defaultPatterns.contact,
+      mobile: defaultPatterns.contact,
+      udise: defaultPatterns.udise,
+    };
+
+    return defaultPatternMap[fieldKey] || null;
+  };
+
+  // Helper function to get the appropriate error message for a field
+  const getFieldErrorMessage = (fieldKey: string): string => {
+    // If form config has a policy message, use it
+    if (fieldPolicyMsg) {
+      return fieldPolicyMsg;
+    }
+
+    // Fall back to default error messages based on field type
+    const defaultErrorMessageMap: Record<string, string> = {
+      'first name': defaultErrorMessages.name,
+      'last name': defaultErrorMessages.name,
+      username: defaultErrorMessages.username,
+      'registration code': defaultErrorMessages.registrationCode,
+      password: defaultErrorMessages.password,
+      'confirm password': defaultErrorMessages.confirmPassword,
+      email: defaultErrorMessages.email,
+      'contact number': defaultErrorMessages.contact,
+      mobile: defaultErrorMessages.contact,
+      required: defaultErrorMessages.requiredField,
+      eitherRequired: defaultErrorMessages.eitherRequired,
+    };
+
+    return (
+      defaultErrorMessageMap[fieldKey] || defaultErrorMessages.requiredField
+    );
+  };
+
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
     if (isMobileField && formData.email) return true;
@@ -85,43 +143,38 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
 
   // Helpers
-  const buildSchemaRegex = (patternStr?: string): RegExp | null => {
-    if (!patternStr) return null;
-    try {
-      return new RegExp(patternStr);
-    } catch {
-      return null;
-    }
-  };
-
   const validateWithPattern = (
     val: string,
     pattern: RegExp,
-    customMessage?: string
+    errorMessage: string
   ): string | null => {
-    if (!pattern.test(val)) {
-      return customMessage;
+    if (val && !pattern.test(val)) {
+      return errorMessage;
     }
     return null;
   };
 
   const validateRequired = (fieldKey: string, input: string): string | null => {
     if (isOptional() && !input) return null;
-    if (isActuallyRequired() && !input)
-      return defaultErrorMessages.requiredField;
+    if (isActuallyRequired() && !input) return getFieldErrorMessage('required');
     if (fieldKey === 'last name' && !input) return null;
     return null;
   };
 
-  const validateSchema = (
-    input: string,
-    fieldKey: string,
-    schemaRegex: RegExp | null
-  ): string | null => {
-    if (!input || !schemaRegex) return null;
+  const validateSchema = (input: string, fieldKey: string): string | null => {
+    if (!input) return null;
 
-    const schemaErr = validateWithPattern(input, schemaRegex, fieldPolicyMsg);
-    if (schemaErr) return schemaErr;
+    const fieldPattern = getFieldPattern(fieldKey);
+    const fieldErrorMessage = getFieldErrorMessage(fieldKey);
+
+    if (fieldPattern) {
+      const schemaErr = validateWithPattern(
+        input,
+        fieldPattern,
+        fieldErrorMessage
+      );
+      if (schemaErr) return schemaErr;
+    }
 
     // Short-circuit for complex fields
     if (
@@ -147,7 +200,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     if (fieldKey === 'confirm password') {
       if (input.includes(' ')) return 'Confirm password cannot contain spaces.';
       if (input !== formData.password)
-        return defaultErrorMessages.confirmPassword;
+        return getFieldErrorMessage('confirm password');
     }
 
     if (fieldKey === 'password' && input.includes(' ')) {
@@ -158,41 +211,50 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
 
   const fieldValidators: Record<string, (val: string) => string | null> = {
-    'first name': (val) =>
-      validateWithPattern(val, defaultPatterns.name, defaultErrorMessages.name),
-    'last name': (val) =>
-      val && !defaultPatterns.name.test(val) ? defaultErrorMessages.name : null,
-    username: (val) =>
-      validateWithPattern(
-        val,
-        defaultPatterns.username,
-        defaultErrorMessages.username
-      ),
-    'registration code': (val) =>
-      validateWithPattern(
-        val,
-        defaultPatterns.registrationCode,
-        defaultErrorMessages.registrationCode
-      ),
+    'first name': (val) => {
+      const pattern = getFieldPattern('first name');
+      const errorMessage = getFieldErrorMessage('first name');
+      return validateWithPattern(val, pattern!, errorMessage);
+    },
+    'last name': (val) => {
+      if (!val) return null;
+      const pattern = getFieldPattern('last name');
+      const errorMessage = getFieldErrorMessage('last name');
+      return validateWithPattern(val, pattern!, errorMessage);
+    },
+    username: (val) => {
+      const pattern = getFieldPattern('username');
+      const errorMessage = getFieldErrorMessage('username');
+      return validateWithPattern(val, pattern!, errorMessage);
+    },
+    'registration code': (val) => {
+      const pattern = getFieldPattern('registration code');
+      const errorMessage = getFieldErrorMessage('registration code');
+      return validateWithPattern(val, pattern!, errorMessage);
+    },
     password: (val) => {
       if (val.includes(' ')) return 'Password cannot contain spaces.';
-      return validateWithPattern(
-        val,
-        defaultPatterns.password,
-        defaultErrorMessages.password
-      );
+      const pattern = getFieldPattern('password');
+      const errorMessage = getFieldErrorMessage('password');
+      return validateWithPattern(val, pattern!, errorMessage);
     },
     'confirm password': (val) =>
       validatePasswordFields('confirm password', val),
     'contact number': (val) => {
-      if (val && !defaultPatterns.contact.test(val))
-        return defaultErrorMessages.contact;
-      return null;
+      if (!val) return null;
+      const pattern = getFieldPattern('contact number');
+      const errorMessage = getFieldErrorMessage('contact number');
+      return validateWithPattern(val, pattern!, errorMessage);
     },
     email: (val) => {
-      if (val && !defaultPatterns.email.test(val))
-        return defaultErrorMessages.email;
-      if (!val && !formData.mobile) return defaultErrorMessages.eitherRequired;
+      if (val) {
+        const pattern = getFieldPattern('email');
+        const errorMessage = getFieldErrorMessage('email');
+        const emailError = validateWithPattern(val, pattern!, errorMessage);
+        if (emailError) return emailError;
+      }
+      if (!val && !formData.mobile)
+        return getFieldErrorMessage('eitherRequired');
       return null;
     },
   };
@@ -206,8 +268,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     if (requiredError) return requiredError;
 
     // Step 2: Schema checks
-    const schemaRegex = buildSchemaRegex(fieldPatternString);
-    const schemaError = validateSchema(input, fieldKey, schemaRegex);
+    const schemaError = validateSchema(input, fieldKey);
     if (schemaError) return schemaError;
 
     // Step 3: Field-specific fallback
@@ -216,7 +277,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
 
     // Step 4: Generic fallback
-    if (required && !val) return defaultErrorMessages.requiredField;
+    if (required && !val) return getFieldErrorMessage('required');
 
     return null;
   };

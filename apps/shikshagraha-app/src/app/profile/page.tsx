@@ -196,11 +196,45 @@ export default function Profile({ params }: { params: { id: string } }) {
   const handleAccountClick = () => {
     setShowLogoutModal(true);
   };
+  const clearAllCookies = () => {
+    const cookies = document.cookie.split(';');
 
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf('=');
+      const name =
+        eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+
+      // Clear cookie for all possible paths and domains
+      const domains = [
+        window.location.hostname,
+        '.' + window.location.hostname,
+        window.location.hostname.split('.').slice(-2).join('.'),
+        '.' + window.location.hostname.split('.').slice(-2).join('.'),
+      ];
+
+      const paths = ['/', '', '/login', '/home'];
+
+      domains.forEach((domain) => {
+        paths.forEach((path) => {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; domain=${domain}`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; domain=${domain}; secure`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; domain=${domain}; samesite=lax`;
+        });
+      });
+
+      // Also try without domain
+      paths.forEach((path) => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
+      });
+    }
+  };
   const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
     clearIndexedDB();
+    clearAllCookies();
+    console.log('Cookies after clear:', document.cookie); // Debug log
     router.push('/');
   };
 
